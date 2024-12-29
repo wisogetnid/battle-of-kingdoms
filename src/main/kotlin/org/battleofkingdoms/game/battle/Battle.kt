@@ -18,7 +18,8 @@ class Battle(val army: Army, val opposingArmy: Army) {
         most valuable creatures of each army get returned
     */
     private fun winningRemains(army: Army, opposingArmy: Army, remainingStrength: Int): Army {
-        return Army(army.creatures
+        return Army(
+            army.creatures
             .sortedByDescending { it.value() }
             .fold(Pair(remainingStrength, emptyList<Creature>())) { acc, creature ->
                 when {
@@ -26,7 +27,8 @@ class Battle(val army: Army, val opposingArmy: Army) {
                     else -> Pair(acc.first - creature.attack(opposingArmy), acc.second + creature)
                 }
             }
-            .second)
+            .second
+        )
     }
 
     private fun losingRemains(army: Army, opposingArmy: Army): Army {

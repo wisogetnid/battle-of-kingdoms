@@ -1,2 +1,2 @@
-rootProject.name = "fantasy-quest"
+rootProject.name = "battle-of-kingdoms"
 
