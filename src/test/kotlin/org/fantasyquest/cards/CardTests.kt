@@ -24,9 +24,9 @@ class CardTests {
 
     @ParameterizedTest
     @MethodSource("creatures")
-    fun shouldHaveMandatoryFields(creature: Creature, opposingArmyCreatures: Map<Creature, Int>, expectedAttack: Int) {
+    fun shouldHaveMandatoryFields(creature: Creature, opposingArmy: Army, expectedAttack: Int) {
         Assertions.assertNotNull(creature.title());
-        Assertions.assertEquals(expectedAttack, creature.attack(Army(opposingArmyCreatures)));
+        Assertions.assertEquals(expectedAttack, creature.attack(opposingArmy));
         Assertions.assertNotNull(creature.cost())
     }
 
@@ -40,12 +40,10 @@ class CardTests {
 
         @JvmStatic
         fun creatures() = listOf(
-            Arguments.of(Horde(), noEnemy(), 1),
-            Arguments.of(Shield(), noEnemy(), 1),
-            Arguments.of(Shield(), mapOf(Bow() to 1), 2),
-            Arguments.of(Bow(), noEnemy(), 2)
+            Arguments.of(Horde(), Army(), 1),
+            Arguments.of(Shield(), Army(), 1),
+            Arguments.of(Shield(), Army.of(Bow()), 2),
+            Arguments.of(Bow(), Army(), 2)
         )
-
-        private fun noEnemy() = emptyMap<Creature, Int>()
     }
 }

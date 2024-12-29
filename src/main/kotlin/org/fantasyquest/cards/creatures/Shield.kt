@@ -7,10 +7,12 @@ import org.fantasyquest.game.battle.Army
 
 class Shield : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = when {
-        opposingArmy.creatures.keys.contains(Bow()) -> 2
+        opposingArmy.creatures.contains(Bow()) -> 2
         else -> 1
     }
     override fun cost(): Map<Resource, Int> = mapOf(Wood() to 1)
+    override fun value(): Int = 2
+
     override fun title(): String = "Sword and Shield"
 
     override fun equals(other: Any?): Boolean {

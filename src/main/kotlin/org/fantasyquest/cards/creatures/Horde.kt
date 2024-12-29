@@ -7,6 +7,8 @@ import org.fantasyquest.game.battle.Army
 class Horde : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = 1
     override fun cost(): Map<Resource, Int> = emptyMap()
+    override fun value(): Int = 1
+
     override fun title(): String = "Horde"
 
     override fun equals(other: Any?): Boolean {
