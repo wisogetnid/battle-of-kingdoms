@@ -1,4 +1,4 @@
-package org.fantasyquest.cards.resources
+package org.battleofkingdoms.cards.resources
 
 class Iron : Resource {
     override fun value(): Int = 1

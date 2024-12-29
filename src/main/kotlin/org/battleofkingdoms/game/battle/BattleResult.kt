@@ -1,4 +1,4 @@
-package org.fantasyquest.game.battle
+package org.battleofkingdoms.game.battle
 
 data class BattleResult(val armyRemaining: Army, val opposingArmyRemaining: Army, val outcome: BattleOutcome) {
     enum class BattleOutcome {

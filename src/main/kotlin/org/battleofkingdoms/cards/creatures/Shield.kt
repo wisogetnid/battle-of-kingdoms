@@ -1,9 +1,9 @@
-package org.fantasyquest.cards.creatures
+package org.battleofkingdoms.cards.creatures
 
-import org.fantasyquest.cards.creatures.traits.Infantry
-import org.fantasyquest.cards.resources.Resource
-import org.fantasyquest.cards.resources.Wood
-import org.fantasyquest.game.battle.Army
+import org.battleofkingdoms.cards.creatures.traits.Infantry
+import org.battleofkingdoms.cards.resources.Resource
+import org.battleofkingdoms.cards.resources.Wood
+import org.battleofkingdoms.game.battle.Army
 
 class Shield : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = when {

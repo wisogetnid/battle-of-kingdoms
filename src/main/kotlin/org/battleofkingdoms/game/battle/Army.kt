@@ -1,6 +1,6 @@
-package org.fantasyquest.game.battle
+package org.battleofkingdoms.game.battle
 
-import org.fantasyquest.cards.creatures.Creature
+import org.battleofkingdoms.cards.creatures.Creature
 
 class Army(val creatures: List<Creature> = emptyList()) {
     fun attackStrength(opposingArmy: Army): Int {

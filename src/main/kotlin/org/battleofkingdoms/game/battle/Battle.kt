@@ -1,7 +1,7 @@
-package org.fantasyquest.game.battle
+package org.battleofkingdoms.game.battle
 
-import org.fantasyquest.cards.creatures.Creature
-import org.fantasyquest.game.battle.BattleResult.BattleOutcome
+import org.battleofkingdoms.cards.creatures.Creature
+import org.battleofkingdoms.game.battle.BattleResult.BattleOutcome
 
 class Battle(val army: Army, val opposingArmy: Army) {
     fun resolve(): BattleResult {

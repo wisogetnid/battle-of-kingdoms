@@ -1,14 +1,14 @@
-package org.fantasyquest.cards
+package org.battleofkingdoms.cards
 
-import org.fantasyquest.cards.creatures.Bow
-import org.fantasyquest.cards.creatures.Creature
-import org.fantasyquest.cards.creatures.Horde
-import org.fantasyquest.cards.creatures.Shield
-import org.fantasyquest.cards.resources.Food
-import org.fantasyquest.cards.resources.Iron
-import org.fantasyquest.cards.resources.Resource
-import org.fantasyquest.cards.resources.Wood
-import org.fantasyquest.game.battle.Army
+import org.battleofkingdoms.cards.creatures.Bow
+import org.battleofkingdoms.cards.creatures.Creature
+import org.battleofkingdoms.cards.creatures.Horde
+import org.battleofkingdoms.cards.creatures.Shield
+import org.battleofkingdoms.cards.resources.Food
+import org.battleofkingdoms.cards.resources.Iron
+import org.battleofkingdoms.cards.resources.Resource
+import org.battleofkingdoms.cards.resources.Wood
+import org.battleofkingdoms.game.battle.Army
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments

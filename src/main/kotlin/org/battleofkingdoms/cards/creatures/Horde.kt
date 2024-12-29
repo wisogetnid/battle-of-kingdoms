@@ -1,8 +1,8 @@
-package org.fantasyquest.cards.creatures
+package org.battleofkingdoms.cards.creatures
 
-import org.fantasyquest.cards.creatures.traits.Infantry
-import org.fantasyquest.cards.resources.Resource
-import org.fantasyquest.game.battle.Army
+import org.battleofkingdoms.cards.creatures.traits.Infantry
+import org.battleofkingdoms.cards.resources.Resource
+import org.battleofkingdoms.game.battle.Army
 
 class Horde : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = 1

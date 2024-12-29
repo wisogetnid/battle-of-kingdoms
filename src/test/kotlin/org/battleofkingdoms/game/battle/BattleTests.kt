@@ -1,8 +1,8 @@
-package org.fantasyquest.game.battle
+package org.battleofkingdoms.game.battle
 
-import org.fantasyquest.cards.creatures.Bow
-import org.fantasyquest.cards.creatures.Horde
-import org.fantasyquest.cards.creatures.Shield
+import org.battleofkingdoms.cards.creatures.Bow
+import org.battleofkingdoms.cards.creatures.Horde
+import org.battleofkingdoms.cards.creatures.Shield
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments

@@ -1,4 +1,4 @@
-package org.fantasyquest.cards
+package org.battleofkingdoms.cards
 
 interface Card {
     fun title(): String
