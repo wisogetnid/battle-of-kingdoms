@@ -19,13 +19,12 @@ class Battle(val army: Army, val opposingArmy: Army) {
     */
     private fun winningRemains(army: Army, opposingArmy: Army, remainingStrength: Int): Army {
         return Army(army.creatures
-            .sortedBy { it.value() }
-            .reversed()
+            .sortedByDescending { it.value() }
             .fold(Pair(remainingStrength, emptyList<Creature>())) { acc, creature ->
-                if (creature.attack(opposingArmy) > acc.first)
-                    acc
-                else
-                    Pair(acc.first - creature.attack(opposingArmy), acc.second + creature)
+                when {
+                    creature.attack(opposingArmy) > acc.first -> acc
+                    else -> Pair(acc.first - creature.attack(opposingArmy), acc.second + creature)
+                }
             }
             .second)
     }
