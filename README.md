@@ -28,4 +28,10 @@ This is a try on a deck building/strategy card game, built digitally first to al
 - Horde > most basic, no equipment
 - Shield > grants defence against ranged attacks
 - Bow > higher attack strength
-- ...
+
+## Supporters
+- ...none yet. Thinking of things like
+  - attracting crowds (for more creatures)
+  - resource gatherer (for more resources)
+  - healer (for increased army recovery after battles)
+  - tactician (allowing to use different battle tactics)
