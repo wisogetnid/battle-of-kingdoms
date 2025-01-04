@@ -1,4 +1,4 @@
-package org.battleofkingdoms.game.states
+package org.battleofkingdoms.game.phases
 
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.player.Player
@@ -18,7 +18,7 @@ class GameWaitingForPlayers(expectedNumberOfPlayers: Int, player: Player) : Game
     fun join(player: Player): Game {
         players.add(player)
         if (players.count() == numberOfPlayers)
-            return this.startGame()
+            return this.startGame().newTurn()
 
         return this
     }

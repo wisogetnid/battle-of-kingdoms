@@ -2,7 +2,7 @@ package org.battleofkingdoms.e2e
 
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.player.Player
-import org.battleofkingdoms.game.states.GameWaitingForPlayers
+import org.battleofkingdoms.game.phases.GameWaitingForPlayers
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
