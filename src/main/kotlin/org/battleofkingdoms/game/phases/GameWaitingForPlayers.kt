@@ -11,7 +11,7 @@ class GameWaitingForPlayers(expectedNumberOfPlayers: Int, player: Player) : Game
         players.add(player)
     }
 
-    override fun state() = State.WAITING_FOR_PLAYERS
+    override fun state() = State.WAIT_FOR_PLAYERS_TO_JOIN
 
     override fun players(): Set<Player> = players
 

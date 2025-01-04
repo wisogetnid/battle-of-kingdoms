@@ -18,5 +18,5 @@ open class Game(val numberOfPlayers: Int, val id: UUID = UUID.randomUUID()) {
     private fun iron(count: Int): List<Card> = (1..count).map { Iron() }
     private fun horde(count: Int): List<Card> = (1..count).map { Horde() }
 
-    enum class State { WAITING_FOR_PLAYERS, IN_PLAY, NOT_INITIALIZED }
+    enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }
 }
