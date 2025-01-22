@@ -4,7 +4,7 @@ import org.battleofkingdoms.cards.Card
 import org.battleofkingdoms.cards.creatures.Horde
 import org.battleofkingdoms.cards.resources.Iron
 import org.battleofkingdoms.cards.resources.Wood
-import org.battleofkingdoms.game.player.Player
+import org.battleofkingdoms.player.Player
 import java.util.*
 
 open class Game(val numberOfPlayers: Int, val id: UUID = UUID.randomUUID()) {

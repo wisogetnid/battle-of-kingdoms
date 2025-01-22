@@ -2,8 +2,8 @@ package org.battleofkingdoms.e2e
 
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.phases.GameInPlay
-import org.battleofkingdoms.game.player.Player
-import org.battleofkingdoms.game.server.GameServer
+import org.battleofkingdoms.player.Player
+import org.battleofkingdoms.server.GameServer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

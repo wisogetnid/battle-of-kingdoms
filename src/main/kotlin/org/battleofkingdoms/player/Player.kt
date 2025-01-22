@@ -1,4 +1,4 @@
-package org.battleofkingdoms.game.player
+package org.battleofkingdoms.player
 
 import org.battleofkingdoms.cards.Card
 import org.battleofkingdoms.game.Game

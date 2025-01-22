@@ -1,4 +1,4 @@
-package org.battleofkingdoms.game.battle
+package org.battleofkingdoms.battle
 
 import org.battleofkingdoms.cards.creatures.Creature
 

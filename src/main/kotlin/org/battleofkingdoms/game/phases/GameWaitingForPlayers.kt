@@ -1,7 +1,7 @@
 package org.battleofkingdoms.game.phases
 
 import org.battleofkingdoms.game.Game
-import org.battleofkingdoms.game.player.Player
+import org.battleofkingdoms.player.Player
 
 class GameWaitingForPlayers(expectedNumberOfPlayers: Int, player: Player) : Game(expectedNumberOfPlayers) {
 

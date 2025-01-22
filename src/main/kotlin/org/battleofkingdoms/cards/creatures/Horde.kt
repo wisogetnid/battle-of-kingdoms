@@ -2,7 +2,7 @@ package org.battleofkingdoms.cards.creatures
 
 import org.battleofkingdoms.cards.creatures.traits.Infantry
 import org.battleofkingdoms.cards.resources.Resource
-import org.battleofkingdoms.game.battle.Army
+import org.battleofkingdoms.battle.Army
 
 class Horde : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = 1

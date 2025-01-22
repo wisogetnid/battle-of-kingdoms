@@ -1,5 +1,8 @@
 package org.battleofkingdoms.game.battle
 
+import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.battle.Battle
+import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.cards.creatures.Bow
 import org.battleofkingdoms.cards.creatures.Horde
 import org.battleofkingdoms.cards.creatures.Shield

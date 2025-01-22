@@ -4,7 +4,7 @@ import org.battleofkingdoms.cards.creatures.traits.Infantry
 import org.battleofkingdoms.cards.creatures.traits.Ranged
 import org.battleofkingdoms.cards.resources.Resource
 import org.battleofkingdoms.cards.resources.Wood
-import org.battleofkingdoms.game.battle.Army
+import org.battleofkingdoms.battle.Army
 
 class Shield : Creature, Infantry {
     override fun attack(opposingArmy: Army): Int = when {

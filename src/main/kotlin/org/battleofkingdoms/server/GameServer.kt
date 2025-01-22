@@ -1,8 +1,8 @@
-package org.battleofkingdoms.game.server
+package org.battleofkingdoms.server
 
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.phases.GameWaitingForPlayers
-import org.battleofkingdoms.game.player.Player
+import org.battleofkingdoms.player.Player
 import java.util.*
 
 class GameServer {

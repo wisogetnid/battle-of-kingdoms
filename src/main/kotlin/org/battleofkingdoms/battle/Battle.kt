@@ -1,7 +1,7 @@
-package org.battleofkingdoms.game.battle
+package org.battleofkingdoms.battle
 
 import org.battleofkingdoms.cards.creatures.Creature
-import org.battleofkingdoms.game.battle.BattleResult.BattleOutcome
+import org.battleofkingdoms.battle.BattleResult.BattleOutcome
 
 class Battle(val army: Army, val opposingArmy: Army) {
     fun resolve(): BattleResult {

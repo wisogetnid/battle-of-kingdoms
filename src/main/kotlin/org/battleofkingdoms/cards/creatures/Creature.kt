@@ -2,7 +2,7 @@ package org.battleofkingdoms.cards.creatures
 
 import org.battleofkingdoms.cards.Card
 import org.battleofkingdoms.cards.resources.Resource
-import org.battleofkingdoms.game.battle.Army
+import org.battleofkingdoms.battle.Army
 
 interface Creature : Card {
     fun attack(opposingArmy: Army) : Int

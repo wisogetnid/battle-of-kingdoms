@@ -8,7 +8,7 @@ import org.battleofkingdoms.cards.resources.Food
 import org.battleofkingdoms.cards.resources.Iron
 import org.battleofkingdoms.cards.resources.Resource
 import org.battleofkingdoms.cards.resources.Wood
-import org.battleofkingdoms.game.battle.Army
+import org.battleofkingdoms.battle.Army
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
