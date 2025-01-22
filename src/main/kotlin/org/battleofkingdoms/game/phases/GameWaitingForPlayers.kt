@@ -15,6 +15,7 @@ class GameWaitingForPlayers(expectedNumberOfPlayers: Int, player: Player) : Game
 
     override fun players(): Set<Player> = players
 
+    // TODO updates players
     fun join(player: Player): Game {
         players.add(player)
         if (players.count() == numberOfPlayers)

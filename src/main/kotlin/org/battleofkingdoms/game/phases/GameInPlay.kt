@@ -15,6 +15,7 @@ class GameInPlay(id: UUID, val players: Set<Player>) : Game(players.size, id) {
         return this
     }
 
+    // TODO updates resourceDeck
     private fun drawCards(player: Player, amount: Int) {
         player.giveCards(this.resourceDeck.take(amount))
         resourceDeck = resourceDeck.drop(CARD_DRAW_ON_NEW_TURN)
