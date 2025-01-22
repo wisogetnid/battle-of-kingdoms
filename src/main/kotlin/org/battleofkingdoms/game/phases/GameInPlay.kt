@@ -11,7 +11,10 @@ class GameInPlay(id: UUID, val players: Set<Player>) : Game(players.size, id) {
     override fun players(): Set<Player> = players
 
     fun newTurn(): GameInPlay {
-        players.forEach { this.drawCards(it, CARD_DRAW_ON_NEW_TURN) }
+        players.forEach {
+            this.drawCards(it, CARD_DRAW_ON_NEW_TURN)
+            it.setActive()
+        }
         return this
     }
 

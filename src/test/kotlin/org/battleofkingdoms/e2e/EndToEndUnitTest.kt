@@ -20,11 +20,19 @@ class EndToEndUnitTest {
         gameWaitingForPlayers?.let { validateGameWaitingForPlayers(it) }
 
         val anotherPlayer = Player(ANOTHER_PLAYER)
+        validatePlayersWaiting(somePlayer, anotherPlayer)
+
         gameServer.joinGame(gameId, anotherPlayer)
+        validatePlayersActive(somePlayer, anotherPlayer)
+
         val gameInPlay = gameServer.getGame(gameId).let { it as GameInPlay }
         gameInPlay.let { validateGameInPlay(it, somePlayer, anotherPlayer) }
 
-        val gameStillInPlay = somePlayer.finishBuildUp(gameInPlay)
+        gameServer.finishBuildUp(gameId, somePlayer)
+        validatePlayersWaiting(somePlayer)
+        validatePlayersActive(anotherPlayer)
+
+        val gameStillInPlay = gameServer.getGame(gameId).let { it as GameInPlay }
         validateGameStillInPlay(gameStillInPlay)
     }
 
@@ -34,6 +42,7 @@ class EndToEndUnitTest {
         assertEquals(Game.State.WAIT_FOR_PLAYERS_TO_JOIN, game.state())
         assertEquals(SOME_PLAYER_NAME, game.players().first().name)
     }
+
     private fun validateGameInPlay(
         game: Game,
         somePlayer: Player,
@@ -48,5 +57,13 @@ class EndToEndUnitTest {
 
     private fun validateGameStillInPlay(game: Game) {
         assertEquals(Game.State.IN_PLAY, game.state())
+    }
+
+    private fun validatePlayersWaiting(vararg players: Player) {
+        players.forEach { assertEquals(Player.State.WAITING, it.state()) }
+    }
+
+    private fun validatePlayersActive(vararg players: Player) {
+        players.forEach { assertEquals(Player.State.ACTIVE, it.state()) }
     }
 }

@@ -1,4 +1,4 @@
-package org.battleofkingdoms.game.server
+package org.battleofkingdoms.server
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

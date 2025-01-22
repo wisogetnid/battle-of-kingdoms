@@ -1,6 +1,7 @@
 package org.battleofkingdoms.server
 
 import org.battleofkingdoms.game.Game
+import org.battleofkingdoms.game.phases.GameInPlay
 import org.battleofkingdoms.game.phases.GameWaitingForPlayers
 import org.battleofkingdoms.player.Player
 import java.util.*
@@ -25,6 +26,13 @@ class GameServer {
         val game = games.get(gameId)
         if (game is GameWaitingForPlayers) {
             games[gameId] = game.join(player)
+        }
+    }
+
+    fun finishBuildUp(gameId: UUID, player: Player) {
+        val game = games.get(gameId)
+        if (game is GameInPlay) {
+            game.players.find { it.name.equals(player.name) }?.setWaiting()
         }
     }
 }

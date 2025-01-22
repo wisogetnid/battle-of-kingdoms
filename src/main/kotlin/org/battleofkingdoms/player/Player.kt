@@ -1,10 +1,8 @@
 package org.battleofkingdoms.player
 
 import org.battleofkingdoms.cards.Card
-import org.battleofkingdoms.game.Game
-import org.battleofkingdoms.game.phases.GameInPlay
 
-class Player(val name: String, private var hand: List<Card> = emptyList()) {
+class Player(val name: String, private var hand: List<Card> = emptyList(), private var state: State = State.WAITING) {
 
     // TODO updates hand
     fun giveCards(cards: List<Card>) {
@@ -13,7 +11,13 @@ class Player(val name: String, private var hand: List<Card> = emptyList()) {
 
     fun hand(): List<Card> = hand
 
-    fun finishBuildUp(game: GameInPlay): Game {
-        return game
-    }
+    fun state(): State = state
+
+    // TODO updates state
+    fun setActive() = run { state = State.ACTIVE }
+
+    // TODO updates xtate
+    fun setWaiting() = run { state = State.WAITING}
+
+    enum class State { ACTIVE, WAITING }
 }
