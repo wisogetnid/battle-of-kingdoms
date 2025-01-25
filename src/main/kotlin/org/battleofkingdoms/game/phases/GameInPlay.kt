@@ -12,9 +12,6 @@ class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id) {
 
     // TODO updates resourceDeck and players
     fun newTurn(): GameInPlay {
-        players.forEach {
-            resourceDeck.drop(CARD_DRAW_ON_NEW_TURN).also { resourceDeck = it }
-        }
         players
             .map {
                 it.copy(
@@ -23,29 +20,20 @@ class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id) {
                 )
             }
             .also { players = it }
+        players.forEach {
+            resourceDeck.drop(CARD_DRAW_ON_NEW_TURN).also { resourceDeck = it }
+        }
         return this
     }
 
     // TODO updates players
     fun finishBuildUp(playerName: String): Game {
-        setToWaiting(playerName)
+        players = setToWaiting(playerName)
 
         return when (players.all { Player.State.WAITING == it.state }) {
             true -> GameBattle(this, players).newBattle()
             else -> this
         }
-    }
-
-    private fun setToWaiting(playerName: String) {
-        players
-            .map {
-                if (it.name.equals(playerName)) {
-                    it.copy(state = Player.State.WAITING)
-                } else {
-                    it
-                }
-            }
-            .also { players = it }
     }
 
 }

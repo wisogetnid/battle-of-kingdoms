@@ -10,13 +10,38 @@ import java.util.*
 open class Game(val numberOfPlayers: Int, val id: UUID = UUID.randomUUID()) {
     open fun state(): State = State.NOT_INITIALIZED
     open fun players(): List<Player> = emptyList()
-    var resourceDeck: List<Card> = wood(20) + iron(20) + horde(20).shuffled()
+    var resourceDeck: List<Card> =
+        horde(2) + Wood() + Iron() +
+        horde(2) + Wood() + Iron() +
+        wood(18) + iron(18) + horde(16)
 
     constructor(existingGame: Game) : this(existingGame.numberOfPlayers, existingGame.id)
 
     private fun wood(count: Int): List<Card> = (1..count).map { Wood() }
     private fun iron(count: Int): List<Card> = (1..count).map { Iron() }
     private fun horde(count: Int): List<Card> = (1..count).map { Horde() }
+
+    fun setToWaiting(playerName: String): List<Player> {
+        return players()
+            .map {
+                if (it.name.equals(playerName)) {
+                    it.copy(state = Player.State.WAITING)
+                } else {
+                    it
+                }
+            }
+    }
+
+    fun removeCards(playerName: String, vararg cards: Card): List<Player> {
+        return players()
+            .map {
+                if (it.name.equals(playerName)) {
+                    it.copy(hand = it.hand - cards)
+                } else {
+                    it
+                }
+            }
+    }
 
     enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }
 }

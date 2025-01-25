@@ -1,6 +1,8 @@
 package org.battleofkingdoms.server
 
+import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.game.Game
+import org.battleofkingdoms.game.phases.GameBattle
 import org.battleofkingdoms.game.phases.GameInPlay
 import org.battleofkingdoms.game.phases.GameWaitingForPlayers
 import org.battleofkingdoms.player.Player
@@ -33,6 +35,13 @@ class GameServer {
         val game = games.get(gameId)
         if (game is GameInPlay) {
             games[gameId] = game.finishBuildUp(playerName)
+        }
+    }
+
+    fun commitArmy(gameId: UUID, playerName: String, vararg creatures: Creature) {
+        val game = games.get(gameId)
+        if (game is GameBattle) {
+            games[gameId] = game.commitArmy(playerName, *creatures)
         }
     }
 }
