@@ -29,14 +29,10 @@ class GameServer {
         }
     }
 
-    fun finishBuildUp(gameId: UUID, player: Player) {
+    fun finishBuildUp(gameId: UUID, playerName: String) {
         val game = games.get(gameId)
         if (game is GameInPlay) {
-            game.players
-                .filter { it.name.equals(player.name) }
-                .map { it.copy(state = Player.State.WAITING) }
-                .toSet()
-                .also { game.players = it }
+            games[gameId] = game.finishBuildUp(playerName)
         }
     }
 }

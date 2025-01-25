@@ -6,9 +6,9 @@ import java.util.*
 
 private const val CARD_DRAW_ON_NEW_TURN = 4
 
-class GameInPlay(id: UUID, var players: Set<Player>) : Game(players.size, id) {
+class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id) {
     override fun state(): State = State.IN_PLAY
-    override fun players(): Set<Player> = players
+    override fun players(): List<Player> = players
 
     // TODO updates resourceDeck and players
     fun newTurn(): GameInPlay {
@@ -22,9 +22,30 @@ class GameInPlay(id: UUID, var players: Set<Player>) : Game(players.size, id) {
                     state = Player.State.ACTIVE
                 )
             }
-            .toSet()
             .also { players = it }
         return this
+    }
+
+    // TODO updates players
+    fun finishBuildUp(playerName: String): Game {
+        setToWaiting(playerName)
+
+        return when (players.all { Player.State.WAITING == it.state }) {
+            true -> GameBattle(this, players).newBattle()
+            else -> this
+        }
+    }
+
+    private fun setToWaiting(playerName: String) {
+        players
+            .map {
+                if (it.name.equals(playerName)) {
+                    it.copy(state = Player.State.WAITING)
+                } else {
+                    it
+                }
+            }
+            .also { players = it }
     }
 
 }

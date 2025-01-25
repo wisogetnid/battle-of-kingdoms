@@ -9,7 +9,7 @@ import java.util.*
 
 open class Game(val numberOfPlayers: Int, val id: UUID = UUID.randomUUID()) {
     open fun state(): State = State.NOT_INITIALIZED
-    open fun players(): Set<Player> = emptySet()
+    open fun players(): List<Player> = emptyList()
     var resourceDeck: List<Card> = wood(20) + iron(20) + horde(20).shuffled()
 
     constructor(existingGame: Game) : this(existingGame.numberOfPlayers, existingGame.id)

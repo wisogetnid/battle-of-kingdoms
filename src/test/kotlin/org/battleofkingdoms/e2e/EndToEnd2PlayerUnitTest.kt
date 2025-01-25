@@ -1,6 +1,7 @@
 package org.battleofkingdoms.e2e
 
 import org.battleofkingdoms.game.Game
+import org.battleofkingdoms.game.phases.GameBattle
 import org.battleofkingdoms.game.phases.GameInPlay
 import org.battleofkingdoms.game.phases.GameWaitingForPlayers
 import org.battleofkingdoms.player.Player
@@ -9,10 +10,10 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private const val SOME_PLAYER_NAME = "player1"
-private const val ANOTHER_PLAYER = "player2"
+private const val SOME_PLAYER_NAME = "some player"
+private const val ANOTHER_PLAYER = "another player"
 
-class EndToEndUnitTest {
+class EndToEnd2PlayerUnitTest {
     @Test
     fun testGameSetup_shouldCreateTwoPlayerGame() {
         val gameServer = GameServer()
@@ -31,11 +32,17 @@ class EndToEndUnitTest {
         validatePlayersActive(*gameInPlay.players.toTypedArray())
         validateGameInPlay(gameInPlay)
 
-        gameServer.finishBuildUp(gameId, somePlayer)
+        gameServer.finishBuildUp(gameId, somePlayer.name)
 
         val gameStillInPlay = gameServer.getGame(gameId).let { it as GameInPlay }
         validateSomePlayersWaiting(gameStillInPlay.players)
         validateGameStillInPlay(gameStillInPlay)
+
+        gameServer.finishBuildUp(gameId, anotherPlayer.name)
+
+        val gameBattle = gameServer.getGame(gameId).let { it as GameBattle }
+        validatePlayersActive(*gameBattle.players.toTypedArray())
+        validateGameBattle(gameBattle)
     }
 
     private fun validateGameWaitingForPlayers(
@@ -59,6 +66,11 @@ class EndToEndUnitTest {
         assertEquals(Game.State.IN_PLAY, game.state())
     }
 
+    private fun validateGameBattle(game: GameBattle) {
+        assertEquals(Game.State.BATTLE, game.state())
+
+    }
+
     private fun validatePlayersWaiting(vararg players: Player) {
         players.forEach { assertEquals(Player.State.WAITING, it.state) }
     }
@@ -67,7 +79,7 @@ class EndToEndUnitTest {
         players.forEach { assertEquals(Player.State.ACTIVE, it.state) }
     }
 
-    private fun validateSomePlayersWaiting(players: Set<Player>) {
+    private fun validateSomePlayersWaiting(players: List<Player>) {
         assertTrue(
             players
                 .filter { Player.State.WAITING == it.state }
