@@ -32,7 +32,11 @@ class GameServer {
     fun finishBuildUp(gameId: UUID, player: Player) {
         val game = games.get(gameId)
         if (game is GameInPlay) {
-            game.players.find { it.name.equals(player.name) }?.setWaiting()
+            game.players
+                .filter { it.name.equals(player.name) }
+                .map { it.copy(state = Player.State.WAITING) }
+                .toSet()
+                .also { game.players = it }
         }
     }
 }

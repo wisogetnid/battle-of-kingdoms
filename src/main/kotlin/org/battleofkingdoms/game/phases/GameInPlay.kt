@@ -6,21 +6,25 @@ import java.util.*
 
 private const val CARD_DRAW_ON_NEW_TURN = 4
 
-class GameInPlay(id: UUID, val players: Set<Player>) : Game(players.size, id) {
+class GameInPlay(id: UUID, var players: Set<Player>) : Game(players.size, id) {
     override fun state(): State = State.IN_PLAY
     override fun players(): Set<Player> = players
 
+    // TODO updates resourceDeck and players
     fun newTurn(): GameInPlay {
         players.forEach {
-            this.drawCards(it, CARD_DRAW_ON_NEW_TURN)
-            it.setActive()
+            resourceDeck.drop(CARD_DRAW_ON_NEW_TURN).also { resourceDeck = it }
         }
+        players
+            .map {
+                it.copy(
+                    hand = it.hand + resourceDeck.take(CARD_DRAW_ON_NEW_TURN),
+                    state = Player.State.ACTIVE
+                )
+            }
+            .toSet()
+            .also { players = it }
         return this
     }
 
-    // TODO updates resourceDeck
-    private fun drawCards(player: Player, amount: Int) {
-        player.giveCards(this.resourceDeck.take(amount))
-        resourceDeck = resourceDeck.drop(CARD_DRAW_ON_NEW_TURN)
-    }
 }
