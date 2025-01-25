@@ -15,7 +15,7 @@ class GameServer {
 
     // TODO updates games map
     fun hostGame(numberOfPlayers: Int, player: Player): UUID {
-        val game = GameWaitingForPlayers(numberOfPlayers, player)
+        val game = GameWaitingForPlayers(numberOfPlayers).join(player)
         games[game.id] = game
         return game.id
 
