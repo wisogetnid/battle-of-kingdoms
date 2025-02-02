@@ -60,7 +60,7 @@ class EndToEnd2PlayerUnitTest {
         game: Game
     ) {
         assertEquals(Game.State.IN_PLAY, game.state())
-        assertEquals(52, game.resourceDeck.size)
+        assertEquals(52, game.board.resourceDeck.size)
         game.players().forEach {
             assertEquals(4, it.hand.size)
         }

@@ -1,5 +1,6 @@
 package org.battleofkingdoms.game.phases
 
+import org.battleofkingdoms.game.Board
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.player.Player
 import java.util.*
@@ -15,13 +16,13 @@ class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id) {
         players
             .map {
                 it.copy(
-                    hand = it.hand + resourceDeck.take(CARD_DRAW_ON_NEW_TURN),
+                    hand = it.hand + board.resourceDeck.take(CARD_DRAW_ON_NEW_TURN),
                     state = Player.State.ACTIVE
                 )
             }
             .also { players = it }
         players.forEach {
-            resourceDeck.drop(CARD_DRAW_ON_NEW_TURN).also { resourceDeck = it }
+            board = Board(board.resourceDeck.drop(CARD_DRAW_ON_NEW_TURN))
         }
         return this
     }

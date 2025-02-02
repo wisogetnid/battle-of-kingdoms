@@ -10,16 +10,9 @@ import java.util.*
 open class Game(val numberOfPlayers: Int, val id: UUID = UUID.randomUUID()) {
     open fun state(): State = State.NOT_INITIALIZED
     open fun players(): List<Player> = emptyList()
-    var resourceDeck: List<Card> =
-        horde(2) + Wood() + Iron() +
-        horde(2) + Wood() + Iron() +
-        wood(18) + iron(18) + horde(16)
+    var board: Board = Board.withTestResources()
 
     constructor(existingGame: Game) : this(existingGame.numberOfPlayers, existingGame.id)
-
-    private fun wood(count: Int): List<Card> = (1..count).map { Wood() }
-    private fun iron(count: Int): List<Card> = (1..count).map { Iron() }
-    private fun horde(count: Int): List<Card> = (1..count).map { Horde() }
 
     fun setToWaiting(playerName: String): List<Player> {
         return players()
