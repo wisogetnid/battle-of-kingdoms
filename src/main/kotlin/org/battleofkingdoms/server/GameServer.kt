@@ -2,9 +2,8 @@ package org.battleofkingdoms.server
 
 import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.game.Game
+import org.battleofkingdoms.game.Game.State
 import org.battleofkingdoms.game.phases.GameBattle
-import org.battleofkingdoms.game.phases.GameInPlay
-import org.battleofkingdoms.game.phases.GameWaitingForPlayers
 import org.battleofkingdoms.player.Player
 import java.util.*
 
@@ -17,7 +16,7 @@ class GameServer {
 
     // TODO updates games map
     fun hostGame(numberOfPlayers: Int, player: Player): UUID {
-        val game = GameWaitingForPlayers(numberOfPlayers).join(player)
+        val game = Game(numberOfPlayers, state = State.WAIT_FOR_PLAYERS_TO_JOIN).join(player)
         games[game.id] = game
         return game.id
 
@@ -26,14 +25,14 @@ class GameServer {
     // TODO updates games map
     fun joinGame(gameId: UUID, player: Player) {
         val game = games.get(gameId)
-        if (game is GameWaitingForPlayers) {
+        if (game?.state() == State.WAIT_FOR_PLAYERS_TO_JOIN) {
             games[gameId] = game.join(player)
         }
     }
 
     fun finishBuildUp(gameId: UUID, playerName: String) {
         val game = games.get(gameId)
-        if (game is GameInPlay) {
+        if (game?.state() == State.IN_PLAY) {
             games[gameId] = game.finishBuildUp(playerName)
         }
     }

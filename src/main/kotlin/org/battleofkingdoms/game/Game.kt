@@ -1,12 +1,14 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.cards.Card
-import org.battleofkingdoms.game.phases.GameInPlay
+import org.battleofkingdoms.game.phases.GameBattle
 import org.battleofkingdoms.player.Player
 import java.util.*
 
-open class Game(val numberOfPlayers: Int, val playerList: MutableList<Player> = mutableListOf(), val id: UUID = UUID.randomUUID()) {
-    open fun state(): State = State.NOT_INITIALIZED
+const val CARD_DRAW_ON_NEW_TURN = 4
+
+open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = mutableListOf(), val id: UUID = UUID.randomUUID(), var state: State = State.NOT_INITIALIZED) {
+    open fun state(): State = state
     open fun players(): List<Player> = playerList.toList()
     var board: Board = Board.withTestResources()
 
@@ -42,8 +44,36 @@ open class Game(val numberOfPlayers: Int, val playerList: MutableList<Player> = 
         }
     }
 
-    private fun startGame(): GameInPlay {
-        return GameInPlay(id, players())
+    private fun startGame(): Game {
+        state = State.IN_PLAY
+        return this
+    }
+
+
+    // TODO updates resourceDeck and players
+    fun newTurn(): Game {
+        playerList = playerList
+            .map {
+                it.copy(
+                    hand = it.hand + board.resourceDeck.take(CARD_DRAW_ON_NEW_TURN),
+                    state = Player.State.ACTIVE
+                )
+            }
+            .toMutableList()
+        playerList.forEach {
+            board = Board(board.resourceDeck.drop(CARD_DRAW_ON_NEW_TURN))
+        }
+        return this
+    }
+
+    // TODO updates players
+    fun finishBuildUp(playerName: String): Game {
+        playerList = setToWaiting(playerName).toMutableList()
+
+        return when (playerList.all { Player.State.WAITING == it.state }) {
+            true -> GameBattle(this, playerList).newBattle()
+            else -> this
+        }
     }
 
     enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }
