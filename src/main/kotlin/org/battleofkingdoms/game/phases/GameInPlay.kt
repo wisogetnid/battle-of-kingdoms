@@ -7,7 +7,7 @@ import java.util.*
 
 private const val CARD_DRAW_ON_NEW_TURN = 4
 
-class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id) {
+class GameInPlay(id: UUID, var players: List<Player>) : Game(players.size, id = id) {
     override fun state(): State = State.IN_PLAY
     override fun players(): List<Player> = players
 
