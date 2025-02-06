@@ -3,7 +3,6 @@ package org.battleofkingdoms.server
 import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.Game.State
-import org.battleofkingdoms.game.phases.GameBattle
 import org.battleofkingdoms.player.Player
 import java.util.*
 
@@ -39,7 +38,7 @@ class GameServer {
 
     fun commitArmy(gameId: UUID, playerName: String, vararg creatures: Creature) {
         val game = games.get(gameId)
-        if (game is GameBattle) {
+        if (game?.state() == State.BATTLE) {
             games[gameId] = game.commitArmy(playerName, *creatures)
         }
     }

@@ -1,7 +1,7 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.cards.Card
-import org.battleofkingdoms.game.phases.GameBattle
+import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.player.Player
 import java.util.*
 
@@ -71,9 +71,21 @@ open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = 
         playerList = setToWaiting(playerName).toMutableList()
 
         return when (playerList.all { Player.State.WAITING == it.state }) {
-            true -> GameBattle(this, playerList).newBattle()
+            true -> this.newBattle()
             else -> this
         }
+    }
+
+    fun newBattle(): Game {
+        playerList = playerList.map { it.copy( state = Player.State.ACTIVE) }.toMutableList()
+        state = State.BATTLE
+        return this
+    }
+
+    fun commitArmy(playerName: String, vararg creatures: Creature): Game {
+        playerList = setToWaiting(playerName).toMutableList()
+        playerList = removeCards(playerName, *creatures).toMutableList()
+        return this
     }
 
     enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }
