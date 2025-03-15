@@ -28,17 +28,17 @@ class EndToEnd2PlayerUnitTest {
         gameServer.joinGame(gameId, anotherPlayer)
 
         val gameInPlay = gameServer.getGame(gameId).let { it as Game }
-        validatePlayersActive(*gameInPlay.players().toTypedArray())
+        validatePlayersActive(*gameInPlay.players().values.toTypedArray())
         validateGameInPlay(gameInPlay)
 
         gameServer.finishBuildUp(gameId, somePlayer.name)
 
         val gameStillInPlay = gameServer.getGame(gameId).let { it as Game }
-        validateSomePlayersWaiting(gameStillInPlay.players())
+        validatePlayersWaiting(gameStillInPlay.players()[SOME_PLAYER_NAME]!!)
         gameServer.finishBuildUp(gameId, anotherPlayer.name)
 
         val battleStart = gameServer.getGame(gameId).let { it as Game }
-        validatePlayersActive(*battleStart.players().toTypedArray())
+        validatePlayersActive(*battleStart.players().values.toTypedArray())
         validateGameInState(battleStart, Game.State.BATTLE)
 
         gameServer.commitArmy(gameId, somePlayer.name, Army(listOf(Horde(), Horde())))
@@ -54,7 +54,7 @@ class EndToEnd2PlayerUnitTest {
         game: Game
     ) {
         assertEquals(Game.State.WAIT_FOR_PLAYERS_TO_JOIN, game.state())
-        assertEquals(SOME_PLAYER_NAME, game.players().first().name)
+        assertEquals(SOME_PLAYER_NAME, game.players()[SOME_PLAYER_NAME]!!.name)
     }
 
     private fun validateGameInPlay(
@@ -63,7 +63,7 @@ class EndToEnd2PlayerUnitTest {
         assertEquals(Game.State.IN_PLAY, game.state())
         assertEquals(52, game.board.resourceDeck.size)
         game.players().forEach {
-            assertEquals(4, it.hand.size)
+            assertEquals(4, it.value.hand.size)
         }
     }
 
@@ -73,14 +73,14 @@ class EndToEnd2PlayerUnitTest {
 
     private fun validateFirstCommittedArmyBattle(game: Game) {
         assertEquals(Game.State.BATTLE, game.state())
-        assertEquals(1, game.players().filter { Player.State.WAITING == it.state }.count())
+        assertEquals(1, game.players().filter { Player.State.WAITING == it.value.state }.count())
         game.players()
-            .filter { Player.State.WAITING == it.state }
-            .forEach { assertEquals(2, it.hand.size) }
+            .filter { Player.State.WAITING == it.value.state }
+            .forEach { assertEquals(2, it.value.hand.size) }
 
         game.players()
-            .filter { Player.State.ACTIVE == it.state }
-            .forEach{ assertEquals(4, it.hand.size)}
+            .filter { Player.State.ACTIVE == it.value.state }
+            .forEach{ assertEquals(4, it.value.hand.size)}
     }
 
     private fun validateBattleResult(game: Game) {
@@ -93,12 +93,5 @@ class EndToEnd2PlayerUnitTest {
 
     private fun validatePlayersActive(vararg players: Player) {
         players.forEach { assertEquals(Player.State.ACTIVE, it.state) }
-    }
-
-    private fun validateSomePlayersWaiting(players: List<Player>) {
-        assertTrue(
-            players
-                .filter { Player.State.WAITING == it.state }
-                .count() >= 1)
     }
 }
