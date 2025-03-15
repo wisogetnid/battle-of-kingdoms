@@ -1,5 +1,6 @@
 package org.battleofkingdoms.e2e
 
+import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.creatures.Horde
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.player.Player
@@ -13,7 +14,7 @@ private const val ANOTHER_PLAYER = "another player"
 
 class EndToEnd2PlayerUnitTest {
     @Test
-    fun testGameSetup_shouldCreateTwoPlayerGame() {
+    fun testGameSetup_shouldCreateAndPlayTwoPlayerGame() {
         val gameServer = GameServer()
         val somePlayer = Player(name = SOME_PLAYER_NAME)
         val anotherPlayer = Player(ANOTHER_PLAYER)
@@ -40,9 +41,13 @@ class EndToEnd2PlayerUnitTest {
         validatePlayersActive(*battleStart.players().toTypedArray())
         validateGameInState(battleStart, Game.State.BATTLE)
 
-        gameServer.commitArmy(gameId, somePlayer.name, Horde(), Horde())
+        gameServer.commitArmy(gameId, somePlayer.name, Army(listOf(Horde(), Horde())))
         val committedArmyBattle = gameServer.getGame(gameId).let { it as Game }
         validateFirstCommittedArmyBattle(committedArmyBattle)
+
+        gameServer.commitArmy(gameId, anotherPlayer.name, Army(listOf(Horde())))
+        val battleResult = gameServer.getGame(gameId).let { it as Game }
+        validateBattleResult(battleResult)
     }
 
     private fun validateGameWaitingForPlayers(
@@ -72,6 +77,14 @@ class EndToEnd2PlayerUnitTest {
         game.players()
             .filter { Player.State.WAITING == it.state }
             .forEach { assertEquals(2, it.hand.size) }
+
+        game.players()
+            .filter { Player.State.ACTIVE == it.state }
+            .forEach{ assertEquals(4, it.hand.size)}
+    }
+
+    private fun validateBattleResult(game: Game) {
+        assertEquals(Game.State.IN_PLAY, game.state())
     }
 
     private fun validatePlayersWaiting(vararg players: Player) {

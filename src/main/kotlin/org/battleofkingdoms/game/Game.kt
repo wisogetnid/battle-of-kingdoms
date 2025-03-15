@@ -1,5 +1,6 @@
 package org.battleofkingdoms.game
 
+import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.Card
 import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.player.Player
@@ -25,7 +26,7 @@ open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = 
             }
     }
 
-    fun removeCards(playerName: String, vararg cards: Card): List<Player> {
+    fun removeCards(playerName: String, cards: List<Card>): List<Player> {
         return players()
             .map {
                 if (it.name.equals(playerName)) {
@@ -45,7 +46,6 @@ open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = 
     }
 
     private fun startGame(): Game {
-        state = State.IN_PLAY
         return this
     }
 
@@ -63,6 +63,7 @@ open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = 
         playerList.forEach {
             board = Board(board.resourceDeck.drop(CARD_DRAW_ON_NEW_TURN))
         }
+        state = State.IN_PLAY
         return this
     }
 
@@ -82,10 +83,15 @@ open class Game(val numberOfPlayers: Int, var playerList: MutableList<Player> = 
         return this
     }
 
-    fun commitArmy(playerName: String, vararg creatures: Creature): Game {
+    fun commitArmy(playerName: String, army: Army): Game {
         playerList = setToWaiting(playerName).toMutableList()
-        playerList = removeCards(playerName, *creatures).toMutableList()
-        return this
+        playerList = removeCards(playerName, army.creatures).toMutableList()
+
+        //TODO Battle(firstPlayer.committedArmy(), secondPlayer.committedArmy()).resolve()
+        return when (playerList.all { Player.State.WAITING == it.state }) {
+            true -> this.newTurn()
+            else -> this
+        }
     }
 
     enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }

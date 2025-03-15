@@ -1,5 +1,6 @@
 package org.battleofkingdoms.server
 
+import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.creatures.Creature
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.Game.State
@@ -36,10 +37,11 @@ class GameServer {
         }
     }
 
-    fun commitArmy(gameId: UUID, playerName: String, vararg creatures: Creature) {
+    fun commitArmy(gameId: UUID, playerName: String, army: Army) {
         val game = games.get(gameId)
         if (game?.state() == State.BATTLE) {
-            games[gameId] = game.commitArmy(playerName, *creatures)
+            //TODO player.commitArmy
+            games[gameId] = game.commitArmy(playerName, army)
         }
     }
 }
