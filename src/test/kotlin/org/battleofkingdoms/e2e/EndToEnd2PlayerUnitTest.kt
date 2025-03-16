@@ -10,14 +10,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 private const val SOME_PLAYER_NAME = "some player"
-private const val ANOTHER_PLAYER = "another player"
+private const val ANOTHER_PLAYER_NAME = "another player"
 
 class EndToEnd2PlayerUnitTest {
     @Test
     fun testGameSetup_shouldCreateAndPlayTwoPlayerGame() {
         val gameServer = GameServer()
         val somePlayer = Player(name = SOME_PLAYER_NAME)
-        val anotherPlayer = Player(ANOTHER_PLAYER)
+        val anotherPlayer = Player(ANOTHER_PLAYER_NAME)
         validatePlayersWaiting(somePlayer, anotherPlayer)
 
         val gameId = gameServer.hostGame(numberOfPlayers = 2, somePlayer)
@@ -85,6 +85,9 @@ class EndToEnd2PlayerUnitTest {
 
     private fun validateBattleResult(game: Game) {
         assertEquals(Game.State.IN_PLAY, game.state())
+        assertTrue(game.players().values.all { Player.State.ACTIVE == it.state })
+        assertEquals(2 + 1 + 4, game.players()[SOME_PLAYER_NAME]!!.hand.size)
+        assertEquals(3 + 0 + 4, game.players()[ANOTHER_PLAYER_NAME]!!.hand.size)
     }
 
     private fun validatePlayersWaiting(vararg players: Player) {

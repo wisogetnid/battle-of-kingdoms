@@ -2,7 +2,7 @@ package org.battleofkingdoms.battle
 
 import org.battleofkingdoms.cards.creatures.Creature
 
-class Army(val creatures: List<Creature> = emptyList()) {
+data class Army(val creatures: List<Creature> = emptyList()) {
     fun attackStrength(opposingArmy: Army): Int {
         return creatures.sumOf { it.attack(opposingArmy) }
     }
