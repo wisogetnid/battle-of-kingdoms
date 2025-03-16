@@ -14,7 +14,6 @@ class GameServer {
         return games.get(gameId)
     }
 
-    // TODO updates games map
     fun hostGame(numberOfPlayers: Int, player: Player): UUID {
         val game = Game(numberOfPlayers, state = State.WAIT_FOR_PLAYERS_TO_JOIN).join(player)
         games[game.id] = game
@@ -22,7 +21,6 @@ class GameServer {
 
     }
 
-    // TODO updates games map
     fun joinGame(gameId: UUID, player: Player) {
         val game = games.get(gameId)
         if (game?.state() == State.WAIT_FOR_PLAYERS_TO_JOIN) {
@@ -40,7 +38,6 @@ class GameServer {
     fun commitArmy(gameId: UUID, playerName: String, army: Army) {
         val game = games.get(gameId)
         if (game?.state() == State.BATTLE) {
-            //TODO player.commitArmy
             games[gameId] = game.commitArmy(playerName, army)
         }
     }

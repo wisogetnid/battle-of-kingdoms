@@ -44,8 +44,6 @@ open class Game(
         return this
     }
 
-
-    // TODO updates resourceDeck and players
     fun newTurn(): Game {
         playernameToPlayer = playernameToPlayer.values
             .map {
@@ -62,7 +60,6 @@ open class Game(
         return this
     }
 
-    // TODO updates players
     fun finishBuildUp(playerName: String): Game {
         playernameToPlayer = setPlayerStateTo(playerName, WAITING)
 
