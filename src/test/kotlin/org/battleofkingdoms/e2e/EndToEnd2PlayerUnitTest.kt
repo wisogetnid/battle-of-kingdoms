@@ -18,15 +18,8 @@ class EndToEnd2PlayerUnitTest {
         val gameServer = GameServer()
         val somePlayer = Player(name = SOME_PLAYER_NAME)
         val anotherPlayer = Player(ANOTHER_PLAYER_NAME)
-        validatePlayersWaiting(somePlayer, anotherPlayer)
 
-        val gameId = gameServer.hostGame(numberOfPlayers = 2, somePlayer)
-
-        val gameWaitingForPlayers = gameServer.getGame(gameId).let { it as Game }
-        validateGameWaitingForPlayers(gameWaitingForPlayers)
-
-        gameServer.joinGame(gameId, anotherPlayer)
-
+        val gameId = gameServer.startGame(somePlayer, anotherPlayer)
         val gameInPlay = gameServer.getGame(gameId).let { it as Game }
         validatePlayersActive(*gameInPlay.players().values.toTypedArray())
         validateGameInPlay(gameInPlay)
@@ -48,13 +41,6 @@ class EndToEnd2PlayerUnitTest {
         gameServer.commitArmy(gameId, anotherPlayer.name, Army(listOf(Horde())))
         val battleResult = gameServer.getGame(gameId).let { it as Game }
         validateBattleResult(battleResult)
-    }
-
-    private fun validateGameWaitingForPlayers(
-        game: Game
-    ) {
-        assertEquals(Game.State.WAIT_FOR_PLAYERS_TO_JOIN, game.state())
-        assertEquals(SOME_PLAYER_NAME, game.players()[SOME_PLAYER_NAME]!!.name)
     }
 
     private fun validateGameInPlay(

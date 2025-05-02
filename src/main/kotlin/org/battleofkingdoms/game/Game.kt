@@ -11,7 +11,6 @@ import java.util.*
 const val CARD_DRAW_ON_NEW_TURN = 4
 
 open class Game(
-    val numberOfPlayers: Int,
     var playernameToPlayer: Map<String, Player> = mutableMapOf(),
     val id: UUID = UUID.randomUUID(),
     var state: State = State.NOT_INITIALIZED
@@ -30,18 +29,6 @@ open class Game(
         return playernameToPlayer + mapOf(
             playerName to player
         )
-    }
-
-    fun join(player: Player): Game {
-        playernameToPlayer = playernameToPlayer + mapOf(player.name to player)
-        return when (playernameToPlayer.count()) {
-            numberOfPlayers -> startGame().newTurn()
-            else -> this
-        }
-    }
-
-    private fun startGame(): Game {
-        return this
     }
 
     fun newTurn(): Game {
@@ -122,5 +109,5 @@ open class Game(
         return cards
     }
 
-    enum class State { WAIT_FOR_PLAYERS_TO_JOIN, IN_PLAY, NOT_INITIALIZED, BATTLE }
+    enum class State { IN_PLAY, NOT_INITIALIZED, BATTLE }
 }
