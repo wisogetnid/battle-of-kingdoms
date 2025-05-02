@@ -7,11 +7,12 @@ import org.battleofkingdoms.cards.resources.Wood
 import org.battleofkingdoms.player.Player
 import java.util.*
 
-data class Board(
+data class GameState(
     val resourceDeck: MutableList<Card>,
     val id: UUID = UUID.randomUUID(),
     var playernameToPlayer: Map<String, Player> = mutableMapOf(),
-    var state: State = State.IN_PLAY
+    var state: State = State.IN_PLAY,
+    val finishedPlayersInPhase: Set<Player> = emptySet()
 ) {
 
     companion object {
@@ -19,7 +20,7 @@ data class Board(
         fun iron(count: Int): List<Card> = (1..count).map { Iron() }
         fun horde(count: Int): List<Card> = (1..count).map { Horde() }
 
-        fun withTestResources(): Board = Board(
+        fun withTestResources(): GameState = GameState(
             resourceDeck = (horde(2) + Wood() + Iron() +
                     horde(2) + Wood() + Iron() +
                     wood(18) + iron(18) + horde(16)).toMutableList()

@@ -2,7 +2,7 @@ package org.battleofkingdoms.e2e
 
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.creatures.Horde
-import org.battleofkingdoms.game.Board
+import org.battleofkingdoms.game.GameState
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.player.Player
 import org.battleofkingdoms.server.GameServer
@@ -23,7 +23,7 @@ class EndToEnd2PlayerUnitTest {
         val gameId = gameServer.startGame(somePlayer, anotherPlayer)
         val gameInPlay = gameServer.getGame(gameId).let { it as Game }
         validatePlayersActive(*gameInPlay.players().values.toTypedArray())
-        validateGameInState(gameInPlay, Board.State.IN_PLAY)
+        validateGameInState(gameInPlay, GameState.State.IN_PLAY)
         validateGameInPlay(gameInPlay)
 
         gameServer.finishBuildUp(gameId, somePlayer.name)
@@ -34,7 +34,7 @@ class EndToEnd2PlayerUnitTest {
 
         val battleStart = gameServer.getGame(gameId).let { it as Game }
         validatePlayersActive(*battleStart.players().values.toTypedArray())
-        validateGameInState(battleStart, Board.State.BATTLE)
+        validateGameInState(battleStart, GameState.State.BATTLE)
 
         gameServer.commitArmy(gameId, somePlayer.name, Army(listOf(Horde(), Horde())))
         val committedArmyBattle = gameServer.getGame(gameId).let { it as Game }
@@ -48,18 +48,18 @@ class EndToEnd2PlayerUnitTest {
     private fun validateGameInPlay(
         game: Game
     ) {
-        assertEquals(52, game.board.resourceDeck.size)
+        assertEquals(52, game.gameState.resourceDeck.size)
         game.players().forEach {
             assertEquals(4, it.value.hand.size)
         }
     }
 
-    private fun validateGameInState(game: Game, state: Board.State) {
+    private fun validateGameInState(game: Game, state: GameState.State) {
         assertEquals(state, game.state())
     }
 
     private fun validateFirstCommittedArmyBattle(game: Game) {
-        assertEquals(Board.State.BATTLE, game.state())
+        assertEquals(GameState.State.BATTLE, game.state())
         assertEquals(1, game.players().filter { Player.State.WAITING == it.value.state }.count())
         game.players()
             .filter { Player.State.WAITING == it.value.state }
@@ -71,7 +71,7 @@ class EndToEnd2PlayerUnitTest {
     }
 
     private fun validateBattleResult(game: Game) {
-        assertEquals(Board.State.IN_PLAY, game.state())
+        assertEquals(GameState.State.IN_PLAY, game.state())
         assertTrue(game.players().values.all { Player.State.ACTIVE == it.state })
         assertEquals(2 + 1 + 4, game.players()[SOME_PLAYER_NAME]!!.hand.size)
         assertEquals(3 + 0 + 4, game.players()[ANOTHER_PLAYER_NAME]!!.hand.size)
