@@ -1,8 +1,9 @@
 package org.battleofkingdoms.server
 
 import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.game.Board
 import org.battleofkingdoms.game.Game
-import org.battleofkingdoms.game.Game.State
+import org.battleofkingdoms.game.Board.State
 import org.battleofkingdoms.player.Player
 import java.util.*
 
@@ -28,11 +29,10 @@ class GameServer {
     }
 
     fun startGame(vararg players: Player): UUID {
-        val game = Game(state = State.IN_PLAY)
-        players.forEach { player ->
-            game.playernameToPlayer = game.playernameToPlayer.plus(player.name to player)
-        }
-        games[game.id] = game.newTurn()
-        return game.id
+        val playernameToPlayer = players.map { it.name to it }.toMap()
+        val board = Board(resourceDeck = Board.withTestResources().resourceDeck, playernameToPlayer = playernameToPlayer)
+        val game = Game(board = board)
+        games[game.board.id] = game.newTurn()
+        return game.board.id
     }
 }
