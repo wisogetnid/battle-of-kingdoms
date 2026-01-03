@@ -30,8 +30,65 @@ This is a try on a deck building/strategy card game, built digitally first to al
 - Bow > higher attack strength
 
 ## Supporters
+
 - ...none yet. Thinking of things like
+
   - attracting crowds (for more creatures)
+
   - resource gatherer (for more resources)
+
   - healer (for increased army recovery after battles)
+
   - tactician (allowing to use different battle tactics)
+
+
+
+# Development
+
+
+
+## Building the project
+
+
+
+To build the project, run the following command:
+
+
+
+```bash
+
+./gradlew build
+
+```
+
+
+
+## Running tests
+
+
+
+To run the tests, use the following command:
+
+
+
+```bash
+
+./gradlew test
+
+```
+
+
+
+## Running the application
+
+
+
+To run the application, use the following command:
+
+
+
+```bash
+
+./gradlew run
+
+```
