@@ -1,6 +1,7 @@
 package org.battleofkingdoms.server
 
 import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.game.GameSetup
 import org.battleofkingdoms.game.GameState
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameState.State
@@ -21,14 +22,19 @@ class GameServer {
         }
     }
 
+    fun createGame(gameSetup: GameSetup): UUID {
+        val id = UUID.randomUUID()
+        val game = Game(gameSetup, id)
+        games[id] = game
+        return id
+    }
 
-    fun startGame(vararg players: Player, ): UUID {
-        val playernameToPlayer = players.map { it.name to it }.toMap()
-        val gameState = GameState(resourceDeck = GameState.withTestResources().resourceDeck, playernameToPlayer = playernameToPlayer)
-        val game = Game(gameState = gameState)
-        games[game.gameState.id] = game.newTurn()
+    fun createGame(): UUID {
+        val game = Game()
+        games[game.gameState.id] = game
         return game.gameState.id
     }
+
     fun commitArmy(gameId: UUID, playerName: String, army: Army) {
         val game = games[gameId]
         if (game?.state() == State.BATTLE) {

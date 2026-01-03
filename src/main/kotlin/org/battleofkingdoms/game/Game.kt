@@ -6,10 +6,22 @@ import org.battleofkingdoms.cards.Card
 import org.battleofkingdoms.player.Player
 import org.battleofkingdoms.player.Player.State.ACTIVE
 import org.battleofkingdoms.player.Player.State.WAITING
+import java.util.UUID
 
 const val CARD_DRAW_ON_NEW_TURN = 4
 
 class Game(var gameState: GameState = GameState.withTestResources()) {
+    constructor(gameSetup: GameSetup, id: UUID) : this(
+        GameState(
+            id = id,
+            resourceDeck = gameSetup.resourceDeck,
+            creatureDeck = gameSetup.creatureDeck,
+            playernameToPlayer = gameSetup.playerHands.map { (playerName, hand) ->
+                playerName to Player(name = playerName, hand = hand.toMutableList())
+            }.toMap()
+        )
+    )
+
     fun state(): GameState.State = gameState.state
     fun players(): Map<String, Player> = gameState.playernameToPlayer
 
@@ -37,14 +49,18 @@ class Game(var gameState: GameState = GameState.withTestResources()) {
         val newDeck = gameState.resourceDeck.toMutableList()
         val newCards = newDeck.take(cardsToDraw)
         // need to remove cards one by one
-        newCards.forEach{ newDeck.remove(it)}
+        newCards.forEach { newDeck.remove(it) }
 
         val player = gameState.playernameToPlayer[playerName]!!
         val updatedPlayers = gameState.playernameToPlayer + mapOf(
             playerName to player.copy(hand = (player.hand + newCards).toMutableList())
         )
 
-        return GameState(resourceDeck = newDeck, playernameToPlayer = updatedPlayers, id = gameState.id)
+        return GameState(
+            resourceDeck = newDeck,
+            playernameToPlayer = updatedPlayers,
+            id = gameState.id
+        )
     }
 
     fun setPlayerStateTo(playerName: String, newState: Player.State): Map<String, Player> {

@@ -8,7 +8,8 @@ import org.battleofkingdoms.player.Player
 import java.util.*
 
 data class GameState(
-    val resourceDeck: MutableList<Card>,
+    val resourceDeck: List<Card>,
+    val creatureDeck: List<Card> = emptyList(),
     val id: UUID = UUID.randomUUID(),
     var playernameToPlayer: Map<String, Player> = mutableMapOf(),
     var state: State = State.IN_PLAY,
