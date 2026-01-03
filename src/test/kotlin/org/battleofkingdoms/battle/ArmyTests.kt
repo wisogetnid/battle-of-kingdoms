@@ -1,9 +1,8 @@
 package org.battleofkingdoms.battle
 
-import org.battleofkingdoms.battle.Army
-import org.battleofkingdoms.cards.creatures.Bow
-import org.battleofkingdoms.cards.creatures.Horde
-import org.battleofkingdoms.cards.creatures.Shield
+import org.battleofkingdoms.cards.Bow
+import org.battleofkingdoms.cards.Horde
+import org.battleofkingdoms.cards.Shield
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -21,8 +20,8 @@ class ArmyTests {
         fun armies() = listOf(
             Arguments.of(Army.of(Horde()), Army(), 1),
             Arguments.of(Army.of(Horde(), Horde()), Army(), 2),
-            Arguments.of(Army.of(Horde(), Bow()), Army(), 3),
-            Arguments.of(Army.of(Shield()), Army.of(Bow()), 2),
+            Arguments.of(Army.of(Horde(), Bow()), Army(), 4),
+            Arguments.of(Army.of(Shield()), Army.of(Bow()), 1),
         )
     }
 }

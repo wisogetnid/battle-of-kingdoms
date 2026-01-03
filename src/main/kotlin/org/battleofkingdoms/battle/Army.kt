@@ -1,10 +1,10 @@
 package org.battleofkingdoms.battle
 
-import org.battleofkingdoms.cards.creatures.Creature
+import org.battleofkingdoms.cards.Creature
 
 data class Army(val creatures: List<Creature> = emptyList()) {
     fun attackStrength(opposingArmy: Army): Int {
-        return creatures.sumOf { it.attack(opposingArmy) }
+        return creatures.sumOf { it.attack }
     }
 
     override fun equals(other: Any?): Boolean {

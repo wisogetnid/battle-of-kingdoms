@@ -1,10 +1,10 @@
 package org.battleofkingdoms.e2e
 
 import org.battleofkingdoms.battle.Army
-import org.battleofkingdoms.cards.creatures.Horde
-import org.battleofkingdoms.cards.resources.Food
-import org.battleofkingdoms.cards.resources.Iron
-import org.battleofkingdoms.cards.resources.Wood
+import org.battleofkingdoms.cards.Horde
+import org.battleofkingdoms.cards.Food
+import org.battleofkingdoms.cards.Iron
+import org.battleofkingdoms.cards.Wood
 import org.battleofkingdoms.game.GameSetup
 import org.battleofkingdoms.game.GameState
 import org.battleofkingdoms.game.Game
@@ -69,46 +69,5 @@ class EndToEnd2PlayerUnitTest {
         assertEquals(8, game.players()[PLAYER_1_NAME]!!.hand.size)
         // Player 2: 5 (initial) - 1 (committed) + 0 (survivors) + 2 (new turn draw from depleted deck) = 6
         assertEquals(6, game.players()[PLAYER_2_NAME]!!.hand.size)
-    }
-
-    private fun validateGameInPlay(
-        game: Game
-    ) {
-        assertEquals(52, game.gameState.resourceDeck.size)
-        game.players().forEach {
-            assertEquals(4, it.value.hand.size)
-        }
-    }
-
-    private fun validateGameInState(game: Game, state: GameState.State) {
-        assertEquals(state, game.state())
-    }
-
-    private fun validateFirstCommittedArmyBattle(game: Game) {
-        assertEquals(GameState.State.BATTLE, game.state())
-        assertEquals(1, game.players().filter { Player.State.WAITING == it.value.state }.count())
-        game.players()
-            .filter { Player.State.WAITING == it.value.state }
-            .forEach { assertEquals(2, it.value.hand.size) }
-
-        game.players()
-            .filter { Player.State.ACTIVE == it.value.state }
-            .forEach { assertEquals(4, it.value.hand.size) }
-    }
-
-    private fun validateBattleResult(game: Game) {
-        assertEquals(GameState.State.IN_PLAY, game.state())
-        assertTrue(game.players().values.all { Player.State.ACTIVE == it.state })
-        // These assertions are not valid anymore as we don't have SOME_PLAYER_NAME
-        // assertEquals(2 + 1 + 4, game.players()[SOME_PLAYER_NAME]!!.hand.size)
-        // assertEquals(3 + 0 + 4, game.players()[ANOTHER_PLAYER_NAME]!!.hand.size)
-    }
-
-    private fun validatePlayersWaiting(vararg players: Player) {
-        players.forEach { assertEquals(Player.State.WAITING, it.state) }
-    }
-
-    private fun validatePlayersActive(vararg players: Player) {
-        players.forEach { assertEquals(Player.State.ACTIVE, it.state) }
     }
 }

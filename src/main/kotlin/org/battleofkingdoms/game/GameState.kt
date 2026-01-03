@@ -1,9 +1,9 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.cards.Card
-import org.battleofkingdoms.cards.creatures.Horde
-import org.battleofkingdoms.cards.resources.Iron
-import org.battleofkingdoms.cards.resources.Wood
+import org.battleofkingdoms.cards.Horde
+import org.battleofkingdoms.cards.Iron
+import org.battleofkingdoms.cards.Wood
 import org.battleofkingdoms.player.Player
 import java.util.*
 

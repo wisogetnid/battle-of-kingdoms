@@ -36,7 +36,7 @@ To refactor the existing codebase to align with the specifications defined in `@
 
 ### 4. Implementation Plan (Iterative Steps)
 
-1.  **[PENDING] Step 1: Refactor Card Hierarchy.**
+1.  **[DONE] Step 1: Refactor Card Hierarchy.**
     - Create failing tests for card attributes.
     - Modify `Card.kt` and implement `Creature`, `Resource`, and `Artifact` base types.
     - Implement specific cards (`Horde`, `Shield`, `Bow`, `Wood`, `Iron`, `Food`) with correct attributes (attack, defense, traits, upgrade costs) as per `GAME_DESIGN.md`.

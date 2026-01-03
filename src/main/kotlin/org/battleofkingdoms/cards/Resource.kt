@@ -1,3 +1,3 @@
 package org.battleofkingdoms.cards
 
-sealed interface Card
+interface Resource : Card

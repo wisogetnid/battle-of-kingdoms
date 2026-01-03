@@ -1,49 +1,33 @@
 package org.battleofkingdoms.cards
 
-import org.battleofkingdoms.cards.creatures.Bow
-import org.battleofkingdoms.cards.creatures.Creature
-import org.battleofkingdoms.cards.creatures.Horde
-import org.battleofkingdoms.cards.creatures.Shield
-import org.battleofkingdoms.cards.resources.Food
-import org.battleofkingdoms.cards.resources.Iron
-import org.battleofkingdoms.cards.resources.Resource
-import org.battleofkingdoms.cards.resources.Wood
-import org.battleofkingdoms.battle.Army
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 class CardTests {
-    @ParameterizedTest
-    @MethodSource("resources")
-    fun shouldHaveMandatoryFields(resource: Resource) {
-        Assertions.assertNotNull(resource.title());
-        Assertions.assertNotNull(resource.value());
+
+    @Test
+    fun `Horde has correct attributes`() {
+        val horde = Horde()
+        assertEquals(1, horde.attack)
+        assertEquals(1, horde.defense)
+        assertEquals(setOf(Trait.INFANTRY), horde.traits)
     }
 
-    @ParameterizedTest
-    @MethodSource("creatures")
-    fun shouldHaveMandatoryFields(creature: Creature, opposingArmy: Army, expectedAttack: Int) {
-        Assertions.assertNotNull(creature.title());
-        Assertions.assertEquals(expectedAttack, creature.attack(opposingArmy));
-        Assertions.assertNotNull(creature.cost())
+    @Test
+    fun `Shield has correct attributes`() {
+        val shield = Shield()
+        assertEquals(1, shield.attack)
+        assertEquals(4, shield.defense)
+        assertEquals(setOf(Trait.INFANTRY), shield.traits)
+        assertEquals(mapOf(Wood() to 2, Iron() to 1), shield.upgradeCost)
     }
 
-    companion object {
-        @JvmStatic
-        fun resources() = listOf(
-            Arguments.of(Wood()),
-            Arguments.of(Iron()),
-            Arguments.of(Food())
-        )
-
-        @JvmStatic
-        fun creatures() = listOf(
-            Arguments.of(Horde(), Army(), 1),
-            Arguments.of(Shield(), Army(), 1),
-            Arguments.of(Shield(), Army.of(Bow()), 2),
-            Arguments.of(Bow(), Army(), 2)
-        )
+    @Test
+    fun `Bow has correct attributes`() {
+        val bow = Bow()
+        assertEquals(3, bow.attack)
+        assertEquals(1, bow.defense)
+        assertEquals(setOf(Trait.RANGED, Trait.INFANTRY), bow.traits)
+        assertEquals(mapOf(Wood() to 1, Iron() to 2), bow.upgradeCost)
     }
 }
