@@ -15,24 +15,21 @@ To refactor the existing codebase to align with the specifications defined in `@
 - `src/main/kotlin/org/battleofkingdoms/game/GameState.kt`
 - `src/main/kotlin/org/battleofkingdoms/player/Player.kt`
 - `src/main/kotlin/org/battleofkingdoms/cards/Card.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/creatures/Creature.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/creatures/Horde.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/creatures/Shield.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/creatures/Bow.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/resources/Resource.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/resources/Wood.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/resources/Iron.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Creature.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Horde.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Shield.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Bow.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Resource.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Wood.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Iron.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Food.kt`
+- `src/main/kotlin/org/battleofkingdoms/cards/Artifact.kt`
 - `src/main/kotlin/org/battleofkingdoms/battle/Battle.kt`
 - `src/main/kotlin/org/battleofkingdoms/server/GameServer.kt`
 - `src/test/kotlin/org/battleofkingdoms/e2e/EndToEnd2PlayerUnitTest.kt`
-
-#### To be created:
-- `src/main/kotlin/org/battleofkingdoms/cards/Artifact.kt`
-- `src/main/kotlin/org/battleofkingdoms/cards/resources/Food.kt`
-- `src/main/kotlin/org/battleofkingdoms/common/GameError.kt` (for domain exceptions)
-- `src/main/kotlin/org/battleofkingdoms/server/dto/GameStateView.kt`
-- `src/main/kotlin/org/battleofkingdoms/server/dto/PlayerView.kt`
-- `src/main/kotlin/org/battleofkingdoms/server/commands/GameCommand.kt`
+- `src/test/kotlin/org/battleofkingdoms/cards/CardTests.kt`
+- `src/test/kotlin/org/battleofkingdoms/battle/BattleTests.kt`
+- `src/test/kotlin/org/battleofkingdoms/battle/ArmyTests.kt`
 
 ### 4. Implementation Plan (Iterative Steps)
 
