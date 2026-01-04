@@ -20,6 +20,7 @@ The card system is built on a `sealed interface` named `Card`. This ensures a ty
 ### 2.1. Resource Cards
 *   **Description:** Used to pay for creature upgrades. When drawn, they go into a player's hand. When spent, they are returned to a central discard pile. `Food` is a universal resource required for all unit upgrades.
 *   **Types:** `Food`, `Wood`, `Iron`.
+*   **Implementation Note:** To keep the behavior of the digital twin close to the physical card game, where any `Wood` card is interchangeable with another, these cards are implemented as `object` singletons rather than `data class` instances.
 
 ### 2.2. Base Unit Card (Manpower)
 *   **Description:** The foundational unit of an army, used both for fighting and as a requirement for creating elite units. Drawn each turn from the `Horde Deck`.
@@ -45,7 +46,7 @@ The card system is built on a `sealed interface` named `Card`. This ensures a ty
         *   `Attack`: 4, `Defense`: 1
 
 ### 2.4. Artifact Cards
-*   **Description:** Unique items won in battle that provide powerful, passive bonuses.
+*   **Description:** Unique items won in battle that provide powerful, passive bonuses. The detailed implementation of the bonus structure is currently deferred.
 *   **Attributes:**
     *   `Name`, `EffectDescription`, `Bonus` (e.g., `{ "targetTrait": "RANGED", "stat": "Attack", "value": 2 }`)
 
