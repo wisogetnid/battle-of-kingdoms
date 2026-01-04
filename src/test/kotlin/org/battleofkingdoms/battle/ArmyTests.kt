@@ -18,10 +18,10 @@ class ArmyTests {
     companion object {
         @JvmStatic
         fun armies() = listOf(
-            Arguments.of(Army.of(Horde()), Army(), 1),
-            Arguments.of(Army.of(Horde(), Horde()), Army(), 2),
-            Arguments.of(Army.of(Horde(), Bow()), Army(), 4),
-            Arguments.of(Army.of(Shield()), Army.of(Bow()), 1),
+            Arguments.of(Army.of(Horde()), Army(), 2),
+            Arguments.of(Army.of(Horde(), Horde()), Army(), 4),
+            Arguments.of(Army.of(Horde(), Bow()), Army(), 6),
+            Arguments.of(Army.of(Shield()), Army.of(Bow()), 2),
         )
     }
 }

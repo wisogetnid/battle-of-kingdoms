@@ -23,9 +23,9 @@ class EndToEnd2PlayerUnitTest {
     fun `a deterministic 2 player game runs until the end`() {
         val gameServer = GameServer()
 
-        val player1Hand = listOf(Horde(), Horde(), Wood(), Iron(), Food())
-        val player2Hand = listOf(Horde(), Horde(), Wood(), Iron(), Iron())
-        val resourceDeck = listOf(Wood(), Iron(), Food(), Wood(), Iron(), Food())
+        val player1Hand = listOf(Horde(), Horde(), Wood, Iron, Food)
+        val player2Hand = listOf(Horde(), Horde(), Wood, Iron, Iron)
+        val resourceDeck = listOf(Wood, Iron, Food, Wood, Iron, Food)
 
         val gameSetup = GameSetup(
             playerHands = mapOf(

@@ -17,13 +17,13 @@ data class GameState(
 ) {
 
     companion object {
-        fun wood(count: Int): List<Card> = (1..count).map { Wood() }
-        fun iron(count: Int): List<Card> = (1..count).map { Iron() }
+        fun wood(count: Int): List<Card> = (1..count).map { Wood }
+        fun iron(count: Int): List<Card> = (1..count).map { Iron }
         fun horde(count: Int): List<Card> = (1..count).map { Horde() }
 
         fun withTestResources(): GameState = GameState(
-            resourceDeck = (horde(2) + Wood() + Iron() +
-                    horde(2) + Wood() + Iron() +
+            resourceDeck = (horde(2) + Wood + Iron +
+                    horde(2) + Wood + Iron +
                     wood(18) + iron(18) + horde(16)).toMutableList()
         )
     }

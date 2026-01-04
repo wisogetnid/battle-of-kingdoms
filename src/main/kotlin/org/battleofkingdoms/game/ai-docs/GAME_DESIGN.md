@@ -59,10 +59,10 @@ For a detailed breakdown of all card stats, costs, and attributes, see the [@/sr
 **Phase 1: Build-Up (`BUILD_UP`)**
 *   **Player Actions:** Players can perform the following actions in any order, as many times as they wish:
     *   **Upgrade Creature:**
-        1.  Select one `Horde` card from their `Hand`.
-        2.  Select the required Resource cards from their `Hand` to pay the `Upgrade Cost`.
-        3.  Discard the `Horde` and the spent Resource cards.
-        4.  Take a corresponding `Shield` or `Bow` card from the general supply and add it to their `Hand`.
+        1.  Choose an elite creature to build (e.g., `Shield` or `Bow`).
+        2.  Pay the full `Upgrade Cost` by selecting the required cards (e.g., one `Horde`, one `Food`, one `Iron` for a Shield) from their `Hand`.
+        3.  Discard the spent cards.
+        4.  Take the corresponding elite creature card from the general supply and add it to their `Hand`.
     *   **Trade:** Players may trade cards from their `Hand` with other players.
 
 **Phase 2: Battle (`BATTLE`)**

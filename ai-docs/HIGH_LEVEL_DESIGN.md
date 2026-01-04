@@ -23,3 +23,5 @@ The game is composed of four primary components:
 *   **The Artifact Stack:** A deck of unique, powerful cards that are awarded to the winner of each battle.
 
 For a detailed breakdown of the game's rules, turn structure, and balancing, see the full **[Game Design Document](@/src/main/kotlin/org/battleofkingdoms/game/ai-docs/GAME_DESIGN.md)**.
+
+For a detailed breakdown of all card stats, costs, and attributes, see the [@/src/main/kotlin/org/battleofkingdoms/cards/ai-docs/CARD_DESIGN.md](@/src/main/kotlin/org/battleofkingdoms/cards/ai-docs/CARD_DESIGN.md) document.

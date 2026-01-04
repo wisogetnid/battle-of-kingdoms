@@ -65,9 +65,10 @@ fun attemptUpgrade(player: Player, targetId: String) {
     val template = CardRegistry.getTemplate(targetId)
     val cost = template.upgradeCost ?: return
 
-    if (player.hand.has(Horde) && player.hand.canAfford(cost)) {
+    // The 'cost' map now includes Horde, so we check for all cards at once.
+    if (player.hand.canAfford(cost)) {
         if (GlobalSupply.isAvailable(targetId)) {
-            player.hand.remove(Horde)
+            // 'pay' will remove the Horde as well as the resources.
             player.hand.pay(cost)
             player.hand.add(GlobalSupply.take(targetId))
         } else {
