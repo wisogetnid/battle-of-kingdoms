@@ -1,6 +1,6 @@
-Game Design Document: Battle of Kingdoms (Version 2.0)**
+# Game Design Document: Battle of Kingdoms (Version 2.0)
 
-#### **1. Game Overview**
+## 1. Game Overview
 
 *   **Game Title:** Battle of Kingdoms
 *   **Genre:** Multiplayer Strategy, Deck-Building, Resource Management
@@ -8,48 +8,25 @@ Game Design Document: Battle of Kingdoms (Version 2.0)**
 *   **Core Concept:** Players are rulers who draw cards from shared decks to build armies and manage resources. They engage in strategic battles, where army composition is key to victory and minimizing losses. The goal is to claim powerful artifacts and end the game with the most victory points.
 *   **Winning Condition:** The player with the highest total score, calculated from artifacts owned, battles won, and the strength of their final army.
 
-#### **2. Core Concepts & Entities**
+## 2. Core Concepts & Entities
 
-##### **2.1. Central Game Components**
+### 2.1. Central Game Components
 
-*   **2.1.1. Resource Deck (Shared)**
-    *   **Description:** A single, shared deck containing all resource cards. All players draw from this deck.
+*   **2.1.1. Horde Deck (Shared)**
+    *   **Description:** A shared deck containing `Horde` cards, the base unit for all armies. Players draw from this deck every turn to build up their manpower.
+*   **2.1.2. Resource Deck (Shared)**
+    *   **Description:** A single, shared deck containing all resource cards used for upgrades. All players draw from this deck.
     *   **Card Types:** `Food`, `Wood`, `Iron`.
-*   **2.1.2. Creature Deck (Shared)**
-    *   **Description:** A single, shared deck containing all creature cards. All players draw from this deck.
-    *   **Card Types:** `Horde`, `Shield`, `Bow`.
-*   **2.1.3. Artifact Stack**
+*   **2.1.3. General Supply (Shared)**
+    *   **Description:** A shared, finite pool of elite creature cards (`Shield`, `Bow`). These cards are not drawn but are taken from the supply when a player upgrades a `Horde`.
+*   **2.1.4. Artifact Stack**
     *   **Description:** A predefined, ordered stack of Artifact cards. The top card is revealed each turn as the prize for that turn's battle.
 
-##### **2.2. Card Types**
+### 2.2. Card Types
 
-*   **2.2.1. Resource Cards**
-    *   **Description:** Used to pay for creature upgrades. When drawn, they go into a player's hand. When spent, they are returned to a central discard pile.
-*   **2.2.2. Creature Cards**
-    *   **Description:** The units that form a player's army. Each creature has stats and traits.
-    *   **Attributes:**
-        *   `Name`: (e.g., "Horde", "Shield", "Bow")
-        *   `Attack`: (Integer) Base damage dealt in battle.
-        *   `Defense`: (Integer) Base health/damage absorption.
-        *   `Trait`: (Enum: `INFANTRY`, `RANGED`) A keyword that determines combat effectiveness.
-    *   **Creature Details & Upgrade Costs:**
-        *   **Horde**
-            *   `Trait`: `INFANTRY`
-            *   `Attack`: 1, `Defense`: 1
-        *   **Shield (Upgrade from Horde)**
-            *   `Upgrade Cost`: 2 Wood, 1 Iron
-            *   `Trait`: `INFANTRY`
-            *   `Attack`: 1, `Defense`: 4
-        *   **Bow (Upgrade from Horde)**
-            *   `Upgrade Cost`: 1 Wood, 2 Iron
-            *   `Trait`: `RANGED`
-            *   `Attack`: 3, `Defense`: 1
-*   **2.2.3. Artifact Cards**
-    *   **Description:** Unique items won in battle that provide powerful, passive bonuses.
-    *   **Attributes:**
-        *   `Name`, `EffectDescription`, `Bonus` (e.g., `{ "targetTrait": "RANGED", "stat": "Attack", "value": 2 }`)
+For a detailed breakdown of all card stats, costs, and attributes, see the [@/src/main/kotlin/org/battleofkingdoms/cards/ai-docs/CARD_DESIGN.md](@/src/main/kotlin/org/battleofkingdoms/cards/ai-docs/CARD_DESIGN.md) document.
 
-##### **2.3. Player State**
+### 2.3. Player State
 
 *   `PlayerID`: Unique identifier.
 *   `Hand`: A list of cards (Creature and Resource) the player currently holds. This is the player's primary pool of assets.
@@ -57,7 +34,7 @@ Game Design Document: Battle of Kingdoms (Version 2.0)**
     *   `BattlesWon`: (Integer)
     *   `VictoryPoints`: (Integer)
 
-##### **2.4. Game State**
+### 2.4. Game State
 
 *   `Players`: A list of all `Player State` objects.
 *   `CurrentTurn`: (Integer) The current turn number (e.g., 1 through 5).
@@ -65,19 +42,19 @@ Game Design Document: Battle of Kingdoms (Version 2.0)**
 *   `CurrentPhase`: (Enum: `BUILD_UP`, `BATTLE`).
 *   `TurnArtifact`: The `ArtifactCard` available to be won in the current turn.
 
-#### **3. Game Flow & Turn Structure**
+## 3. Game Flow & Turn Structure
 
-##### **3.1. Game Setup**
+### 3.1. Game Setup
 
-1.  The shared `ResourceDeck` and `CreatureDeck` are created and shuffled.
+1.  The shared `ResourceDeck` and `HordeDeck` are created and shuffled.
 2.  Each player starts with an empty `Hand`.
-3.  Each player draws an initial hand: 3 Creature cards and 2 Resource cards.
+3.  Each player draws an initial hand: 3 `Horde` cards and 2 Resource cards.
 
-##### **3.2. Turn Sequence (Repeated `MaxTurns` times)**
+### 3.2. Turn Sequence (Repeated `MaxTurns` times)
 
 **Turn Start:**
 1.  Increment `CurrentTurn`. Reveal the `TurnArtifact` from the Artifact Stack.
-2.  Each player draws one card from the `ResourceDeck` and one card from the `CreatureDeck`, adding them to their `Hand`.
+2.  Each player draws one card from the `ResourceDeck` and one `Horde` card, adding them to their `Hand`.
 
 **Phase 1: Build-Up (`BUILD_UP`)**
 *   **Player Actions:** Players can perform the following actions in any order, as many times as they wish:
@@ -111,14 +88,14 @@ Game Design Document: Battle of Kingdoms (Version 2.0)**
 **Turn End:**
 1.  Check if `CurrentTurn` equals `MaxTurns`. If so, proceed to Game End.
 
-##### **3.3. Game End & Scoring**
+### 3.3. Game End & Scoring
 
 *   **Scoring Calculation:**
     *   **Artifacts:** 2 VP for each `ArtifactCard` in the player's final `Hand`.
     *   **Battles Won:** 1 VP for each battle won.
     *   **Standing Army:** 1 VP for every 5 total `Attack` power across all creatures in a player's final `Hand`.
 
-#### **4. Key Areas for Game Balancing**
+## 4. Key Areas for Game Balancing
 
 *   **Survivor Formula:** The exact formula for calculating which and how many creatures survive a battle is the most critical balancing point. This will require extensive playtesting to feel fair and strategic.
 *   **Card Ratios:** The ratio of Resource to Creature cards in the shared decks will heavily influence the game's economy and pacing.
