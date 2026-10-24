@@ -27,7 +27,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.game.*'`
   - Files: `game/Game.kt`, `game/BuildUpTests.kt`
 
-- [ ] **T5. Battle resolution (pure)** — can run in parallel with T3/T4
+- [x] **T5. Battle resolution (pure)** — can run in parallel with T3/T4
   - Acceptance: `Battle.resolve(commits, pot, random)` returns winner or none (ties at the top, all-zero), single committer wins, payout vs rollover, winner loses `floor(n/2)` and others `ceil(n/2)` picked by the seeded `Random`, survivors, renown flags (committed ≥ 1), log entry
   - Verify: `./gradlew test --tests '*BattleTests'` (parameterized cases for every rule)
   - Files: `battle/Battle.kt`, `battle/BattleResult.kt`, `BattleTests.kt`
@@ -41,7 +41,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 2 — HTTP API
 - [ ] **T7. API: create, join, view**
-  - Acceptance: `POST /games` → 201 `{gameId}`; `POST /games/{id}/players` → 201; `GET /games/{id}?player=` → player view; 404/409/400 per spec as `{error}`; one player's view never contains another's hand; Jackson handles data classes and enum-keyed maps
+  - Acceptance: `POST /games` → 201 `{gameId}`; `POST /games/{id}/players` → 201; `GET /games/{id}?player=` → player view incl. `availableActions` per phase/acted; 404/409/400 per spec as `{error}`; one player's view never contains another's hand; Jackson handles data classes and enum-keyed maps
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.server.*'`
   - Files: `server/Application.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `ApplicationKtTests.kt` (rewritten)
 
@@ -60,4 +60,4 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: run `./gradlew run`, execute the file top to bottom in IntelliJ, and check the second battle appears in the log
   - Files: `http/playtest.http`
 
-### Checkpoint C — all 8 SPEC.md success criteria met
+### Checkpoint C — all 9 SPEC.md success criteria met

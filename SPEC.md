@@ -1,6 +1,7 @@
 # Spec: Battle of Kingdoms — Core Loop MVP (Stage 1)
 
-Source: [docs/ideas/battle-of-kingdoms-core-loop.md](docs/ideas/battle-of-kingdoms-core-loop.md)
+Source: [docs/ideas/battle-of-kingdoms-core-loop.md](docs/ideas/battle-of-kingdoms-core-loop.md) ·
+Beyond Stage 1: [docs/ideas/full-game-vision.md](docs/ideas/full-game-vision.md)
 
 ## Objective
 Turn the existing 2-player engine into a playable **3–5 player** game of the core loop,
@@ -21,6 +22,7 @@ exactly that.
 - As a player, I join a game by id with a unique name; the game starts when it is full.
 - As a player, I see my own hand, everyone's VP / renown / readiness, the current pot,
   and the log of past battles — but never other players' hands or uncommitted armies.
+- As a player, I see which actions I can take right now.
 - As a player, I upgrade Horde into Shields or Bows with my resources, then mark myself ready.
 - As a player, I secretly commit any part of my creatures (including nothing) to the battle.
 - As a player, I see the battle result once everyone has committed: all armies, strengths,
@@ -111,8 +113,11 @@ Creature and resource names in JSON: `HORDE`, `SHIELD`, `BOW`, `WOOD`, `IRON`.
 **Player view** contains: game id, phase, turn number, pot, `artifactsToWin`; *my* hand
 (counts per creature and resource), VP, renown, and whether I've acted this phase; for
 every other player: name, VP, renown, hand size, and whether they've acted; the battle
-log; and the winner once the game is over. Other players' hands and the current turn's
-commits are never included.
+log; the winner once the game is over; and `availableActions`, the actions I can take
+right now: `UPGRADE` and `READY` during build-up until I'm ready, `COMMIT_ARMY` during the
+battle until I've committed, otherwise none. `UPGRADE` is listed by phase only, even if I
+can't currently afford one. Other players' hands and the current turn's commits are never
+included.
 
 **Errors** (JSON `{ "error": "…" }`):
 - `404` — unknown game, or a player name that isn't in the game
@@ -123,8 +128,25 @@ commits are never included.
 
 Games live in memory; restarting the server loses them.
 
+## Architecture
+Three layers; dependencies point downwards only.
+```
+Presentation  .http files, curl, e2e tests, Stage 2 client — stateless, render the player view
+     │
+Application   server/  Ktor routes, request/response DTOs, GameServer registry (Map<UUID, Game>)
+     │
+Domain        game/ battle/ cards/ player/  pure engine: rules, state, seeded randomness
+```
+- **Domain** knows nothing about HTTP, JSON, or Ktor: no imports from `server/`, Ktor, or
+  Jackson. Every rule lives here.
+- **Application** looks up the game, calls one engine function per request, stores the
+  result, and maps it to a DTO. It maps `GameException`s to status codes and holds no rules.
+- **Responses are DTOs only.** Domain objects are never serialized directly. The player-view
+  DTO is built per player, which is how hidden information stays hidden.
+- **Presentation** holds no state; everything it shows comes from the player view.
+
 ## Tech Stack
-- Kotlin 2.1.0 (JVM), Gradle 8.10 wrapper
+- Kotlin 2.1.0 (JVM), Gradle 8.14.5 wrapper
 - **Java 21 (Temurin), pinned with mise** in `.mise.toml`; mise also provides `JAVA_HOME`
 - Ktor 3.0.3 (Netty, content negotiation, Jackson), Logback 1.5.15
 - Tests: JUnit 5 (+ params) 5.11.3, kotlin-test, ktor-server-test-host
@@ -190,7 +212,8 @@ game/player → 404. No game logic lives in routes.
   winner / tie / all-zero / single committer, pot rollover and payout, floor/ceil losses,
   random casualties with a fixed seed, renown gain and income, upgrades, game-over.
 - **API tests** (`testApplication`): each endpoint's success path and each error status;
-  hidden information never leaks into another player's view.
+  hidden information never leaks into another player's view; `availableActions` matches
+  the phase and whether the player has acted.
 - **End-to-end** (seeded, over HTTP): one full 3-player game and one full 5-player game,
   each including at least one tie/rollover, played to a winner.
 - Tests use a fixed seed; no test depends on unseeded randomness.
@@ -219,6 +242,7 @@ game/player → 404. No game logic lives in routes.
    API tests).
 7. Changing any `GameConfig` value changes behavior without touching any other code.
 8. `http/playtest.http` plays a 3-player game from creation through the first two battles.
+9. Every player view lists exactly the actions that player can take right now.
 
 ## Open Questions
 None that block Stage 1. Deferred to later specs: themed artifacts without leader

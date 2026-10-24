@@ -79,7 +79,7 @@ Review the engine API before building routes on it.
 
 ### Phase 2 — HTTP API (vertical slices: route + DTO + tests)
 **T7. Create, join, view.** `POST /games`, `POST /games/{id}/players`,
-`GET /games/{id}?player=`; player-view DTO; error wrapper (404/409/400). Replaces the
+`GET /games/{id}?player=`; player-view DTO with `availableActions`; error wrapper (404/409/400). Replaces the
 TODO routes and `ApplicationKtTests`. Asserts that one player's view never contains
 another's hand.
 
@@ -94,7 +94,7 @@ logs.
 **T10. Playtest script.** `http/playtest.http` plays a 3-player game through two battles;
 run it manually against `./gradlew run`.
 
-**Checkpoint C:** all eight success criteria in SPEC.md checked off.
+**Checkpoint C:** all nine success criteria in SPEC.md checked off.
 
 ## Risks and mitigations
 | Risk | Impact | Mitigation |
