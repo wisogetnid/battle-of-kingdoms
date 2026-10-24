@@ -17,7 +17,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests '*CardTests' --tests '*ArmyTests'`
   - Files: `cards/**`, `battle/Army.kt`, `CardTests.kt`, `ArmyTests.kt`
 
-- [ ] **T3. GameConfig, Game state, lobby, income**
+- [x] **T3. GameConfig, Game state, lobby, income**
   - Acceptance: immutable `Game` with config, seeded `Random`, phase, turn, pot, players, log; create with 3–5 players (else `RuleViolation`); join rejects duplicates and full games; when full → turn 1 income (`startingHorde + base + renown` Horde, `resourcesPerTurn` seeded resources), pot 1, `BUILD_UP`; `GameServer` adapted; old 2-player e2e test deleted
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.game.*'`
   - Files: `game/Game.kt`, `game/GameConfig.kt`, `game/GameException.kt`, `player/Player.kt`, `server/GameServer.kt` (+ remove `game/Board.kt`, `EndToEnd2PlayerUnitTest.kt`)

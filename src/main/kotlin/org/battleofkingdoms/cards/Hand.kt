@@ -9,7 +9,12 @@ data class Hand(val counts: Map<Card, Int> = emptyMap()) {
 
     fun has(card: Card, amount: Int = 1): Boolean = count(card) >= amount
 
-    operator fun plus(card: Card): Hand = withCount(card, count(card) + 1)
+    operator fun plus(card: Card): Hand = add(card, 1)
+
+    fun add(card: Card, amount: Int): Hand {
+        require(amount >= 0) { "Can't add $amount $card" }
+        return withCount(card, count(card) + amount)
+    }
 
     operator fun minus(card: Card): Hand {
         require(has(card)) { "Hand has no $card" }
