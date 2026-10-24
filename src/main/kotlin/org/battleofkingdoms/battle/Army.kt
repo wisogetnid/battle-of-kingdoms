@@ -1,30 +1,22 @@
 package org.battleofkingdoms.battle
 
-import org.battleofkingdoms.cards.Creature
+import org.battleofkingdoms.cards.CreatureType
 
-data class Army(val creatures: List<Creature> = emptyList()) {
-    fun attackStrength(opposingArmy: Army): Int {
-        return creatures.sumOf { it.attack }
+data class Army(val creatures: Map<CreatureType, Int> = emptyMap()) {
+    init {
+        require(creatures.values.all { it > 0 }) { "Army counts must be positive: $creatures" }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    val size: Int get() = creatures.values.sum()
 
-        other as Army
+    val hasRanged: Boolean get() = creatures.keys.any { it.ranged }
 
-        return creatures == other.creatures
-    }
-
-    override fun hashCode(): Int {
-        return creatures.hashCode()
-    }
-
-    override fun toString(): String {
-        return "Army(creatures=$creatures)"
+    fun strength(otherArmies: List<Army>): Int {
+        val facingRanged = otherArmies.any { it.hasRanged }
+        return creatures.entries.sumOf { (type, count) -> type.attack(facingRanged) * count }
     }
 
     companion object {
-        fun of(vararg creatures: Creature): Army = Army(creatures.toList())
+        fun of(vararg creatures: Pair<CreatureType, Int>): Army = Army(creatures.toMap().filterValues { it > 0 })
     }
 }

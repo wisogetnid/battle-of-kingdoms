@@ -12,7 +12,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint A — build green, server starts
 
 ## Phase 1 — Engine
-- [ ] **T2. Card model and army strength**
+- [x] **T2. Card model and army strength**
   - Acceptance: `CreatureType` (Horde 1, Shield 1/2, Bow 2 + Ranged) and `ResourceType` (Wood, Iron) enums; `Hand` with counts; `Army.strength(otherArmies)`; Shield +1 if any other army has a Ranged creature; Bow upgrades with Iron, Shield with Wood; `Food` removed
   - Verify: `./gradlew test --tests '*CardTests' --tests '*ArmyTests'`
   - Files: `cards/**`, `battle/Army.kt`, `CardTests.kt`, `ArmyTests.kt`

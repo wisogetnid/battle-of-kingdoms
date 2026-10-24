@@ -1,44 +1,73 @@
 package org.battleofkingdoms.cards
 
+import org.battleofkingdoms.cards.CreatureType.BOW
+import org.battleofkingdoms.cards.CreatureType.HORDE
+import org.battleofkingdoms.cards.CreatureType.SHIELD
+import org.battleofkingdoms.cards.ResourceType.IRON
+import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.cards.Trait.INFANTRY
+import org.battleofkingdoms.cards.Trait.RANGED
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.assertEquals
-import kotlin.test.assertSame
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class CardTests {
 
-    @Test
-    fun `food resource should be a singleton`() {
-        val food1 = Food
-        val food2 = Food
-        assertSame(food1, food2, "Food should be a singleton object")
+    @ParameterizedTest
+    @MethodSource("creatures")
+    fun `creature stats match the rules table`(
+        type: CreatureType,
+        attack: Int,
+        attackAgainstRanged: Int,
+        traits: Set<Trait>,
+        upgradeResource: ResourceType?,
+    ) {
+        assertEquals(attack, type.attack(facingRanged = false))
+        assertEquals(attackAgainstRanged, type.attack(facingRanged = true))
+        assertEquals(traits, type.traits)
+        assertEquals(upgradeResource, type.upgradeResource)
     }
 
     @Test
-    fun `horde stats are correct`() {
-        val horde = Horde()
-        assertEquals(2, horde.attack)
-        assertEquals(1, horde.defense)
-        assertEquals(setOf(Trait.INFANTRY), horde.traits)
-        assertEquals(emptyMap(), horde.upgradeCost)
+    fun `only the bow is ranged`() {
+        assertEquals(listOf(BOW), CreatureType.entries.filter { it.ranged })
     }
 
     @Test
-    fun `shield stats and cost are correct`() {
-        val shield = Shield()
-        assertEquals(2, shield.attack)
-        assertEquals(5, shield.defense)
-        assertEquals(setOf(Trait.INFANTRY), shield.traits)
-        val expectedCost = mapOf(Horde() to 1, Food to 1, Iron to 1)
-        assertEquals(expectedCost, shield.upgradeCost)
+    fun `a hand counts creatures and resources`() {
+        val hand = Hand() + HORDE + HORDE + WOOD
+
+        assertEquals(2, hand.count(HORDE))
+        assertEquals(1, hand.count(WOOD))
+        assertEquals(0, hand.count(IRON))
+        assertTrue(hand.has(HORDE, 2))
+        assertFalse(hand.has(HORDE, 3))
+        assertFalse(hand.has(IRON))
     }
 
     @Test
-    fun `bow stats and cost are correct`() {
-        val bow = Bow()
-        assertEquals(4, bow.attack)
-        assertEquals(1, bow.defense)
-        assertEquals(setOf(Trait.RANGED), bow.traits)
-        val expectedCost = mapOf(Horde() to 1, Food to 1, Wood to 1)
-        assertEquals(expectedCost, bow.upgradeCost)
+    fun `removing the last card of a type drops it from the hand`() {
+        val hand = Hand.of(HORDE to 1, WOOD to 1) - HORDE - WOOD + SHIELD
+
+        assertEquals(Hand.of(SHIELD to 1), hand)
+    }
+
+    @Test
+    fun `removing a card the hand doesn't have fails`() {
+        assertFailsWith<IllegalArgumentException> { Hand.of(HORDE to 1) - IRON }
+    }
+
+    companion object {
+        @JvmStatic
+        fun creatures() = listOf(
+            Arguments.of(HORDE, 1, 1, setOf(INFANTRY), null),
+            Arguments.of(SHIELD, 1, 2, setOf(INFANTRY), WOOD),
+            Arguments.of(BOW, 2, 2, setOf(INFANTRY, RANGED), IRON),
+        )
     }
 }
