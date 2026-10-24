@@ -28,7 +28,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.battleofkingdoms.game.server.GameServer")
+    mainClass.set("org.battleofkingdoms.server.ApplicationKt")
 }
 
 tasks.test {

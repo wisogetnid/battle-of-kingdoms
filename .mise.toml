@@ -1,0 +1,18 @@
+[tools]
+java = "temurin-21"
+
+[tasks.gradle]
+description = "Run the Gradle wrapper with any arguments, e.g. `mise run gradle -- clean build`"
+run = "./gradlew"
+
+[tasks.build]
+description = "Compile and run all tests"
+run = "./gradlew build"
+
+[tasks.test]
+description = "Run all tests"
+run = "./gradlew test"
+
+[tasks.server]
+description = "Start the game server on http://localhost:8080"
+run = "./gradlew run"

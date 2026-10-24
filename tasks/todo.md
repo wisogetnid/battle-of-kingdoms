@@ -3,11 +3,11 @@
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 0 — Foundation
-- [ ] **T1. Toolchain and launch configuration**
-  - Acceptance: `.mise.toml` pins Java 21 (Temurin); `application.conf` module and `mainClass` point to `org.battleofkingdoms.server`; existing tests pass
-  - Verify: `mise install && ./gradlew build`; `./gradlew run`, then `curl localhost:8080/game` returns 200
+- [x] **T1. Toolchain and launch configuration**
+  - Acceptance: `.mise.toml` pins Java 21 (Temurin) and defines `gradle`/`build`/`test`/`server` tasks (done); `application.conf` module and `mainClass` point to `org.battleofkingdoms.server`; existing tests pass
+  - Verify: `mise run build`; `mise run server`, then `curl localhost:8080/game` returns 200
   - Files: `.mise.toml`, `build.gradle.kts`, `src/main/resources/application.conf`
-  - Prerequisite (you): remove the asdf `set-java-home.zsh` line from `~/.zshrc`
+  - Prerequisites (you): asdf hook removed from `~/.zshrc` (done); `mise trust && mise install`
 
 ### Checkpoint A — build green, server starts
 

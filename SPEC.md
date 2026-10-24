@@ -132,10 +132,11 @@ Games live in memory; restarting the server loses them.
 
 ## Commands
 ```
-Setup:   mise install                 # installs Java 21 from .mise.toml
-Test:    ./gradlew test
-Build:   ./gradlew build
-Run:     ./gradlew run                # serves on http://localhost:8080
+Setup:   mise trust && mise install   # installs Java 21 from .mise.toml
+Test:    mise run test                # ./gradlew test
+Build:   mise run build               # ./gradlew build
+Run:     mise run server              # ./gradlew run, serves on http://localhost:8080
+Gradle:  mise run gradle -- <args>    # any other Gradle invocation
 Play:    open http/playtest.http in IntelliJ and run the requests top to bottom
 ```
 
