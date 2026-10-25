@@ -1,13 +1,14 @@
-# Spec: Battle of Kingdoms — Two Tiers and Trading (Iteration 3)
+# Spec: Battle of Kingdoms — Decisive Tier 2 (Iteration 4)
 
 Source: [docs/ideas/battle-of-kingdoms-core-loop.md](docs/ideas/battle-of-kingdoms-core-loop.md) ·
 Beyond this iteration: [docs/ideas/full-game-vision.md](docs/ideas/full-game-vision.md)
 
-**Status:** Stage 1 (the 3–5 player core loop over HTTP) and Iteration 2 (the counter
-triangle, duels and scores) are delivered. Iteration 3 rebalances the build-up: resources can
-be traded for Horde, every upgraded unit gets a second tier, bonuses depend on tiers, renown
-is removed, and a game runs to 5 VP. Everything not mentioned under
-[Changes from Iteration 2](#changes-from-iteration-2) stays as it is.
+**Status:** Stage 1 (the 3–5 player core loop over HTTP), Iteration 2 (the counter triangle,
+duels and scores) and Iteration 3 (trading, two tiers, tier bonuses, no renown, no starting
+Horde) are delivered. Iteration 4 makes tier 2 worth its cost and shortens the game: tier 2
+gets +5 against Horde and +3 against the tier-1 unit it counters, and a game runs to 3 VP.
+Only default numbers in `GameConfig` change; everything not mentioned under
+[Changes from Iteration 3](#changes-from-iteration-3) stays as it is.
 
 ## Objective
 Give the build-up phase three real strategies that trade off against each other:
@@ -19,13 +20,25 @@ Give the build-up phase three real strategies that trade off against each other:
 
 **Who:** the developer playing all seats over HTTP, then 3–5 friends.
 
-**Why:** in Iteration 2 renown compounds Horde income, so whoever gets ahead on army size
-stays ahead, and upgrades are a small edge. Iteration 3 removes the snowball and makes the
-choice of what to do with each resource matter. 5 VP gives the game enough turns for tier 2
-and multi-turn plans to show.
+**Why:** in Iteration 3, planning for tier 2 doesn't pay off. A resource trades for a Horde,
+so every card is worth one Horde, and a tier-2 unit costs 3 cards over two turns. Per card,
+it was weaker than tier 1 against Horde and only broke even against the unit it counters.
+On top of that, 5 VP made games too long. Iteration 4 raises the tier-2 bonuses so the first
+tier-2 units decide battles, and lowers the target to 3 VP so the game is a short race:
 
-**Done means:** a complete game under the new rules can be played over HTTP from start to
-finish, and seeded tests play full 3- and 5-player games with trades and tier-2 units.
+| Unit (cost in cards) | Strength vs Horde, Iteration 3 → 4 | Per card | vs the tier-1 unit it counters, 3 → 4 | Per card |
+|---|---|---|---|---|
+| Horde (1) | 1 → 1 | 1.0 | — | — |
+| Tier 1 (2) | 3 → 3 | 1.5 | 2 → 2 | 1.0 |
+| Tier 2 (3, over two turns) | 4 → **6** | 1.33 → **2.0** | 3 → **4** | 1.0 → **1.33** |
+
+The higher bonuses also raise the stakes of tier 2: a random casualty can cost three cards
+in one creature. Turn 1 stays as in Iteration 3 (1 Horde and 2 resources): a player can go
+wide with 3 Horde and risk losing 2 of them, build a tier-1 unit, or field nothing and carry
+everything into turn 2.
+
+**Done means:** a complete game under the new numbers can be played over HTTP from start to
+finish, and seeded tests play full 3- and 5-player games with trades and tier-2 units to 3 VP.
 
 ### User stories
 - As a host, I create a game for N (3–5) players and get a game id to share.
@@ -98,11 +111,12 @@ against any creature in that opponent's army. Bonuses never add up.
 |---|---|---|---|
 | Horde | — | — | — |
 | Tier 1 (Bow, Sword, Mage) | **+`tier1VsHorde`** (2) | **+`sameTierCounter`** (1) | — (lower tier gets nothing against higher) |
-| Tier 2 (Warbow, Knight, High Mage) | **+`tier2VsHorde`** (3) | **+`higherTierCounter`** (2) | **+`sameTierCounter`** (1) |
+| Tier 2 (Warbow, Knight, High Mage) | **+`tier2VsHorde`** (5) | **+`higherTierCounter`** (3) | **+`sameTierCounter`** (1) |
 
 Any matchup not in the table (e.g. a Bow against a Sword, or a Warbow against a Bow) gives
 no bonus. For example, a Warbow in a duel against an army with a Mage and a Horde gets
-max(+2, +3) = +3, so its strength is 4.
+max(+3, +5) = +5, so its strength is 6; against an army with only Mages it gets +3, so its
+strength is 4.
 
 ### Battle resolution
 1. **Duels:** every pair of players fights one duel — 3 duels with 3 players, 10 with 5.
@@ -130,13 +144,13 @@ max(+2, +3) = +3, so its strength is 4.
 
 | | anna: 1 Warbow, 2 Horde | ben: 2 Mage, 1 Horde | cleo: 1 Knight, 1 Bow |
 |---|---|---|---|
-| anna vs ben | 6 = Warbow 4 (+3 vs Horde beats +2 vs Mage) + 2 Horde | **7** = 2 Mage × 3 (+2 vs Horde) + 1 Horde | |
-| anna vs cleo | 3 = Warbow 1 (no Horde, no Mage) + 2 Horde | | **7** = Knight 4 (+3 vs Horde beats +1 vs Warbow) + Bow 3 (+2 vs Horde) |
-| ben vs cleo | | 3 = 2 Mage × 1 (nothing vs a higher-tier Knight) + 1 Horde | **7** = Knight 4 (+3 vs Horde) + Bow 3 (+2 vs Horde beats +1 vs Mage) |
-| **Score** | −1 − 4 = **−5** | +1 − 4 = **−3** | +4 + 4 = **+8** |
+| anna vs ben | **8** = Warbow 6 (+5 vs Horde beats +3 vs Mage) + 2 Horde | 7 = 2 Mage × 3 (+2 vs Horde) + 1 Horde | |
+| anna vs cleo | 3 = Warbow 1 (no Horde, no Mage) + 2 Horde | | **9** = Knight 6 (+5 vs Horde beats +1 vs Warbow) + Bow 3 (+2 vs Horde) |
+| ben vs cleo | | 3 = 2 Mage × 1 (nothing vs a higher-tier Knight) + 1 Horde | **9** = Knight 6 (+5 vs Horde) + Bow 3 (+2 vs Horde beats +1 vs Mage) |
+| **Score** | +1 − 6 = **−5** | −1 − 6 = **−7** | +6 + 6 = **+12** |
 
 cleo wins: her army has no Horde, so neither opponent gets a Horde bonus against her, while
-both of theirs contain Horde.
+both of theirs contain Horde. anna's Warbow now beats ben's two Mages and his Horde on its own.
 
 ### Configuration
 All numbers live in one object; nothing in the rules above is hard-coded elsewhere.
@@ -148,10 +162,10 @@ data class GameConfig(
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
     val tier1VsHorde: Int = 2,
-    val tier2VsHorde: Int = 3,
+    val tier2VsHorde: Int = 5,
     val sameTierCounter: Int = 1,
-    val higherTierCounter: Int = 2,
-    val victoryPointsToWin: Int = 5,
+    val higherTierCounter: Int = 3,
+    val victoryPointsToWin: Int = 3,
 )
 ```
 A game is created with a `GameConfig` and a seed. The same config, seed, and sequence of
@@ -212,19 +226,22 @@ included.
 
 Games live in memory; restarting the server loses them.
 
-## Changes from Iteration 2
-| Area | Iteration 2 | Iteration 3 |
+## Changes from Iteration 3
+| Area | Iteration 3 | Iteration 4 |
 |---|---|---|
-| Income | 1 Horde + 1 per renown, 2 resources; 3 extra Horde on turn 1 | 1 Horde, 2 resources, the same for everyone; no extra Horde on turn 1 (`startingHorde = 0`) |
-| Renown | +1 per battle fought, permanent extra income | **Removed** (`Player.renown`, `renownPerBattle`, `gainedRenown`, view fields) |
-| Trading | — | 1 resource → 1 Horde during build-up; new route and `TRADE` action |
-| Creatures | Horde, Bow, Sword, Mage | + Warbow, Knight, High Mage (tier 2, upgraded from tier 1) |
-| Upgrade limit | — | one tier per unit per turn; `upgradedThisTurn` in the view |
-| Bonuses | +`counterBonus` if the opponent has the countered unit | single best bonus from the tier table; bonuses against Horde |
-| Config | `counterBonus`, `renownPerBattle`, `victoryPointsToWin = 3` | `tier1VsHorde`, `tier2VsHorde`, `sameTierCounter`, `higherTierCounter`, `victoryPointsToWin = 5` |
+| Tier 2 vs Horde | +3 (`tier2VsHorde = 3`) | **+5** (`tier2VsHorde = 5`) |
+| Tier 2 vs the tier-1 unit it counters | +2 (`higherTierCounter = 2`) | **+3** (`higherTierCounter = 3`) |
+| Victory points to win | 5 | **3** (`victoryPointsToWin = 3`) |
 
-Seeded expectations change with the new rules, so every seeded test, the end-to-end games,
-and `http/playtest.http` are re-derived, not patched.
+Unchanged: tier 1 (+2 vs Horde, +1 vs the tier-1 unit it counters), tier 2 vs the tier-2
+unit it counters (+1), base attack 1, the single best bonus, income (1 Horde + 2 resources,
+`startingHorde = 0`), trading, upgrade costs, the one-tier-per-turn limit, duels and scores,
+casualties, the pot of 1 per turn and its rollover, the HTTP API and the player view. No
+code outside `GameConfig` changes.
+
+Seeded expectations change with the new numbers, so the worked example, every seeded test
+that depends on a tier-2 bonus or the VP target, the end-to-end games, and
+`http/playtest.http` are re-derived, not patched.
 
 ## Architecture
 Three layers; dependencies point downwards only.
@@ -308,18 +325,20 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   outside the table, only the best bonus counting, bonuses applying only in the duel against
   that opponent, duel margins summed into scores that add up to 0, winner / tie / all-zero /
   single committer, pot rollover and payout, floor/ceil losses, random casualties with a
-  fixed seed, equal income for everyone, the 1/3 resource draw, game-over at 5 VP.
+  fixed seed, equal income for everyone, the 1/3 resource draw, game-over at 3 VP.
 - **The worked example** above is a unit test with exactly those duel strengths and scores.
+- **Equal-cost duels** pin down why tier 2 is worth building: against 3 Horde, 3 cards spent
+  as one tier-2 unit (6) beat a tier-1 unit and a Horde (3 + 1 = 4), which beat 3 Horde (3).
 - **API tests** (`testApplication`): each endpoint's success path and each error status,
   including the trade route; `upgradedThisTurn` appears only in my own view; no renown in any
   view; hidden information never leaks into another player's view; `availableActions`
   matches the phase and whether the player has acted.
 - **End-to-end** (seeded, over HTTP): one full 3-player game and one full 5-player game, each
   including at least one rollover, at least one trade, and at least one tier-2 unit in a
-  committed army, played to a winner at 5 VP.
+  committed army, played to a winner at 3 VP.
 - Tests use a fixed seed; no test depends on unseeded randomness.
-- Iteration 2 tests that encode retired rules (renown, `counterBonus`, the flat counter
-  bonus, 3 VP) are **rewritten** to the new rules, not deleted.
+- Iteration 3 tests that encode the old numbers (+3 / +2 for tier 2, 5 VP) are
+  **rewritten** to the new numbers, keeping what each test is about, not deleted.
 
 ## Boundaries
 - **Always:** run `./gradlew test` before every commit; route every number through
@@ -329,8 +348,10 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   Gradle / Kotlin / Ktor / Java versions; deleting tests rather than rewriting them.
 - **Never:** build anything from the one-pager's "Not Doing" list (marketplace, supporters,
   diplomacy, artifact powers, auth, persistence, deployment) or the out-of-scope items of
-  this iteration: a third tier, trading resources for other resources or between players,
-  changes to casualties, simulation tooling; let more than one player score in a battle;
+  this iteration: a third tier, new units or mechanics, trading resources for other
+  resources or between players, changes to casualties, income, the pot or the rollover, a
+  special rule for turn 1, web UI changes, simulation tooling; let more than one player
+  score in a battle;
   raise base attacks above 1; add bonuses together; disable or skip tests to get to green;
   commit secrets.
 
@@ -340,7 +361,7 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
    cell of the bonus table and the worked example.
 3. The seeded 3-player and 5-player end-to-end tests play complete games over HTTP, each with
    at least one rollover, one trade and one tier-2 unit in a committed army, and end in
-   `GAME_OVER` at 5 VP with the correct winner.
+   `GAME_OVER` at 3 VP with the correct winner.
 4. Running the same seed and actions twice produces identical battle logs.
 5. No player view ever contains another player's hand, `upgradedThisTurn`, or uncommitted
    army (asserted in API tests).
@@ -350,10 +371,18 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
    trade and a tier-2 unit in a committed army.
 8. Every player view lists exactly the actions that player can take right now.
 9. No `renown`, `counterBonus`, or `renownPerBattle` remains in code, API, or README.
+10. The default `GameConfig` is `tier2VsHorde = 5`, `higherTierCounter = 3`,
+    `victoryPointsToWin = 3`, and the equal-cost duel test passes (tier 2 6 > tier 1 + Horde
+    4 > 3 Horde 3).
+11. README, `http/playtest.http` and the idea docs state the new numbers; no "5 VP" or tier-2
+    "+3 vs Horde" remains.
 
 ## Open Questions
-None that block this iteration. To watch in play: whether fielding Horde becomes too costly
-now that every upgraded unit gets a big bonus against them (Horde as casualty fodder kept
-at home vs. committed); whether going wide through trading is ever the best choice; whether
-5 VP keeps a game under ~30 minutes. Deferred to later specs: themed artifacts without
-leader snowball; Stage 2 client (chat bot vs. web page).
+None that block this iteration. To watch in play:
+- With +5, does any Horde in an army become a liability, so armies split into "all Horde"
+  and "no Horde"?
+- With 3 VP and the rollover, a turn-1 tie makes turn 2 worth 2 VP, two thirds of the win,
+  before any tier-2 unit can exist. Does that make turn 2 decide too many games?
+- Is going wide on turn 1 (3 Horde) ever worth the risk of losing 2 of them?
+
+Deferred to later specs: themed artifacts without leader snowball.
