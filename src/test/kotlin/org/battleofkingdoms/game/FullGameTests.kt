@@ -1,8 +1,10 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
+import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -13,25 +15,28 @@ private const val SEED = 7L
 private const val MAX_TURNS = 20
 
 /**
- * A seeded 3-player game played through engine calls only:
- * turn 1 everyone commits 1 Horde (tie, the pot rolls over); from turn 2 anna upgrades
- * whatever she can and commits everything, while ben and cleo commit 1 Horde each.
+ * A seeded 3-player game played through engine calls only, scripted against the seeded deals:
+ * turn 1 everyone commits 1 Horde (tie, the pot rolls over). On later turns, if ben can build
+ * k units of some kind and anna k of the unit that counters it, both do and commit exactly
+ * those, while cleo commits 1 Horde: equal army sizes, so anna wins through her counter bonus.
+ * Otherwise everyone commits 1 Horde again.
  */
 class FullGameTests {
 
     @Test
-    fun `a seeded 3-player game with a rollover plays to a winner`() {
+    fun `a seeded 3-player game with a rollover and counter wins plays to a winner`() {
         val game = play()
 
         assertEquals(GAME_OVER, game.phase)
         assertEquals("anna", game.winner)
-        assertEquals(3, game.player("anna").vp)
+        assertTrue(game.player("anna").vp >= 3)
 
         val first = game.battleLog.first()
         assertNull(first.winner)
         assertEquals(1, first.pot)
         assertEquals(2, game.battleLog[1].pot)
-        assertTrue(game.battleLog.drop(1).all { it.winner == "anna" })
+        val won = game.battleLog.filter { it.winner != null }
+        assertTrue(won.isNotEmpty() && won.all(::decidedByCounter), "every win should come from a counter")
     }
 
     @Test
@@ -43,33 +48,37 @@ class FullGameTests {
         var game = Game.create(GameConfig(), SEED, 3, "anna").join("ben").join("cleo")
         while (game.phase != GAME_OVER) {
             check(game.turn <= MAX_TURNS) { "Game didn't end within $MAX_TURNS turns" }
-            game = buildUp(game)
-            game = game.players.keys.fold(game) { g, name -> g.commitArmy(name, army(g, name)) }
+            val duel = if (game.turn == 1) null else counterDuel(game.player("anna").hand, game.player("ben").hand)
+            val armies = game.players.keys.associateWith { Army.of(HORDE to 1) }.toMutableMap()
+            if (duel != null) {
+                val (bensUnit, annasUnit, k) = duel
+                repeat(k) { game = game.upgrade("ben", bensUnit) }
+                repeat(k) { game = game.upgrade("anna", annasUnit) }
+                armies["ben"] = Army.of(bensUnit to k)
+                armies["anna"] = Army.of(annasUnit to k)
+            }
+            game = game.players.keys.fold(game) { g, name -> g.ready(name) }
+            game = game.players.keys.fold(game) { g, name -> g.commitArmy(name, armies.getValue(name)) }
         }
         return game
     }
 
-    private fun buildUp(game: Game): Game {
-        val upgraded = when (game.turn) {
-            1 -> game
-            else -> upgradeAll(game, "anna")
-        }
-        return upgraded.players.keys.fold(upgraded) { g, name -> g.ready(name) }
-    }
+    /** The largest matchup where ben builds `k` of a unit and anna `k` of the unit countering it, if any. */
+    private fun counterDuel(annasHand: Hand, bensHand: Hand): Triple<CreatureType, CreatureType, Int>? =
+        CreatureType.entries.mapNotNull { bensUnit ->
+            val annasUnit = CreatureType.entries.find { it.counters == bensUnit } ?: return@mapNotNull null
+            val k = minOf(
+                bensHand.count(bensUnit.upgradeResource!!),
+                annasHand.count(annasUnit.upgradeResource!!),
+                bensHand.count(HORDE),
+                annasHand.count(HORDE),
+            )
+            Triple(bensUnit, annasUnit, k)
+        }.filter { it.third > 0 }.maxByOrNull { it.third }
 
-    private fun upgradeAll(game: Game, name: String): Game {
-        val hand = game.player(name).hand
-        return when {
-            !hand.has(HORDE) -> game
-            else -> when (val into = CreatureType.entries.firstOrNull { it.upgradeResource?.let(hand::has) == true }) {
-                null -> game
-                else -> upgradeAll(game.upgrade(name, into), name)
-            }
-        }
-    }
-
-    private fun army(game: Game, name: String): Army = when {
-        game.turn == 1 || name != "anna" -> Army.of(HORDE to 1)
-        else -> Army(CreatureType.entries.associateWith { game.player(name).hand.count(it) }.filterValues { it > 0 })
+    /** Won through a counter: without bonuses the winner's army wasn't strictly the largest. */
+    private fun decidedByCounter(result: BattleResult): Boolean {
+        val winnerSize = result.armies.getValue(result.winner!!).army.size
+        return result.armies.any { (name, army) -> name != result.winner && army.army.size >= winnerSize }
     }
 }

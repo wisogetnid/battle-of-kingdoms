@@ -21,7 +21,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint A — engine complete; review duels and counters before the end-to-end games
 
 ## Phase 2 — Games and play
-- [ ] **T4. End-to-end games with counters**
+- [x] **T4. End-to-end games with counters**
   - Acceptance: seeded 3- and 5-player games over HTTP each include a rollover and at least one battle whose winner is decided by a counter bonus (asserted from the log's duel strengths), and end in `GAME_OVER` with the expected winner; same-seed replay gives identical battle logs; `FullGameTests` covers the same at engine level
   - Verify: `mise run test`
   - Files: `e2e/EndToEndMultiplayerTest.kt`, `game/FullGameTests.kt`
