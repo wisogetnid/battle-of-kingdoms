@@ -1,3 +1,5 @@
 package org.battleofkingdoms.cards
 
-sealed interface Card
+sealed interface Card {
+    val name: String
+}

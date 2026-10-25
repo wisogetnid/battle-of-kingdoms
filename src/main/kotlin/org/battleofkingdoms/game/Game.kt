@@ -17,6 +17,8 @@ import kotlin.random.Random
 
 enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, GAME_OVER }
 
+enum class Action { UPGRADE, READY, COMMIT_ARMY }
+
 /**
  * Immutable game state; every action returns a new [Game] or throws a [GameException].
  * The only source of randomness is [random], seeded at creation, so the same config, seed,
@@ -79,6 +81,17 @@ data class Game(
     }
 
     fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
+
+    /** What [playerName] may do right now; [Action.UPGRADE] is listed by phase, not by what they can afford. */
+    fun availableActions(playerName: String): List<Action> {
+        val player = player(playerName)
+        return when {
+            player.acted -> emptyList()
+            phase == BUILD_UP -> listOf(Action.UPGRADE, Action.READY)
+            phase == BATTLE -> listOf(Action.COMMIT_ARMY)
+            else -> emptyList()
+        }
+    }
 
     private fun owns(player: Player, army: Army): Boolean =
         army.creatures.all { (type, count) -> player.hand.has(type, count) }

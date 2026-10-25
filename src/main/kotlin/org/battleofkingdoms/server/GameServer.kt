@@ -10,7 +10,8 @@ import kotlin.random.Random
 class GameServer(private val config: GameConfig = GameConfig()) {
     private val games = mutableMapOf<UUID, Game>()
 
-    fun getGame(gameId: UUID): Game = games[gameId] ?: throw UnknownGame(gameId)
+    @Synchronized
+    fun getGame(gameId: UUID): Game = games[gameId] ?: throw UnknownGame(gameId.toString())
 
     @Synchronized
     fun createGame(playerCount: Int, host: String, seed: Long = Random.nextLong()): UUID {

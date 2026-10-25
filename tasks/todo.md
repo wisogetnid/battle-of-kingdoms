@@ -40,7 +40,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint B — full game playable through the engine; review the engine API
 
 ## Phase 2 — HTTP API
-- [ ] **T7. API: create, join, view**
+- [x] **T7. API: create, join, view**
   - Acceptance: `POST /games` → 201 `{gameId}`; `POST /games/{id}/players` → 201; `GET /games/{id}?player=` → player view incl. `availableActions` per phase/acted; 404/409/400 per spec as `{error}`; one player's view never contains another's hand; Jackson handles data classes and enum-keyed maps
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.server.*'`
   - Files: `server/Application.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `ApplicationKtTests.kt` (rewritten)
