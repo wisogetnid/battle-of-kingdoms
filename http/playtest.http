@@ -1,9 +1,10 @@
 ### Playtest: a seeded 3-player game played to the end in three battles.
 # Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
 # Seed 42 deals: anna 1 Horde + Wood + Essence, ben 1 Horde + 2 Essence, cleo 1 Horde + Iron + Wood.
-# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +2 / tier 2 +5
-# against Horde, +1 against the countered unit of the same tier, +3 one tier below; only the
-# best bonus counts. First to 3 VP wins; this game ends in battle 3.
+# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +1 against Horde
+# and the tier-1 unit it counters; tier 2 +4 against Horde and the tier-1 unit it counters, +2
+# against any other tier-1 unit and the tier-2 unit it counters. Only the best bonus counts.
+# First to 3 VP wins; this game ends in battle 3.
 @host = http://localhost:8080
 
 ### Create a game for 3 players; anna hosts
@@ -107,9 +108,9 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
 ### ── Turn 2: battle (the High Mage decides it) ─────────────────────
-# Duels: anna–ben 4:7 (anna's Bow +2 vs Horde, nothing vs the higher-tier High Mage;
-#        ben's High Mage +5 vs Horde), anna–cleo 4:3, ben–cleo 7:3
-# → scores anna −2, ben +7, cleo −5. ben wins the double pot (2 VP).
+# Duels: anna–ben 3:6 (anna's Bow +1 vs Horde, nothing vs the higher-tier High Mage;
+#        ben's High Mage +4 vs Horde beats +2 vs the Bow), anna–cleo 3:3, ben–cleo 6:3
+# → scores anna −3, ben +6, cleo −3. ben wins the double pot (2 VP).
 # Casualties: anna loses her Bow, ben his Horde, cleo 2 of her 3 Horde.
 
 ### anna commits her Bow and 1 Horde
@@ -184,11 +185,11 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
 ### ── Turn 3: battle (the High Mage again) ──────────────────────────
-# Duels: anna–ben 5:9 (ben's High Mage +5 and Sword +2 vs anna's Horde),
-#        anna–cleo 5:6 (cleo's Swords +2 each vs Horde),
-#        ben–cleo 5:2 (cleo fields no Horde, so the High Mage gets +3 vs the Swords it counters
-#        instead of +5; the Swords get nothing vs the High Mage or a Sword)
-# → scores anna −5, ben +7, cleo −2. ben wins with 3 VP and the game is over.
+# Duels: anna–ben 5:7 (ben's High Mage +4 and Sword +1 vs anna's Horde),
+#        anna–cleo 5:4 (cleo's Swords only +1 each vs Horde, so going wide wins this duel),
+#        ben–cleo 6:2 (the High Mage gets +4 vs the Swords it counters; the Swords get
+#        nothing vs the High Mage or a Sword)
+# → scores anna −1, ben +6, cleo −5. ben wins with 3 VP and the game is over.
 
 ### anna commits her 5 Horde
 POST {{host}}/games/{{gameId}}/players/anna/army

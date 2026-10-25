@@ -2,6 +2,20 @@
 
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
+## Phase 0 — Playtest rebalance
+- [x] **B1. New bonus table in the engine**
+  - Acceptance: `Bonuses` takes six values — `tier1VsHorde`, `tier1VsCountered`, `tier2VsHorde`, `tier2VsCounteredTier1`, `tier2VsOtherTier1`, `tier2VsCounteredTier2` — replacing `sameTierCounter` / `higherTierCounter`; `GameConfig` defaults 1, 1, 4, 4, 2, 2; every cell of the spec's bonus table passes for all three lines, including tier 2 +2 against any other tier-1 unit (its own line's too) and nothing for tier 2 against an uncountered tier 2; the worked example gives duels 7:5, 5:7, 3:7, scores 0, −6, +6, cleo wins; the equal-cost duel gives tier 2 5 > tier 1 + Horde 3 = 3 Horde 3; the custom-table test sets each of the six values; `GameConfigTests` pins the defaults; tests whose point a new number broke are re-derived to keep that point (fielding Horde: 3 Horde vs 2 Bows, 3:4)
+  - Verify: `mise run build`; `grep -rn "sameTierCounter\|higherTierCounter" src` finds nothing
+  - Files: `battle/Bonuses.kt`, `game/GameConfig.kt`, `battle/ArmyTests.kt`, `battle/BattleTests.kt`, `game/GameConfigTests.kt`
+
+- [ ] **B2. Bonus docs and playtest comments**
+  - Acceptance: README's bonus table, example and equal-cost paragraph show +1 / +4 / +2; the core-loop one-pager's note mentions the rebalance; `http/playtest.http`'s header and battle comments match the new numbers (battle 2: 3:6, 3:3, 6:3, ben wins; battle 3: 5:7, 5:4, 6:2, ben wins the game)
+  - Verify: run `mise run server`, replay `http/playtest.http` and compare each battle with its comment; `grep -rnE "\+5|\+3 vs" README.md http` finds nothing stale
+  - Files: `README.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`, `http/playtest.http`
+  - Status: edits done; the replay against a running server is still to do
+
+### Checkpoint 0 — build green; the bonus table in SPEC.md, README and the playtest agree
+
 ## Phase 1 — Rules in the engine
 - [ ] **T1. A tie gives nothing; the game awards the VP**
   - Acceptance: `GameConfig.victoryPointsPerBattle = 1`; `pot` is always that value (no rollover, no growth); a tie changes nobody's VP and the next battle is worth 1; `Battle.resolve` no longer takes a pot and `Game` sets the winner's `vpGained`; `BattleResult.rolledOver` is gone; rollover tests are rewritten to "a tie gives nothing"

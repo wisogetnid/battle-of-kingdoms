@@ -31,18 +31,19 @@ Every turn has two phases:
 
 The lines form a counter triangle: **Bow beats Mage, Sword beats Bow, Mage beats Sword.**
 
-| Bonus | vs Horde | vs the countered line, tier 1 | vs the countered line, tier 2 |
-|---|---|---|---|
-| Horde | — | — | — |
-| Tier 1 (Bow, Sword, Mage) | **+2** | **+1** | — (a lower tier gets nothing against a higher one) |
-| Tier 2 (Warbow, Knight, High Mage) | **+5** | **+3** | **+1** |
+| Bonus | vs Horde | vs the tier-1 unit it counters | vs any other tier-1 unit | vs the tier-2 unit it counters |
+|---|---|---|---|---|
+| Horde | — | — | — | — |
+| Tier 1 (Bow, Sword, Mage) | **+1** | **+1** | — | — (a lower tier gets nothing against a higher one) |
+| Tier 2 (Warbow, Knight, High Mage) | **+4** | **+4** | **+2** | **+2** |
 
-For example, a Warbow against an army with a Mage and Horde gets +5 (not +5 and +3), so it
-attacks for 6; against Mages alone it gets +3. Any Horde you commit hands every upgraded
+For example, a Warbow against an army with a Bow and Horde gets +4 (not +4 and +2), so it
+attacks for 5; against Swords alone it gets +2. Any Horde you commit hands every upgraded
 opponent its Horde bonus, while Horde are also your cheapest casualties. Upgraded units hit
 harder but every random casualty among them hurts more, and resources traded for Horde are
 gone for tier 2. A tier-2 unit costs three cards over two turns and is worth it: against
-3 Horde, it attacks for 6, where a tier-1 unit and a Horde attack for 4 and 3 Horde for 3.
+3 Horde, it attacks for 5, where a tier-1 unit and a Horde attack for 3, no more than 3 Horde.
+Tier 1 pays off against the unit it counters, not against Horde.
 Everyone sees all armies after each battle, so use what you learned about each opponent.
 The first player to **3 VP** wins. All numbers are in `GameConfig` so they're easy to tune.
 

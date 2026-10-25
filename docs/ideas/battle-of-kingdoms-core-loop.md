@@ -5,7 +5,9 @@
 > counter triangle, and battles resolve as duels between every pair of players. Iteration 3
 > added a second upgrade tier and trading resources for Horde, and removed renown. Iteration 4
 > made tier 2 decisive (+5 vs Horde, +3 vs the tier-1 unit it counters) and shortened the game
-> to 3 VP. The current rules are in [SPEC.md](../../SPEC.md).
+> to 3 VP; a later playtest rebalanced the bonuses (tier 1 +1, tier 2 +4 vs Horde and the
+> tier-1 unit it counters, +2 vs other tier-1 units and the tier-2 unit it counters). The
+> current rules are in [SPEC.md](../../SPEC.md).
 
 ## Problem Statement
 How might we get 3–5 friends playing Battle of Kingdoms digitally, with minimal tech,

@@ -4,28 +4,34 @@ import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 
 /**
- * The bonus table: what an upgraded creature gets against one opponent creature. Against a
- * Horde it gets [tier1VsHorde] or [tier2VsHorde]; against a creature of the line it counters,
- * [sameTierCounter] at the same tier or [higherTierCounter] one tier below. A Horde, a lower
- * tier against a higher one, and every other matchup get nothing.
+ * The bonus table: what an upgraded creature gets against one opponent creature. A tier-1 unit
+ * gets [tier1VsHorde] against a Horde and [tier1VsCountered] against the tier-1 unit it counters.
+ * A tier-2 unit gets [tier2VsHorde] against a Horde, [tier2VsCounteredTier1] against the tier-1
+ * unit it counters, [tier2VsOtherTier1] against any other tier-1 unit, and [tier2VsCounteredTier2]
+ * against the tier-2 unit it counters. A Horde, a lower tier against a higher one, and every other
+ * matchup get nothing.
  */
 data class Bonuses(
     val tier1VsHorde: Int,
+    val tier1VsCountered: Int,
     val tier2VsHorde: Int,
-    val sameTierCounter: Int,
-    val higherTierCounter: Int,
+    val tier2VsCounteredTier1: Int,
+    val tier2VsOtherTier1: Int,
+    val tier2VsCounteredTier2: Int,
 ) {
-    fun against(attacker: CreatureType, target: CreatureType): Int = when {
-        attacker == HORDE -> 0
-        target == HORDE -> vsHorde(attacker.tier)
-        attacker.line?.counters != target.line -> 0
-        attacker.tier == target.tier -> sameTierCounter
-        attacker.tier > target.tier -> higherTierCounter
-        else -> 0
-    }
-
-    private fun vsHorde(tier: Int): Int = when (tier) {
-        1 -> tier1VsHorde
-        else -> tier2VsHorde
+    fun against(attacker: CreatureType, target: CreatureType): Int {
+        val counters = attacker.line?.counters == target.line
+        return when {
+            attacker == HORDE -> 0
+            attacker.tier == 1 -> when {
+                target == HORDE -> tier1VsHorde
+                target.tier == 1 && counters -> tier1VsCountered
+                else -> 0
+            }
+            target == HORDE -> tier2VsHorde
+            target.tier == 1 -> if (counters) tier2VsCounteredTier1 else tier2VsOtherTier1
+            counters -> tier2VsCounteredTier2
+            else -> 0
+        }
     }
 }

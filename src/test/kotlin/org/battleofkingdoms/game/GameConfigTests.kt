@@ -9,7 +9,10 @@ class GameConfigTests {
     @Test
     fun `the default bonuses are the spec's table`() {
         assertEquals(
-            Bonuses(tier1VsHorde = 2, tier2VsHorde = 5, sameTierCounter = 1, higherTierCounter = 3),
+            Bonuses(
+                tier1VsHorde = 1, tier1VsCountered = 1,
+                tier2VsHorde = 4, tier2VsCounteredTier1 = 4, tier2VsOtherTier1 = 2, tier2VsCounteredTier2 = 2,
+            ),
             GameConfig().bonuses,
         )
     }

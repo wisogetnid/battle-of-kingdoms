@@ -3,7 +3,8 @@
 Spec: [SPEC.md](../SPEC.md) · Tasks: [todo.md](todo.md)
 
 Iterations up to 4 are delivered and their plans retired; git history keeps them. The web UI
-has its own plan in [web-ui/](web-ui/); this plan only keeps it compiling.
+has its own plan in [web-ui/](web-ui/); this plan only keeps it compiling. A playtest
+rebalance of the bonus table (Phase 0) lands before the artifact work.
 
 ## Architecture decisions
 1. **Artifacts are an enum in `cards/`.** `Artifact { RESILIENT_BANNER, AMULET_OF_LUCK, CROWN }`
@@ -33,12 +34,22 @@ has its own plan in [web-ui/](web-ui/); this plan only keeps it compiling.
    teaches the scripted games to claim.
 8. **`pot` keeps its name** in `Game`, the view and the log, as the VP a battle is worth
    (always `victoryPointsPerBattle`), so the web UI keeps compiling and rendering.
-9. **The web UI is only kept compiling.** Adding `Phase.CLAIM` breaks the exhaustive `when`s
+9. **Six named bonuses, still one table.** The rebalance gives tier 1 and tier 2 different
+   same-tier counter bonuses and adds tier 2 against any other tier-1 unit, which four values
+   can't express. `Bonuses` takes six named values (one per non-zero cell) and keeps the
+   single `against(attacker, target)` lookup; `GameConfig` keeps every number. Only
+   `Bonuses.kt` and `GameConfig.kt` change in production code; the web UI prints whatever
+   strengths the view reports, so it needs nothing.
+10. **The web UI is only kept compiling.** Adding `Phase.CLAIM` breaks the exhaustive `when`s
    in `web/Pages.kt`; T4 adds plain `CLAIM` branches there and nothing else. The claim form
    and artifact display are the web UI agent's work.
 
 ## Dependency graph
 ```
+B1 new bonus table in the engine
+ └─ B2 bonus docs + playtest comments
+B1 ─▶ T1 (T1 rewrites the same BattleTests, so B1 lands first)
+
 T1 a tie gives nothing; the game awards the VP
  ├─ T2 Banner + Amulet casualties
  ├─ T3 Crown income
@@ -51,6 +62,18 @@ T2 and T3 only need `Player.artifacts` and are independent of T4–T5; they run 
 because they share `Game.kt`.
 
 ## Phases and checkpoints
+
+### Phase 0 — Playtest rebalance
+**B1. New bonus table.** Tier 1 +1 vs Horde and the tier-1 unit it counters; tier 2 +4 vs
+Horde and the tier-1 unit it counters, +2 vs any other tier-1 unit and the tier-2 unit it
+counters. Six named values in `Bonuses` and `GameConfig`; every table cell, the worked
+example and the equal-cost duel re-derived.
+
+**B2. Docs and playtest.** README table and examples, one-pager note, playtest comments
+recomputed for battles 2 and 3 (same winners, so casualties and hands don't change).
+
+**Checkpoint 0:** build green; SPEC.md, README and the playtest show the same table; the
+playtest replays as commented.
 
 ### Phase 1 — Rules in the engine
 **T1. A tie gives nothing.** Every battle is worth `victoryPointsPerBattle`; no rollover;
@@ -84,6 +107,8 @@ tier-2 unit, an artifact taken, one declined and a visible effect; README, one-p
 ## Risks and mitigations
 | Risk | Impact | Mitigation |
 |---|---|---|
+| Tier 1 + Horde now only ties 3 Horde (3 = 3) | Tier 1 looks pointless against Horde | Intended by the playtest: tier 1 pays off against the unit it counters; the spec's equal-cost rule says so; watch in play |
+| B1's new numbers shift seeded outcomes T1–T7 re-derive | Scripts written against the old table | B1 lands first; the scripted games already react to the deals and stayed green under B1 |
 | The drawn artifact leaks to other players or into the log | Breaks the core of the mechanic | `drawnArtifact` only on `MyView` and only for the winner during CLAIM; API test scans every other view and the log for the declined artifact's name |
 | `Phase.CLAIM` breaks the web UI build | Other agent's work stops compiling | T4 adds plain `CLAIM` branches in `web/Pages.kt` in the same commit; nothing more |
 | Adding the claim stalls the scripted HTTP games (no route yet) | E2E red between tasks | Interim empty stack in T4 (decision 7) |

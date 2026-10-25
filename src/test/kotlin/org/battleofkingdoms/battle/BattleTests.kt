@@ -74,25 +74,25 @@ class BattleTests {
         )
 
         Assertions.assertEquals(
-            listOf(Duel("anna", "ben", 8, 7), Duel("anna", "cleo", 3, 9), Duel("ben", "cleo", 3, 9)),
+            listOf(Duel("anna", "ben", 7, 5), Duel("anna", "cleo", 5, 7), Duel("ben", "cleo", 3, 7)),
             result.duels,
         )
-        Assertions.assertEquals(mapOf("anna" to -5, "ben" to -7, "cleo" to 12), result.armies.mapValues { it.value.score })
+        Assertions.assertEquals(mapOf("anna" to 0, "ben" to -6, "cleo" to 6), result.armies.mapValues { it.value.score })
         Assertions.assertEquals("cleo", result.winner)
     }
 
     @Test
     fun `fielding Horde hands every upgraded opponent its Horde bonus`() {
-        val result = resolve(mapOf("anna" to Army.of(HORDE to 4), "ben" to Army.of(BOW to 2)))
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(BOW to 2)))
 
-        Assertions.assertEquals(listOf(Duel("anna", "ben", 4, 6)), result.duels)
+        Assertions.assertEquals(listOf(Duel("anna", "ben", 3, 4)), result.duels)
         Assertions.assertEquals("ben", result.winner)
     }
 
     @Test
     fun `the bonus table is passed in`() {
         val commits = mapOf("anna" to Army.of(SWORD to 2), "ben" to Army.of(BOW to 1, HORDE to 1))
-        val none = Bonuses(tier1VsHorde = 0, tier2VsHorde = 0, sameTierCounter = 0, higherTierCounter = 0)
+        val none = Bonuses(0, 0, 0, 0, 0, 0)
 
         Assertions.assertNull(Battle.resolve(commits, pot = 1, none, Random(SEED)).winner)
         Assertions.assertEquals("anna", Battle.resolve(commits, pot = 1, BONUSES, Random(SEED)).winner)
@@ -192,7 +192,10 @@ class BattleTests {
 
     companion object {
         private const val SEED = 7L
-        private val BONUSES = Bonuses(tier1VsHorde = 2, tier2VsHorde = 5, sameTierCounter = 1, higherTierCounter = 3)
+        private val BONUSES = Bonuses(
+            tier1VsHorde = 1, tier1VsCountered = 1,
+            tier2VsHorde = 4, tier2VsCounteredTier1 = 4, tier2VsOtherTier1 = 2, tier2VsCounteredTier2 = 2,
+        )
 
         @JvmStatic
         fun winners() = listOf(

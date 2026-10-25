@@ -8,7 +8,9 @@ Web UI: [SPEC-web-ui.md](SPEC-web-ui.md)
 duels and scores), Iteration 3 (trading, two tiers, tier bonuses, no renown, no starting
 Horde) and Iteration 4 (tier 2 +5 / +3, 3 VP) are delivered. Iteration 5 replaces the
 rollover pot with **artifacts**: every battle is worth 1 VP, a tie gives nothing, and the
-winner chooses between that VP and an artifact only they have seen. Everything not
+winner chooses between that VP and an artifact only they have seen. A playtest also
+rebalanced the bonus table: tier 1 gets +1, tier 2 +4 against Horde and the tier-1 unit it
+counters and +2 against other tier-1 units and the tier-2 unit it counters. Everything not
 mentioned under [Changes from Iteration 4](#changes-from-iteration-4) stays as it is.
 
 ## Objective
@@ -106,16 +108,17 @@ over between turns; there is no hand limit.
 In a duel, each creature's strength is its attack (1) plus the **single best** bonus it has
 against any creature in that opponent's army. Bonuses never add up.
 
-| Attacker | vs Horde | vs its countered line, tier 1 | vs its countered line, tier 2 |
-|---|---|---|---|
-| Horde | — | — | — |
-| Tier 1 (Bow, Sword, Mage) | **+`tier1VsHorde`** (2) | **+`sameTierCounter`** (1) | — (lower tier gets nothing against higher) |
-| Tier 2 (Warbow, Knight, High Mage) | **+`tier2VsHorde`** (5) | **+`higherTierCounter`** (3) | **+`sameTierCounter`** (1) |
+| Attacker | vs Horde | vs the tier-1 unit it counters | vs any other tier-1 unit | vs the tier-2 unit it counters |
+|---|---|---|---|---|
+| Horde | — | — | — | — |
+| Tier 1 (Bow, Sword, Mage) | **+`tier1VsHorde`** (1) | **+`tier1VsCountered`** (1) | — | — (lower tier gets nothing against higher) |
+| Tier 2 (Warbow, Knight, High Mage) | **+`tier2VsHorde`** (4) | **+`tier2VsCounteredTier1`** (4) | **+`tier2VsOtherTier1`** (2) | **+`tier2VsCounteredTier2`** (2) |
 
-Any matchup not in the table (e.g. a Bow against a Sword, or a Warbow against a Bow) gives
-no bonus. For example, a Warbow in a duel against an army with a Mage and a Horde gets
-max(+3, +5) = +5, so its strength is 6; against an army with only Mages it gets +3, so its
-strength is 4. Artifacts never change duel strength.
+"Any other tier-1 unit" includes the tier-1 unit of the attacker's own line (a Warbow gets
++2 against a Bow). Any matchup not in the table (e.g. a Bow against a Sword, or a Warbow
+against a Knight) gives no bonus. For example, a Warbow in a duel against an army with a
+Bow and a Horde gets max(+2, +4) = +4, so its strength is 5; against an army with only
+Swords it gets +2, so its strength is 3. Artifacts never change duel strength.
 
 ### Battle resolution
 1. **Duels:** every pair of players fights one duel — 3 duels with 3 players, 10 with 5.
@@ -145,13 +148,14 @@ strength is 4. Artifacts never change duel strength.
 
 | | anna: 1 Warbow, 2 Horde | ben: 2 Mage, 1 Horde | cleo: 1 Knight, 1 Bow |
 |---|---|---|---|
-| anna vs ben | **8** = Warbow 6 (+5 vs Horde beats +3 vs Mage) + 2 Horde | 7 = 2 Mage × 3 (+2 vs Horde) + 1 Horde | |
-| anna vs cleo | 3 = Warbow 1 (no Horde, no Mage) + 2 Horde | | **9** = Knight 6 (+5 vs Horde beats +1 vs Warbow) + Bow 3 (+2 vs Horde) |
-| ben vs cleo | | 3 = 2 Mage × 1 (nothing vs a higher-tier Knight) + 1 Horde | **9** = Knight 6 (+5 vs Horde) + Bow 3 (+2 vs Horde beats +1 vs Mage) |
-| **Score** | +1 − 6 = **−5** | −1 − 6 = **−7** | +6 + 6 = **+12** |
+| anna vs ben | **7** = Warbow 5 (+4 vs Horde or vs Mage) + 2 Horde | 5 = 2 Mage × 2 (+1 vs Horde) + 1 Horde | |
+| anna vs cleo | 5 = Warbow 3 (+2 vs the Bow, nothing vs the Knight) + 2 Horde | | **7** = Knight 5 (+4 vs Horde beats +2 vs Warbow) + Bow 2 (+1 vs Horde) |
+| ben vs cleo | | 3 = 2 Mage × 1 (nothing vs a Bow or a higher-tier Knight) + 1 Horde | **7** = Knight 5 (+2 vs Mage, +4 vs Horde) + Bow 2 (+1 vs Mage or Horde) |
+| **Score** | +2 − 2 = **0** | −2 − 4 = **−6** | +2 + 4 = **+6** |
 
-cleo wins: her army has no Horde, so neither opponent gets a Horde bonus against her, while
-both of theirs contain Horde. anna's Warbow beats ben's two Mages and his Horde on its own.
+cleo wins: her Knight gets its big Horde bonus against both opponents, while ben's Mages
+can't touch a Bow or a Knight. anna's Warbow beats ben's two Mages and his Horde on its own,
+but loses to cleo.
 
 ### Prize and artifacts
 The **artifact stack** starts with the artifacts in `GameConfig.artifacts`: by default one
@@ -196,10 +200,12 @@ data class GameConfig(
     val startingHorde: Int = 0,
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
-    val tier1VsHorde: Int = 2,
-    val tier2VsHorde: Int = 5,
-    val sameTierCounter: Int = 1,
-    val higherTierCounter: Int = 3,
+    val tier1VsHorde: Int = 1,
+    val tier1VsCountered: Int = 1,
+    val tier2VsHorde: Int = 4,
+    val tier2VsCounteredTier1: Int = 4,
+    val tier2VsOtherTier1: Int = 2,
+    val tier2VsCounteredTier2: Int = 2,
     val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
     val artifacts: List<Artifact> = Artifact.entries,   // the starting stack
@@ -285,11 +291,12 @@ Games live in memory; restarting the server loses them.
 | Phases | … → BATTLE → next turn | … → BATTLE → CLAIM (winner, stack not empty) → next turn |
 | Casualties | floor / ceil by win or loss | the same, adjusted by the Resilient Banner and the Amulet of Luck |
 | Income | 1 Horde + 2 resources | + `crownHorde` Horde for the Crown's owner |
+| Bonuses (playtest) | tier 1: +2 vs Horde, +1 vs countered tier 1; tier 2: +5 vs Horde, +3 vs countered tier 1, +1 vs countered tier 2 | tier 1: +1 vs Horde, +1 vs countered tier 1; tier 2: +4 vs Horde, +4 vs countered tier 1, **+2 vs any other tier 1 (new)**, +2 vs countered tier 2 |
 | API | — | `POST …/claim`; `CLAIM` phase and action; `artifactsInStack`, `me.artifacts`, `me.drawnArtifact`, `others[].artifacts`, battle log `prize` |
-| Config | — | `victoryPointsPerBattle`, `artifacts`, `crownHorde` |
+| Config | `tier1VsHorde`, `tier2VsHorde`, `sameTierCounter`, `higherTierCounter` | `victoryPointsPerBattle`, `artifacts`, `crownHorde`; bonuses: `tier1VsHorde`, `tier1VsCountered`, `tier2VsHorde`, `tier2VsCounteredTier1`, `tier2VsOtherTier1`, `tier2VsCounteredTier2` |
 
-Unchanged: creatures, upgrades, trading, bonuses, duels and scores, the 3-VP target, and
-every existing route and view field (`pot` keeps its name).
+Unchanged: creatures, upgrades, trading, the single best bonus, duels and scores, the 3-VP
+target, and every existing route and view field (`pot` keeps its name).
 
 Seeded expectations change: rollover tests are rewritten for "a tie gives nothing", and the
 artifact draw consumes the seeded `Random` after every won battle, so the end-to-end games
@@ -388,7 +395,8 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   CLAIM phase, game-over at 3 VP only after a VP prize.
 - **The worked example** above is a unit test with exactly those duel strengths and scores.
 - **Equal-cost duels** pin down why tier 2 is worth building: against 3 Horde, 3 cards spent
-  as one tier-2 unit (6) beat a tier-1 unit and a Horde (3 + 1 = 4), which beat 3 Horde (3).
+  as one tier-2 unit (5) beat a tier-1 unit and a Horde (2 + 1 = 3), which only tie 3 Horde
+  (3). Tier 1 pays off against the unit it counters, not against Horde.
 - **API tests** (`testApplication`): each endpoint's success path and each error status,
   including the trade and claim routes; `upgradedThisTurn` and `drawnArtifact` appear only
   in my own view, and `drawnArtifact` only while I'm the winner choosing; a declined
@@ -444,7 +452,7 @@ None that block this iteration. To watch in play:
   everyone always takes the artifact, games drag.
 - Does the Crown snowball like renown did, now that it costs a VP?
 - Does the private knowledge of a declined artifact change anyone's later choice?
-- With +5, does any Horde in an army become a liability, so armies split into "all Horde"
-  and "no Horde"?
+- With tier 2 at +4 against Horde, does any Horde in an army become a liability, so armies
+  split into "all Horde" and "no Horde"?
 
 Deferred to later specs: more artifacts, artifacts with duel effects.
