@@ -13,7 +13,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Verify: `mise run test`; `WebRoutesTests` covers `GET /` with and without `?game=` and asserts text-only
   - Files: `build.gradle.kts`, `server/Application.kt`, `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
 
-- [ ] **W3. Create, join and the game page**
+- [x] **W3. Create, join and the game page**
   - Acceptance: `POST /ui/games` creates the game, joins the host and answers `303` to `/ui/games/{id}/players/{name}`; `POST /ui/games/{id}/players` joins and redirects the same way; invalid player count, blank or duplicate name, full game re-render the home page with the message and 400/409; `GET /ui/games/{id}/players/{name}` shows the title line with Refresh and Home links, phase, turn, pot, VP to win, winner when over, the invite link `/?game={id}` and joined players while waiting, my hand (in words), VP and acted flag, and one line per other player (VP, hand size, acted); unknown game or player returns `404` with a link home; names are HTML-escaped and URL-encoded in links
   - Verify: `mise run test`; tests for each redirect `Location`, each error status, a name `<b>x</b>` shown escaped, a name with a space linking correctly, no other player's hand on the page, every page text-only
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
