@@ -8,6 +8,7 @@ import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.game.Action
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.Phase
+import org.battleofkingdoms.game.RuleViolation
 import org.battleofkingdoms.player.Player
 import java.util.UUID
 
@@ -16,6 +17,14 @@ data class CreateGameRequest(val players: Int, val host: String, val seed: Long?
 data class CreateGameResponse(val gameId: UUID)
 
 data class JoinRequest(val name: String)
+
+data class UpgradeRequest(val into: CreatureType)
+
+/** `{ "HORDE": 2, "BOW": 1 }`; zero counts are ignored, `{}` commits nothing. */
+fun armyOf(counts: Map<CreatureType, Int>): Army = when {
+    counts.values.any { it < 0 } -> throw RuleViolation("Creature counts must not be negative: $counts")
+    else -> Army(counts.filterValues { it > 0 })
+}
 
 data class ErrorResponse(val error: String)
 

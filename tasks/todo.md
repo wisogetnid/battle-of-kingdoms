@@ -45,7 +45,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.server.*'`
   - Files: `server/Application.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `ApplicationKtTests.kt` (rewritten)
 
-- [ ] **T8. API: upgrade, ready, army**
+- [x] **T8. API: upgrade, ready, army**
   - Acceptance: the three action routes return the updated view; every error status per spec; a committed army is invisible to others until resolution and then appears in the battle log
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.server.*'`
   - Files: `server/GameRoutes.kt`, `server/Dtos.kt`, `server/ActionRoutesTests.kt`

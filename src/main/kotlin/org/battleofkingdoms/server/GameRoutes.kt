@@ -9,8 +9,10 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.game.AlreadyActed
 import org.battleofkingdoms.game.DuplicatePlayer
+import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameException
 import org.battleofkingdoms.game.RuleViolation
 import org.battleofkingdoms.game.UnknownGame
@@ -47,9 +49,36 @@ fun Route.gameRoutes(server: GameServer) {
                     call.respond(HttpStatusCode.Created)
                 }
             }
+
+            route("/players/{name}") {
+                post("/upgrades") {
+                    respondOrError {
+                        val into = call.receive<UpgradeRequest>().into
+                        respondView(server.upgrade(gameId(), playerName(), into))
+                    }
+                }
+
+                post("/ready") {
+                    respondOrError {
+                        respondView(server.ready(gameId(), playerName()))
+                    }
+                }
+
+                post("/army") {
+                    respondOrError {
+                        val army = armyOf(call.receive<Map<CreatureType, Int>>())
+                        respondView(server.commitArmy(gameId(), playerName(), army))
+                    }
+                }
+            }
         }
     }
 }
+
+private suspend fun RoutingContext.respondView(game: Game) =
+    call.respond(PlayerView.of(gameId(), game, playerName()))
+
+private fun RoutingContext.playerName(): String = call.parameters["name"].orEmpty()
 
 private fun RoutingContext.gameId(): UUID {
     val raw = call.parameters["id"].orEmpty()

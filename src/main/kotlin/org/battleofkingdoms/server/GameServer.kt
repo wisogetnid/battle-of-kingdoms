@@ -1,5 +1,7 @@
 package org.battleofkingdoms.server
 
+import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameConfig
 import org.battleofkingdoms.game.UnknownGame
@@ -21,6 +23,12 @@ class GameServer(private val config: GameConfig = GameConfig()) {
     }
 
     fun joinGame(gameId: UUID, name: String): Game = update(gameId) { it.join(name) }
+
+    fun upgrade(gameId: UUID, name: String, into: CreatureType): Game = update(gameId) { it.upgrade(name, into) }
+
+    fun ready(gameId: UUID, name: String): Game = update(gameId) { it.ready(name) }
+
+    fun commitArmy(gameId: UUID, name: String, army: Army): Game = update(gameId) { it.commitArmy(name, army) }
 
     @Synchronized
     private fun update(gameId: UUID, action: (Game) -> Game): Game =
