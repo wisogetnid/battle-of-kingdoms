@@ -1,0 +1,107 @@
+### Playtest: a seeded 3-player game through two battles.
+# Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
+# Seed 42 deals: anna 4 Horde + 2 Iron, ben 4 Horde + 2 Wood, cleo 4 Horde + 2 Iron.
+@host = http://localhost:8080
+
+### Create a game for 3 players; anna hosts
+POST {{host}}/games
+Content-Type: application/json
+
+{ "players": 3, "host": "anna", "seed": 42 }
+
+> {% client.global.set("gameId", response.body.gameId); %}
+
+### ben joins
+POST {{host}}/games/{{gameId}}/players
+Content-Type: application/json
+
+{ "name": "ben" }
+
+### cleo joins — the game is full and turn 1 starts
+POST {{host}}/games/{{gameId}}/players
+Content-Type: application/json
+
+{ "name": "cleo" }
+
+### anna's view: BUILD_UP, pot 1, her hand, available actions
+GET {{host}}/games/{{gameId}}?player=anna
+
+### ── Turn 1: build-up ──────────────────────────────────────────────
+
+### anna upgrades a Horde into a Bow (Horde + Iron)
+POST {{host}}/games/{{gameId}}/players/anna/upgrades
+Content-Type: application/json
+
+{ "into": "BOW" }
+
+### ben upgrades a Horde into a Shield (Horde + Wood)
+POST {{host}}/games/{{gameId}}/players/ben/upgrades
+Content-Type: application/json
+
+{ "into": "SHIELD" }
+
+### anna is ready
+POST {{host}}/games/{{gameId}}/players/anna/ready
+
+### ben is ready
+POST {{host}}/games/{{gameId}}/players/ben/ready
+
+### cleo is ready — the battle starts
+POST {{host}}/games/{{gameId}}/players/cleo/ready
+
+### ── Turn 1: battle (anna and ben tie at strength 2, the pot rolls over) ──
+
+### anna commits 2 Horde and keeps her Bow back
+POST {{host}}/games/{{gameId}}/players/anna/army
+Content-Type: application/json
+
+{ "HORDE": 2 }
+
+### ben commits 2 Horde and keeps his Shield back
+POST {{host}}/games/{{gameId}}/players/ben/army
+Content-Type: application/json
+
+{ "HORDE": 2 }
+
+### cleo sits this one out — the battle resolves
+POST {{host}}/games/{{gameId}}/players/cleo/army
+Content-Type: application/json
+
+{}
+
+### ben's view: battle 1 in the log with no winner; turn 2 with a pot of 2
+GET {{host}}/games/{{gameId}}?player=ben
+
+### ── Turn 2: build-up (no upgrades) ──────────────────────────────
+
+### anna is ready
+POST {{host}}/games/{{gameId}}/players/anna/ready
+
+### ben is ready
+POST {{host}}/games/{{gameId}}/players/ben/ready
+
+### cleo is ready — the battle starts
+POST {{host}}/games/{{gameId}}/players/cleo/ready
+
+### ── Turn 2: battle (anna 2+2=4, ben's Shield faces a Bow: 2+1=3, cleo 1) ──
+
+### anna commits 2 Horde and her Bow
+POST {{host}}/games/{{gameId}}/players/anna/army
+Content-Type: application/json
+
+{ "HORDE": 2, "BOW": 1 }
+
+### ben commits his Shield and 1 Horde
+POST {{host}}/games/{{gameId}}/players/ben/army
+Content-Type: application/json
+
+{ "SHIELD": 1, "HORDE": 1 }
+
+### cleo commits 1 Horde — the battle resolves
+POST {{host}}/games/{{gameId}}/players/cleo/army
+Content-Type: application/json
+
+{ "HORDE": 1 }
+
+### anna's view: battle 2 won by anna with the double pot (2 VP); turn 3 with a pot of 1
+GET {{host}}/games/{{gameId}}?player=anna

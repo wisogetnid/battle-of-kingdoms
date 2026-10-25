@@ -55,7 +55,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.e2e.*'`
   - Files: `e2e/EndToEndMultiplayerTest.kt`
 
-- [ ] **T10. Playtest script**
+- [x] **T10. Playtest script**
   - Acceptance: `http/playtest.http` creates a 3-player game and plays it through two battles
   - Verify: run `./gradlew run`, execute the file top to bottom in IntelliJ, and check the second battle appears in the log
   - Files: `http/playtest.http`
