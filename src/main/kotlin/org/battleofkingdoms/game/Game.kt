@@ -3,6 +3,7 @@ package org.battleofkingdoms.game
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.battle.Battle
 import org.battleofkingdoms.battle.BattleResult
+import org.battleofkingdoms.cards.Artifact.CROWN
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
@@ -185,7 +186,7 @@ data class Game(
     }
 
     private fun payIncome(player: Player, turn: Int): Player {
-        val horde = config.baseCreaturesPerTurn + startingHorde(turn)
+        val horde = config.baseCreaturesPerTurn + startingHorde(turn) + crownHorde(player)
         val hand = (1..config.resourcesPerTurn)
             .fold(player.hand.add(HORDE, horde)) { hand, _ -> hand + drawResource() }
         return player.copy(hand = hand, acted = false, upgradedThisTurn = emptyMap())
@@ -193,6 +194,11 @@ data class Game(
 
     private fun startingHorde(turn: Int): Int = when (turn) {
         1 -> config.startingHorde
+        else -> 0
+    }
+
+    private fun crownHorde(player: Player): Int = when (CROWN) {
+        in player.artifacts -> config.crownHorde
         else -> 0
     }
 

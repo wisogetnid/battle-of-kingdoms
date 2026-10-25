@@ -22,4 +22,9 @@ class GameConfigTests {
         assertEquals(3, GameConfig().victoryPointsToWin)
         assertEquals(1, GameConfig().victoryPointsPerBattle)
     }
+
+    @Test
+    fun `the Crown gives 1 extra Horde by default`() {
+        assertEquals(1, GameConfig().crownHorde)
+    }
 }

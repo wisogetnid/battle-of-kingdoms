@@ -1,5 +1,7 @@
 package org.battleofkingdoms.game
 
+import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.cards.Artifact.CROWN
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType
@@ -113,6 +115,35 @@ class IncomeTests {
             val drawn = hands.sumOf { it.count(resource) }
             assertTrue(drawn in 900..1100, "$resource drawn $drawn of 3000 times")
         }
+    }
+
+    @Test
+    fun `the Crown's owner gets extra Horde every turn, nobody else does`() {
+        val crowned = withCrown(startedGame(GameConfig()), "anna")
+
+        val turn2 = nextTurn(crowned)
+        val turn3 = nextTurn(turn2)
+
+        assertEquals(1 + 1 + 1, turn2.player("anna").hand.count(HORDE)) // turn 1 + income + Crown
+        assertEquals(1 + 1, turn2.player("ben").hand.count(HORDE))
+        assertEquals(1 + 2 * (1 + 1), turn3.player("anna").hand.count(HORDE))
+        assertEquals(2, resources(turn2.player("anna").hand) - resources(crowned.player("anna").hand))
+    }
+
+    @Test
+    fun `the Crown's extra Horde come from the config`() {
+        val crowned = withCrown(startedGame(GameConfig(crownHorde = 3)), "anna")
+
+        assertEquals(1 + 1 + 3, nextTurn(crowned).player("anna").hand.count(HORDE))
+    }
+
+    private fun withCrown(game: Game, name: String) =
+        game.copy(players = game.players + (name to game.player(name).copy(artifacts = setOf(CROWN))))
+
+    /** Everyone readies and commits nothing: a battle without a winner, then the next turn's income. */
+    private fun nextTurn(game: Game): Game {
+        val ready = game.players.keys.fold(game) { g, name -> g.ready(name) }
+        return ready.players.keys.fold(ready) { g, name -> g.commitArmy(name, Army()) }
     }
 
     private fun resources(hand: Hand) = ResourceType.entries.sumOf { hand.count(it) }

@@ -32,7 +32,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`
   - Files: `cards/Artifact.kt` (new), `player/Player.kt`, `battle/Battle.kt`, `game/Game.kt`, `BattleTests.kt`
 
-- [ ] **T3. Crown**
+- [x] **T3. Crown**
   - Acceptance: `GameConfig.crownHorde = 1`; the Crown's owner gets that many extra Horde in every turn's income; nobody else does
   - Verify: `mise run test`
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `game/LobbyTests.kt` (IncomeTests)
