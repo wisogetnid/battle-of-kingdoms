@@ -8,11 +8,11 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; `grep -rn "sameTierCounter\|higherTierCounter" src` finds nothing
   - Files: `battle/Bonuses.kt`, `game/GameConfig.kt`, `battle/ArmyTests.kt`, `battle/BattleTests.kt`, `game/GameConfigTests.kt`
 
-- [ ] **B2. Bonus docs and playtest comments**
+- [x] **B2. Bonus docs and playtest comments**
   - Acceptance: README's bonus table, example and equal-cost paragraph show +1 / +4 / +2; the core-loop one-pager's note mentions the rebalance; `http/playtest.http`'s header and battle comments match the new numbers (battle 2: 3:6, 3:3, 6:3, ben wins; battle 3: 5:7, 5:4, 6:2, ben wins the game)
   - Verify: run `mise run server`, replay `http/playtest.http` and compare each battle with its comment; `grep -rnE "\+5|\+3 vs" README.md http` finds nothing stale
   - Files: `README.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`, `http/playtest.http`
-  - Status: edits done; the replay against a running server is still to do
+  - Status: replayed against a running server; every battle matches its comment, including the expected 400
 
 - [x] **B3. Only committed armies fight**
   - Acceptance: a player who commits nothing sits out — no duels, score 0, no casualties, and nobody scores against them; duels are a round robin among committed players only; a lone committer wins uncontested (score 0, no duels, loses `floor(n / 2)`); nobody committing means no winner; the playtest's case (anna 3 Horde vs bob Horde + Mage, cleo empty) is a 3:3 tie with no winner; the battle log page shows "cleo sat out"; tests that counted duels against empty armies are rewritten to the new rule
@@ -23,12 +23,12 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 1 — Rules in the engine
 - [ ] **T1. A tie gives nothing; the game awards the VP**
-  - Acceptance: `GameConfig.victoryPointsPerBattle = 1`; `pot` is always that value (no rollover, no growth); a tie changes nobody's VP and the next battle is worth 1; `Battle.resolve` no longer takes a pot and `Game` sets the winner's `vpGained`; `BattleResult.rolledOver` is gone; rollover tests are rewritten to "a tie gives nothing"
+  - Acceptance: `GameConfig.victoryPointsPerBattle = 1`; `pot` is always that value (no rollover, no growth); a tie changes nobody's VP and the next battle is worth 1; `Battle.resolve` no longer takes a pot and `Game` sets the winner's `vpGained`; `BattleResult.rolledOver` is gone; rollover tests are rewritten to "a tie gives nothing"; a lone committer's uncontested win (B3) also scores 1 VP; the playtest's "rolls over" and "double pot" comments stay stale until T7 re-derives it
   - Verify: `mise run build`; `grep -rn rolledOver src` finds nothing
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`
 
 - [ ] **T2. Resilient Banner and Amulet of Luck**
-  - Acceptance: `cards/Artifact.kt` (RESILIENT_BANNER, AMULET_OF_LUCK, CROWN); `Player.artifacts`; `Battle.resolve` takes each player's artifacts; the Banner always floors, the Amulet loses one fewer (not below 0), both combine; every row of the spec's casualty table passes for winners and losers
+  - Acceptance: `cards/Artifact.kt` (RESILIENT_BANNER, AMULET_OF_LUCK, CROWN); `Player.artifacts`; `Battle.resolve` takes each player's artifacts; the Banner always floors, the Amulet loses one fewer (not below 0), both combine; every row of the spec's casualty table passes for winners and losers; a player who sat out (B3) loses nothing whatever they own
   - Verify: `mise run test`
   - Files: `cards/Artifact.kt` (new), `player/Player.kt`, `battle/Battle.kt`, `game/Game.kt`, `BattleTests.kt`
 
