@@ -125,6 +125,51 @@ class BuildUpTests {
         assertTrue(game.players.values.none { it.acted })
     }
 
+    @ParameterizedTest
+    @MethodSource("resources")
+    fun `a trade swaps one resource for one Horde`(resource: ResourceType) {
+        val game = startedGame(hand = Hand.of(HORDE to 1, resource to 2))
+
+        val traded = game.trade("anna", resource)
+
+        assertEquals(Hand.of(HORDE to 2, resource to 1), traded.player("anna").hand)
+    }
+
+    @Test
+    fun `a player may trade every resource, then upgrade with none left`() {
+        val game = startedGame(hand = Hand.of(WOOD to 1, IRON to 1, ESSENCE to 1))
+
+        val traded = game.trade("anna", WOOD).trade("anna", IRON).trade("anna", ESSENCE)
+
+        assertEquals(Hand.of(HORDE to 3), traded.player("anna").hand)
+        assertFailsWith<RuleViolation> { traded.upgrade("anna", BOW) }
+    }
+
+    @Test
+    fun `trading a resource I don't have is a rule violation`() {
+        val game = startedGame(hand = Hand.of(HORDE to 1, WOOD to 1))
+
+        assertFailsWith<RuleViolation> { game.trade("anna", IRON) }
+    }
+
+    @Test
+    fun `trading after ready, outside build-up, or as an unknown player is rejected`() {
+        val game = startedGame(hand = Hand.of(WOOD to 2))
+
+        assertFailsWith<AlreadyActed> { game.ready("anna").trade("anna", WOOD) }
+        assertFailsWith<WrongPhase> { Game.create(GameConfig(), SEED, 3, "anna").trade("anna", WOOD) }
+        assertFailsWith<WrongPhase> { allReady(game).trade("anna", WOOD) }
+        assertFailsWith<UnknownPlayer> { game.trade("zed", WOOD) }
+    }
+
+    @Test
+    fun `build-up offers trade, upgrade and ready until the player is ready`() {
+        val game = startedGame()
+
+        assertEquals(listOf(Action.TRADE, Action.UPGRADE, Action.READY), game.availableActions("anna"))
+        assertEquals(emptyList(), game.ready("anna").availableActions("anna"))
+    }
+
     private fun startedGame(hand: Hand? = null): Game {
         val game = Game.create(GameConfig(), SEED, 3, "anna").join("ben").join("cleo")
         return when (hand) {
@@ -136,6 +181,9 @@ class BuildUpTests {
     private fun allReady(game: Game): Game = game.players.keys.fold(game) { g, name -> g.ready(name) }
 
     companion object {
+        @JvmStatic
+        fun resources() = ResourceType.entries.toList()
+
         @JvmStatic
         fun upgrades() = listOf(
             Arguments.of(BOW, WOOD),

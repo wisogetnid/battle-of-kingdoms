@@ -8,7 +8,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; `grep -rni renown src README.md` finds nothing
   - Files: `player/Player.kt`, `game/Game.kt`, `game/GameConfig.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `README.md`
 
-- [ ] **T2. Trading**
+- [x] **T2. Trading**
   - Acceptance: `Game.trade(name, resource)` swaps one resource for one Horde during build-up, any number of times; `RuleViolation` without that resource, `WrongPhase` outside build-up, `AlreadyActed` after ready, `UnknownPlayer`; `POST /games/{id}/players/{name}/trades` `{ "resource": … }` returns my view; a creature or unknown name in `resource` is a 400; `availableActions` lists `TRADE` with `UPGRADE` and `READY` in build-up
   - Verify: `mise run test`
   - Files: `game/Game.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `game/BuildUpTests.kt`, `ActionRoutesTests.kt`, `ApplicationKtTests.kt`

@@ -51,6 +51,13 @@ fun Route.gameRoutes(server: GameServer) {
             }
 
             route("/players/{name}") {
+                post("/trades") {
+                    respondOrError {
+                        val resource = call.receive<TradeRequest>().resource
+                        respondView(server.trade(gameId(), playerName(), resource))
+                    }
+                }
+
                 post("/upgrades") {
                     respondOrError {
                         val into = call.receive<UpgradeRequest>().into

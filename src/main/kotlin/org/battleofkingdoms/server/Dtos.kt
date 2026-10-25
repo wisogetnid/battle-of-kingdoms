@@ -6,6 +6,7 @@ import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.battle.Duel
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.Hand
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Action
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.Phase
@@ -18,6 +19,8 @@ data class CreateGameRequest(val players: Int, val host: String, val seed: Long?
 data class CreateGameResponse(val gameId: UUID)
 
 data class JoinRequest(val name: String)
+
+data class TradeRequest(val resource: ResourceType)
 
 data class UpgradeRequest(val into: CreatureType)
 

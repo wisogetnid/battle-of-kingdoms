@@ -41,6 +41,42 @@ class ActionRoutesTests {
         }
 
     @Test
+    fun `a trade swaps a resource for a Horde and returns my view`() = apiTest { api ->
+        val gameId = api.startGame(*PLAYERS)
+        val before = api.view(gameId, "anna")["me"]["hand"]
+        val resource = listOf("WOOD", "IRON", "ESSENCE").first { before.has(it) }
+
+        val response = api.trade(gameId, "anna", resource)
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val hand = TestApi.json(response)["me"]["hand"]
+        assertEquals(before["HORDE"].asInt() + 1, hand["HORDE"].asInt())
+        assertEquals(before[resource].asInt() - 1, hand.path(resource).asInt(0))
+    }
+
+    @Test
+    fun `trading something I don't have, a creature, or an unknown name is a bad request`() = apiTest { api ->
+        val gameId = api.startGame(*PLAYERS)
+        val hand = api.view(gameId, "anna")["me"]["hand"]
+        val missing = listOf("WOOD", "IRON", "ESSENCE").first { !hand.has(it) }
+
+        assertError(HttpStatusCode.BadRequest, api.trade(gameId, "anna", missing))
+        assertError(HttpStatusCode.BadRequest, api.trade(gameId, "anna", "HORDE"))
+        assertError(HttpStatusCode.BadRequest, api.trade(gameId, "anna", "GOLD"))
+    }
+
+    @Test
+    fun `trading after ready or outside build-up is a conflict`() = apiTest { api ->
+        val gameId = api.startGame(*PLAYERS)
+        api.post("/games/$gameId/players/anna/ready")
+        assertError(HttpStatusCode.Conflict, api.trade(gameId, "anna", "WOOD"))
+
+        allReady(api, gameId)
+        assertError(HttpStatusCode.Conflict, api.trade(gameId, "ben", "WOOD"))
+        assertError(HttpStatusCode.NotFound, api.trade(gameId, "zed", "WOOD"))
+    }
+
+    @Test
     fun `ready returns my view with nothing left to do`() = apiTest { api ->
         val gameId = api.startGame(*PLAYERS)
 
@@ -164,6 +200,9 @@ class ActionRoutesTests {
         else -> "MAGE" to "ESSENCE"
     }
 }
+
+private suspend fun TestApi.trade(gameId: String, name: String, resource: String): HttpResponse =
+    post("/games/$gameId/players/$name/trades", mapOf("resource" to resource))
 
 private suspend fun TestApi.upgrade(gameId: String, name: String, into: String): HttpResponse =
     post("/games/$gameId/players/$name/upgrades", mapOf("into" to into))

@@ -2,6 +2,7 @@ package org.battleofkingdoms.server
 
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameConfig
 import org.battleofkingdoms.game.UnknownGame
@@ -23,6 +24,8 @@ class GameServer(private val config: GameConfig = GameConfig()) {
     }
 
     fun joinGame(gameId: UUID, name: String): Game = update(gameId) { it.join(name) }
+
+    fun trade(gameId: UUID, name: String, resource: ResourceType): Game = update(gameId) { it.trade(name, resource) }
 
     fun upgrade(gameId: UUID, name: String, into: CreatureType): Game = update(gameId) { it.upgrade(name, into) }
 

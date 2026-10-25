@@ -121,7 +121,7 @@ class ApplicationKtTests {
         assertEquals(4, view["me"]["hand"]["HORDE"].asInt())
         val resources = listOf("WOOD", "IRON", "ESSENCE").sumOf { view["me"]["hand"].path(it).asInt(0) }
         assertEquals(2, resources)
-        assertEquals(listOf("UPGRADE", "READY"), view["availableActions"].map { it.asText() })
+        assertEquals(listOf("TRADE", "UPGRADE", "READY"), view["availableActions"].map { it.asText() })
         assertTrue(view["battleLog"].isEmpty)
         assertTrue(view["winner"].isNull)
     }

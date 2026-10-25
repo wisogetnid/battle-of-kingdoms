@@ -16,7 +16,7 @@ import kotlin.random.Random
 
 enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, GAME_OVER }
 
-enum class Action { UPGRADE, READY, COMMIT_ARMY }
+enum class Action { TRADE, UPGRADE, READY, COMMIT_ARMY }
 
 /**
  * Immutable game state; every action returns a new [Game] or throws a [GameException].
@@ -44,6 +44,17 @@ data class Game(
         phase != WAITING_FOR_PLAYERS -> throw WrongPhase(phase)
         name in players -> throw DuplicatePlayer(name)
         else -> copy(players = players + (name to Player(name))).startWhenFull()
+    }
+
+    /** Swaps one resource of any kind for one Horde. */
+    fun trade(playerName: String, resource: ResourceType): Game {
+        val player = player(playerName)
+        return when {
+            phase != BUILD_UP -> throw WrongPhase(phase)
+            player.acted -> throw AlreadyActed(playerName)
+            !player.hand.has(resource) -> throw RuleViolation("$playerName has no $resource to trade")
+            else -> updatePlayer(player.copy(hand = player.hand - resource + HORDE))
+        }
     }
 
     fun upgrade(playerName: String, into: CreatureType): Game {
@@ -81,12 +92,12 @@ data class Game(
 
     fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
 
-    /** What [playerName] may do right now; [Action.UPGRADE] is listed by phase, not by what they can afford. */
+    /** What [playerName] may do right now; [Action.TRADE] and [Action.UPGRADE] are listed by phase, not by what they can afford. */
     fun availableActions(playerName: String): List<Action> {
         val player = player(playerName)
         return when {
             player.acted -> emptyList()
-            phase == BUILD_UP -> listOf(Action.UPGRADE, Action.READY)
+            phase == BUILD_UP -> listOf(Action.TRADE, Action.UPGRADE, Action.READY)
             phase == BATTLE -> listOf(Action.COMMIT_ARMY)
             else -> emptyList()
         }
