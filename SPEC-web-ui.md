@@ -40,7 +40,7 @@ Forms post `application/x-www-form-urlencoded` (read with `call.receiveParameter
 
 | Method & path | Form fields | Success | Page / purpose |
 |---|---|---|---|
-| `GET /` | query `game` (optional) | `200` | Home: "Create game" form; "Join game" form (game id prefilled from `?game=`) |
+| `GET /` | query `game` (optional) | `200` | Home: "Create game" form; with `?game=` a "Join game" form for that game, otherwise an "Open game" GET form asking for the id (a form can't put a typed id into the join path) |
 | `POST /ui/games` | `players`, `name`, `seed` (optional) | `303` → my game page | Create a game; the host joins it |
 | `POST /ui/games/{id}/players` | `name` | `303` → my game page | Join |
 | `GET /ui/games/{id}/players/{name}` | — | `200` | My game page |

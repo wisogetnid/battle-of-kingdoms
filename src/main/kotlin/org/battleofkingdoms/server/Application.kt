@@ -6,6 +6,7 @@ import io.ktor.server.application.install
 import io.ktor.server.netty.EngineMain
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.routing
+import org.battleofkingdoms.web.webRoutes
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
@@ -16,6 +17,8 @@ fun Application.module() {
         jackson()
     }
     routing {
-        gameRoutes(GameServer())
+        val server = GameServer()
+        gameRoutes(server)
+        webRoutes(server)
     }
 }

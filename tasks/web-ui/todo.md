@@ -8,7 +8,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Verify: `mise run test` (all existing tests green, none edited)
   - Files: `server/GameRoutes.kt`
 
-- [ ] **W2. Skeleton and home page**
+- [x] **W2. Skeleton and home page**
   - Acceptance: `io.ktor:ktor-server-html-builder:$ktor_version` added; `Application.module()` creates one `GameServer` and passes it to `gameRoutes` and `webRoutes`; `GET /` returns `200` HTML with a "Create game" form (players, name, optional seed → `POST /ui/games`) and a "Join game" form (game id, name), the id prefilled from `?game=`; `displayName` turns enum names into words; a test helper `assertTextOnly(html)` fails on `<script`, `<style`, `<img`, `<link` or `style=`
   - Verify: `mise run test`; `WebRoutesTests` covers `GET /` with and without `?game=` and asserts text-only
   - Files: `build.gradle.kts`, `server/Application.kt`, `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
