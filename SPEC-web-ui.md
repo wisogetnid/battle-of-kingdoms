@@ -65,9 +65,9 @@ Forms post `application/x-www-form-urlencoded` (read with `call.receiveParameter
 2. Error message, if the last action was rejected.
 3. Status: phase, turn, pot, VP to win; the winner once the game is over.
 4. While `WAITING_FOR_PLAYERS`: the invite link (`/?game={id}`) and who has joined.
-5. Me: hand (count per creature and resource: Horde first, then the other creatures by
-   tier and line, then resources alphabetically), units upgraded this turn, VP, whether
-   I've acted.
+5. Me: hand, broken down into a line each for tier 2 and tier 1 creatures (only when I hold
+   any, in line order: Bow, Sword, Mage), Horde (always, 0 included) and resources (always,
+   alphabetically, "none" if empty); units upgraded this turn, VP, whether I've acted.
 6. Others: one line each — name, VP, hand size, ready/committed or not.
 7. Actions, driven only by `availableActions`:
    - `TRADE`: one button per resource in my hand ("Trade 1 Wood for 1 Horde").

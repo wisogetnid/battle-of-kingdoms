@@ -156,12 +156,12 @@ class WebRoutesTests {
 
         val html = client.gamePage(gameId, "anna")
 
-        assertTrue(html.contains("Hand: "), html)
+        assertTrue(html.contains("Hand:"), html)
         assertEquals(1, Regex("Hand:").findAll(html).count(), html)
     }
 
     @Test
-    fun `the hand lists Horde first, then the other creatures, then resources alphabetically`() {
+    fun `the hand is broken down into tier 2, tier 1, Horde and resources`() {
         val view = PlayerView(
             gameId = UUID.randomUUID(), phase = Phase.BUILD_UP, turn = 1, pot = 1, victoryPointsToWin = 3,
             me = MyView("anna", mapOf("WOOD" to 1, "BOW" to 1, "ESSENCE" to 2, "HORDE" to 3, "IRON" to 1, "WARBOW" to 1), emptyMap(), 0, false),
@@ -170,7 +170,32 @@ class WebRoutesTests {
 
         val html = createHTML().html { gamePage(view) }
 
-        assertTrue(html.contains("Hand: 3 Horde, 1 Bow, 1 Warbow, 2 Essence, 1 Iron, 1 Wood"), html)
+        val hand = Regex("<li>(Tier 2|Tier 1|Horde|Resources): [^<]*</li>").findAll(html).map { it.value }.toList()
+        assertEquals(
+            listOf(
+                "<li>Tier 2: 1 Warbow</li>",
+                "<li>Tier 1: 1 Bow</li>",
+                "<li>Horde: 3</li>",
+                "<li>Resources: 2 Essence, 1 Iron, 1 Wood</li>",
+            ),
+            hand,
+        )
+    }
+
+    @Test
+    fun `tier lines appear only when I hold such units, Horde and resources always`() {
+        val view = PlayerView(
+            gameId = UUID.randomUUID(), phase = Phase.BUILD_UP, turn = 1, pot = 1, victoryPointsToWin = 3,
+            me = MyView("anna", mapOf("BOW" to 1), emptyMap(), 0, false),
+            others = emptyList(), availableActions = emptyList(), battleLog = emptyList(), winner = null,
+        )
+
+        val html = createHTML().html { gamePage(view) }
+
+        assertFalse(html.contains("Tier 2:"), html)
+        assertTrue(html.contains("<li>Tier 1: 1 Bow</li>"), html)
+        assertTrue(html.contains("<li>Horde: 0</li>"), html)
+        assertTrue(html.contains("<li>Resources: none</li>"), html)
     }
 
     @Test

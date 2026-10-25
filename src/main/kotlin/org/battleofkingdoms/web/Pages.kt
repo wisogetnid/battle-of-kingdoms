@@ -22,6 +22,7 @@ import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
 import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Action.COMMIT_ARMY
 import org.battleofkingdoms.game.Action.READY
@@ -115,13 +116,27 @@ private fun FlowContent.invite(view: PlayerView) {
 private fun FlowContent.me(view: PlayerView) {
     h2 { +"You" }
     ul {
-        li { +"Hand: ${counts(view.me.hand)}" }
+        li {
+            +"Hand:"
+            hand(view.me.hand)
+        }
         if (view.me.upgradedThisTurn.isNotEmpty()) {
             li { +"Upgraded this turn: ${counts(view.me.upgradedThisTurn.mapKeys { it.key.name })}" }
         }
         li { +"VP: ${view.me.vp}" }
         actedLabel(view.phase, view.me.acted)?.let { li { +"You are $it" } }
     }
+}
+
+/** Tier 2, tier 1 (each only if I hold any), Horde, then resources: easier to scan than one line. */
+private fun FlowContent.hand(hand: Map<String, Int>) = ul {
+    val held = hand.filterValues { it > 0 }
+    listOf(2, 1).forEach { tier ->
+        val units = held.filterKeys { name -> CreatureType.entries.any { it.name == name && it.tier == tier } }
+        if (units.isNotEmpty()) li { +"Tier $tier: ${counts(units)}" }
+    }
+    li { +"Horde: ${held[HORDE.name] ?: 0}" }
+    li { +"Resources: ${counts(held.filterKeys { name -> ResourceType.entries.any { it.name == name } }, empty = "none")}" }
 }
 
 /** One form per action I can take right now, as listed in [PlayerView.availableActions]. */
@@ -232,10 +247,10 @@ private fun actedLabel(phase: Phase, acted: Boolean): String? = when (phase) {
 }
 
 /** `{WOOD=1, HORDE=3}` → "3 Horde, 1 Wood", in [handOrder]. */
-private fun counts(counts: Map<String, Int>): String =
+private fun counts(counts: Map<String, Int>, empty: String = "nothing"): String =
     counts.filterValues { it > 0 }.toSortedMap(handOrder).entries
         .joinToString(", ") { (name, count) -> "$count ${displayName(name)}" }
-        .ifEmpty { "nothing" }
+        .ifEmpty { empty }
 
 /** Horde first, then the other creatures in [CreatureType] order, then resources alphabetically. */
 private val handOrder: Comparator<String> = compareBy(
