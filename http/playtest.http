@@ -1,9 +1,9 @@
-### Playtest: a seeded 3-player game through two battles.
+### Playtest: a seeded 3-player game played to the end in three battles.
 # Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
 # Seed 42 deals: anna 1 Horde + Wood + Essence, ben 1 Horde + 2 Essence, cleo 1 Horde + Iron + Wood.
-# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +2 / tier 2 +3
-# against Horde, +1 against the countered unit of the same tier, +2 one tier below; only the
-# best bonus counts. First to 5 VP wins.
+# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +2 / tier 2 +5
+# against Horde, +1 against the countered unit of the same tier, +3 one tier below; only the
+# best bonus counts. First to 3 VP wins; this game ends in battle 3.
 @host = http://localhost:8080
 
 ### Create a game for 3 players; anna hosts
@@ -107,9 +107,10 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
 ### ── Turn 2: battle (the High Mage decides it) ─────────────────────
-# Duels: anna–ben 4:5 (anna's Bow +2 vs Horde, nothing vs the higher-tier High Mage;
-#        ben's High Mage +3 vs Horde), anna–cleo 4:3, ben–cleo 5:3
-# → scores anna 0, ben +3, cleo −3. ben wins the double pot (2 VP).
+# Duels: anna–ben 4:7 (anna's Bow +2 vs Horde, nothing vs the higher-tier High Mage;
+#        ben's High Mage +5 vs Horde), anna–cleo 4:3, ben–cleo 7:3
+# → scores anna −2, ben +7, cleo −5. ben wins the double pot (2 VP).
+# Casualties: anna loses her Bow, ben his Horde, cleo 2 of her 3 Horde.
 
 ### anna commits her Bow and 1 Horde
 POST {{host}}/games/{{gameId}}/players/anna/army
@@ -130,4 +131,82 @@ Content-Type: application/json
 { "HORDE": 3 }
 
 ### ben's view: battle 2 won by ben with the double pot (2 VP); turn 3 with a pot of 1
+GET {{host}}/games/{{gameId}}?player=ben
+
+### ── Turn 3: build-up ──────────────────────────────────────────────
+# Hands: anna 2 Horde + 2 Essence + 2 Iron + Wood, ben High Mage + Horde + 3 Iron + Wood,
+# cleo 2 Horde + 2 Iron + 3 Wood. ben needs 1 more VP. Without a Bow, nobody can build the
+# Warbow that counters his High Mage this turn.
+
+### anna goes wide: trades an Iron for a Horde
+POST {{host}}/games/{{gameId}}/players/anna/trades
+Content-Type: application/json
+
+{ "resource": "IRON" }
+
+### anna trades her second Iron
+POST {{host}}/games/{{gameId}}/players/anna/trades
+Content-Type: application/json
+
+{ "resource": "IRON" }
+
+### anna trades her Wood — 5 Horde, and she keeps her 2 Essence
+POST {{host}}/games/{{gameId}}/players/anna/trades
+Content-Type: application/json
+
+{ "resource": "WOOD" }
+
+### ben upgrades his Horde into a Sword (Horde + Iron)
+POST {{host}}/games/{{gameId}}/players/ben/upgrades
+Content-Type: application/json
+
+{ "into": "SWORD" }
+
+### cleo upgrades a Horde into a Sword
+POST {{host}}/games/{{gameId}}/players/cleo/upgrades
+Content-Type: application/json
+
+{ "into": "SWORD" }
+
+### cleo upgrades her other Horde into a Sword
+POST {{host}}/games/{{gameId}}/players/cleo/upgrades
+Content-Type: application/json
+
+{ "into": "SWORD" }
+
+### anna is ready
+POST {{host}}/games/{{gameId}}/players/anna/ready
+
+### ben is ready
+POST {{host}}/games/{{gameId}}/players/ben/ready
+
+### cleo is ready — the battle starts
+POST {{host}}/games/{{gameId}}/players/cleo/ready
+
+### ── Turn 3: battle (the High Mage again) ──────────────────────────
+# Duels: anna–ben 5:9 (ben's High Mage +5 and Sword +2 vs anna's Horde),
+#        anna–cleo 5:6 (cleo's Swords +2 each vs Horde),
+#        ben–cleo 5:2 (cleo fields no Horde, so the High Mage gets +3 vs the Swords it counters
+#        instead of +5; the Swords get nothing vs the High Mage or a Sword)
+# → scores anna −5, ben +7, cleo −2. ben wins with 3 VP and the game is over.
+
+### anna commits her 5 Horde
+POST {{host}}/games/{{gameId}}/players/anna/army
+Content-Type: application/json
+
+{ "HORDE": 5 }
+
+### ben commits his High Mage and his new Sword
+POST {{host}}/games/{{gameId}}/players/ben/army
+Content-Type: application/json
+
+{ "HIGH_MAGE": 1, "SWORD": 1 }
+
+### cleo commits her 2 Swords and no Horde — the battle resolves
+POST {{host}}/games/{{gameId}}/players/cleo/army
+Content-Type: application/json
+
+{ "SWORD": 2 }
+
+### ben's view: GAME_OVER, ben wins with 3 VP; no actions left
 GET {{host}}/games/{{gameId}}?player=ben

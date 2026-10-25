@@ -4,7 +4,7 @@ battle for artifacts and hope that one day become the overlords of all other tri
 
 This is a try on a deck building/strategy card game, built digitally first to allow for easier testing and playing.
 
-The current version (Iteration 3, **two tiers and trading**) is the core loop for 3–5 players,
+The current version (Iteration 4, **decisive tier 2**) is the core loop for 3–5 players,
 played over a JSON HTTP API: build up your army, then bid it blindly for the victory point.
 The full rules and API contract live in [SPEC.md](SPEC.md).
 
@@ -35,14 +35,16 @@ The lines form a counter triangle: **Bow beats Mage, Sword beats Bow, Mage beats
 |---|---|---|---|
 | Horde | — | — | — |
 | Tier 1 (Bow, Sword, Mage) | **+2** | **+1** | — (a lower tier gets nothing against a higher one) |
-| Tier 2 (Warbow, Knight, High Mage) | **+3** | **+2** | **+1** |
+| Tier 2 (Warbow, Knight, High Mage) | **+5** | **+3** | **+1** |
 
-For example, a Warbow against an army with a Mage and Horde gets +3 (not +3 and +2), so it
-attacks for 4. Any Horde you commit hands every upgraded opponent its Horde bonus, while
-Horde are also your cheapest casualties. Upgraded units hit harder but every random
-casualty among them hurts more, and resources traded for Horde are gone for tier 2.
+For example, a Warbow against an army with a Mage and Horde gets +5 (not +5 and +3), so it
+attacks for 6; against Mages alone it gets +3. Any Horde you commit hands every upgraded
+opponent its Horde bonus, while Horde are also your cheapest casualties. Upgraded units hit
+harder but every random casualty among them hurts more, and resources traded for Horde are
+gone for tier 2. A tier-2 unit costs three cards over two turns and is worth it: against
+3 Horde, it attacks for 6, where a tier-1 unit and a Horde attack for 4 and 3 Horde for 3.
 Everyone sees all armies after each battle, so use what you learned about each opponent.
-The first player to **5 VP** wins. All numbers are in `GameConfig` so they're easy to tune.
+The first player to **3 VP** wins. All numbers are in `GameConfig` so they're easy to tune.
 
 # Running a session
 Games live in memory on one server; restarting it ends every game. Player names are trusted
@@ -58,8 +60,9 @@ instead of `localhost`, or share it through a tunnel of your choice.
 
 ## 2. Play
 **Scripted playtest in IntelliJ:** open [`http/playtest.http`](http/playtest.http) and run
-the requests top to bottom. It plays a seeded 3-player game through two battles: a trade and
-a tie that rolls the pot over, then a win decided by a High Mage built over two turns.
+the requests top to bottom. It plays a seeded 3-player game to the end in three battles: a
+trade and a tie that rolls the pot over, a double pot won by a High Mage built over two
+turns, and the same High Mage finishing the game at 3 VP.
 
 **A real game with curl:** each player sends their own requests. Replace `$GAME` with the id
 returned when creating the game.

@@ -16,7 +16,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint A — build green; no production change outside `GameConfig.kt`
 
 ## Phase 2 — Play and docs
-- [ ] **T3. Playtest and docs**
+- [x] **T3. Playtest and docs**
   - Acceptance: `http/playtest.http` (seed 42) states the new bonuses and 3 VP in its header, its battle comments match the actual outcome under the new numbers, and it plays to `GAME_OVER` with a trade and a tier-2 unit in a committed army; README's bonus table, best-bonus example and VP target show +5 / +3 / 3 VP; the core-loop one-pager's note and the vision doc mention Iteration 4
   - Verify: run `mise run server`, replay `http/playtest.http` top to bottom and compare with the comments; `grep -rnE "5 VP|\+3 vs Horde" README.md http docs` finds nothing stale
   - Files: `http/playtest.http`, `README.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`, `docs/ideas/full-game-vision.md`

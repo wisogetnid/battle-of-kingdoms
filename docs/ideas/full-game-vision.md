@@ -26,10 +26,11 @@ later stage · **dropped** — not planned.
 | Balancing levers: survivor formula, deck ratios, trait bonuses, artifact power, supply ratio | replaced | All numbers live in `GameConfig`; tune them there |
 
 Essence is adopted as the third resource since Iteration 2; a second upgrade tier (Warbow,
-Knight, High Mage) and trading resources for Horde since Iteration 3. Renown (one extra Horde per
-turn for every battle fought) was tried in Stage 1 and Iteration 2 and removed in Iteration 3:
-it let whoever got ahead on army size stay ahead. Further flavour ideas (supporters,
-diplomacy, weapons/armour) live in the
+Knight, High Mage) and trading resources for Horde since Iteration 3. Iteration 4 raised the
+tier-2 bonuses so a tier-2 unit pays for its three-card cost, and shortened the game to 3 VP.
+Renown (one extra Horde per turn for every battle fought) was tried in Stage 1 and
+Iteration 2 and removed in Iteration 3: it let whoever got ahead on army size stay ahead.
+Further flavour ideas (supporters, diplomacy, weapons/armour) live in the
 [README](../../README.md).
 
 ## Architecture ideas
