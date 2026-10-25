@@ -32,6 +32,10 @@ fun Route.webRoutes(server: GameServer) {
         call.respondHtml { homePage(gameId = call.request.queryParameters["game"]) }
     }
 
+    get(RULES_PATH) {
+        call.respondHtml { rulesPage(server.config) }
+    }
+
     route("/ui/games") {
         post {
             val form = call.receiveParameters()

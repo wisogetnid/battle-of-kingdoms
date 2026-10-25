@@ -62,6 +62,7 @@ fun HTML.homePage(gameId: String? = null, error: String? = null) {
     head { title("Battle of Kingdoms") }
     body {
         h1 { +"Battle of Kingdoms" }
+        p { a(href = RULES_PATH) { +"How to play" } }
         error(error)
         createGameForm()
         joinGameForm(gameId)
@@ -88,6 +89,8 @@ fun HTML.gamePage(view: PlayerView, error: String? = null) {
             a(href = playerPath(gameId, view.me.name)) { +"Refresh" }
             +" "
             a(href = "/") { +"Home" }
+            +" "
+            a(href = RULES_PATH) { +"Rules" }
         }
         error(error)
         status(view)

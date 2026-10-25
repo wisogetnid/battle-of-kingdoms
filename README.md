@@ -4,49 +4,20 @@ battle for artifacts and hope that one day become the overlords of all other tri
 
 This is a try on a deck building/strategy card game, built digitally first to allow for easier testing and playing.
 
-The current version (Iteration 4, **decisive tier 2**) is the core loop for 3–5 players,
-played over a JSON HTTP API: build up your army, then bid it blindly for the victory point.
-The full rules and API contract live in [SPEC.md](SPEC.md).
+The current version is the core loop for 3–5 players, played in the browser or over a JSON
+HTTP API: build up your army, bid it blindly in a battle, and take a victory point or an
+artifact as the prize. The full rules and API contract for developers live in
+[SPEC.md](SPEC.md).
 
 # How to play
-Every turn has two phases:
+Every turn, everyone builds up an army from a small income of Horde and resources, trading
+and upgrading units along three lines that counter each other. Then everyone secretly commits
+part of their army to one battle, where every army duels every other. The winner takes a
+victory point or an artifact with a lasting power; the first to 3 VP wins.
 
-1. **Build-up.** Everyone receives 1 Horde and draws 2 resources (Wood, Iron, or Essence);
-   income is the same for every player, and everyone starts with nothing else. Trade and
-   upgrade as often as you like, then mark yourself ready:
-   - **Trade** any resource for 1 Horde.
-   - **Tier 1:** Horde + Wood → **Bow**, Horde + Iron → **Sword**, Horde + Essence → **Mage**.
-   - **Tier 2:** Bow + Wood → **Warbow**, Sword + Iron → **Knight**, Mage + Essence → **High Mage**.
-   - A unit climbs one tier per turn: a Bow you build this turn can become a Warbow next turn.
-2. **Battle.** One victory point (VP) is added to the pot. Everyone secretly commits any part of
-   their creatures (or nothing). Once all have committed, the armies are revealed and every
-   pair of players who committed something fights a **duel**. Whoever commits nothing sits
-   out: no duels, score 0, and nobody scores against them. A lone army wins uncontested.
-   - In each duel, every creature has attack 1 plus its **single best bonus** against
-     *that* opponent's army (see the table below). Bonuses never add up.
-   - Your **score** is the sum of your margins over all your duels (win a duel 5:2 → +3).
-   - The single highest score wins the whole pot.
-   - A tie at the top, or nobody committing, means no winner: the pot rolls over.
-   - Everyone loses half of what they committed, picked at random. The winner rounds down,
-     everyone else rounds up. Survivors go back to your hand.
-
-The lines form a counter triangle: **Bow beats Mage, Sword beats Bow, Mage beats Sword.**
-
-| Bonus | vs Horde | vs the tier-1 unit it counters | vs any other tier-1 unit | vs the tier-2 unit it counters |
-|---|---|---|---|---|
-| Horde | — | — | — | — |
-| Tier 1 (Bow, Sword, Mage) | **+1** | **+1** | — | — (a lower tier gets nothing against a higher one) |
-| Tier 2 (Warbow, Knight, High Mage) | **+4** | **+4** | **+2** | **+2** |
-
-For example, a Warbow against an army with a Bow and Horde gets +4 (not +4 and +2), so it
-attacks for 5; against Swords alone it gets +2. Any Horde you commit hands every upgraded
-opponent its Horde bonus, while Horde are also your cheapest casualties. Upgraded units hit
-harder but every random casualty among them hurts more, and resources traded for Horde are
-gone for tier 2. A tier-2 unit costs three cards over two turns and is worth it: against
-3 Horde, it attacks for 5, where a tier-1 unit and a Horde attack for 3, no more than 3 Horde.
-Tier 1 pays off against the unit it counters, not against Horde.
-Everyone sees all armies after each battle, so use what you learned about each opponent.
-The first player to **3 VP** wins. All numbers are in `GameConfig` so they're easy to tune.
+The full rules live in the game itself: start the server (below) and open
+`http://localhost:8080/rules`, linked from every page. They are generated from the server's
+settings, so the numbers you read are the ones you play with.
 
 # Running a session
 Games live in memory on one server; restarting it ends every game. Player names are trusted

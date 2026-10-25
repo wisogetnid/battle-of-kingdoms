@@ -11,7 +11,7 @@ import java.util.UUID
 import kotlin.random.Random
 
 /** In-memory registry of running games; restarting the server loses them. */
-class GameServer(private val config: GameConfig = GameConfig()) {
+class GameServer(val config: GameConfig = GameConfig()) {
     private val games = mutableMapOf<UUID, Game>()
 
     @Synchronized

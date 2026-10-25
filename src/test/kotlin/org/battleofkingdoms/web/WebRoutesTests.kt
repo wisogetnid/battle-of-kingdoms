@@ -101,6 +101,33 @@ class WebRoutesTests {
     }
 
     @Test
+    fun `the rules page explains the game with the configured numbers`() = webTest { client ->
+        val html = page(client.get("/rules"))
+
+        assertTrue(html.contains("The first player to 3 VP wins."), html)
+        assertTrue(html.contains("You receive 1 Horde and draw 2 resources"), html)
+        val compact = html.replace(Regex(">\\s+<"), "><")
+        assertTrue(compact.contains("<td>Tier 2 (Warbow, Knight, High Mage)</td><td>+4</td><td>+4</td><td>+2</td><td>+2</td>"), html)
+        listOf("Resilient Banner", "Horn of Frenzy", "Famous Crown", "Transmuter Stone").forEach { assertTrue(html.contains(it), it) }
+    }
+
+    @Test
+    fun `the rules page follows the config`() = webTest(GameConfig(tier2VsHorde = 7, victoryPointsToWin = 5, frenzyBonus = 2)) { client ->
+        val html = page(client.get("/rules"))
+
+        assertTrue(html.contains("The first player to 5 VP wins."), html)
+        assertTrue(html.contains("<td>+7</td>"), html)
+        assertTrue(html.contains("gets +2 in every duel"), html)
+    }
+
+    @Test
+    fun `the home page and my game page link to the rules`() = webTest { client ->
+        assertTrue(page(client.get("/")).contains("""href="/rules""""))
+        val gameId = client.startGame("anna", "ben", "cleo")
+        assertTrue(client.gamePage(gameId, "anna").contains("""href="/rules""""))
+    }
+
+    @Test
     fun `an invite link opens the join form for that game`() = webTest { client ->
         val html = page(client.get("/?game=abc-123"))
 
