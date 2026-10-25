@@ -1,67 +1,96 @@
-# Plan: Decisive Tier 2 (Iteration 4)
+# Plan: Artifacts (Iteration 5)
 
 Spec: [SPEC.md](../SPEC.md) · Tasks: [todo.md](todo.md)
 
-Stage 1, Iteration 2 and Iteration 3 are delivered and their plans retired; git history keeps
-them. The web UI has its own plan in [web-ui/](web-ui/) and isn't touched here.
+Iterations up to 4 are delivered and their plans retired; git history keeps them. The web UI
+has its own plan in [web-ui/](web-ui/); this plan only keeps it compiling.
 
 ## Architecture decisions
-1. **Config only.** The engine already reads every bonus and the VP target from `GameConfig`
-   (Iteration 3, success criterion 6). Iteration 4 changes three defaults:
-   `tier2VsHorde = 5`, `higherTierCounter = 3`, `victoryPointsToWin = 3`. No production code
-   outside `GameConfig.kt` changes; a diff that touches `Bonuses`, `Army`, `Battle` or `Game`
-   is a sign something went wrong.
-2. **One slice per rule change.** The tier-2 bonuses and the VP target are independent, so
-   each gets its own task and commit with its own re-derived tests. Each task leaves the
-   build green.
-3. **Battle tests keep their own `Bonuses` literal.** `ArmyTests` and `BattleTests` build
-   `Bonuses(…)` directly, so `battle/` tests don't depend on `game/`. They are updated to
-   the new numbers, and a game-level test pins `GameConfig()` defaults to the spec values,
-   so the literals and the config can't drift apart unnoticed.
-4. **The equal-cost duel is the iteration's headline test.** Three cards against 3 Horde:
-   one tier-2 unit (6) > a tier-1 unit and a Horde (4) > 3 Horde (3). It states the reason
-   for the change as an executable rule.
-5. **Seeded expectations are re-derived, never patched until green.** The worked example is
-   recomputed in SPEC.md already (8:7, 3:9, 3:9; scores −5, −7, +12). The end-to-end
-   scripts react to the seeded deals and assert what the script forces.
+1. **Artifacts are an enum in `cards/`.** `Artifact { RESILIENT_BANNER, AMULET_OF_LUCK, CROWN }`
+   is not a `Card` (it never sits in a hand). `Player.artifacts: Set<Artifact>` holds what a
+   player owns.
+2. **The game awards VP, not the battle.** `Battle.resolve` keeps duels, scores, winner and
+   casualties, and stops taking a pot. `Game` decides the prize and records it on the log
+   entry (`BattleResult.prize`, the winner's `vpGained`). This moves first (T1), together with
+   the end of the rollover, so the claim (T4) only adds a choice.
+3. **The stack is a set, drawn at random.** `Game.artifactStack: Set<Artifact>` starts from
+   `config.artifacts`. A draw picks uniformly from the set with the game's `Random` — the
+   same distribution as a shuffled stack with a declined artifact shuffled back, without a
+   stack order to keep. The `Random` is only consumed after a battle with a winner, so
+   turn-1 deals don't change.
+4. **CLAIM is a phase.** `Phase.CLAIM` and `Action.CLAIM` sit between BATTLE and the next
+   turn. `Game.drawnArtifact` is hidden state like `commits`: only the winner's view shows
+   it, and the log only ever says `VICTORY_POINT` or the name of an artifact that was taken.
+   Claiming as anyone but the winner throws a new `NotTheWinner` (409).
+5. **Casualty effects live in `Battle`.** `Battle.resolve` gets each player's artifacts and
+   adjusts `losses(n, won)`: the Banner always floors, then the Amulet subtracts one (not
+   below 0). Fewer casualties are drawn; the seeded draw stays a single shuffle.
+6. **The Crown is income.** `payIncome` adds `config.crownHorde` for the Crown's owner.
+   Claims happen before the next turn starts, so the Crown pays from the next turn on.
+7. **Interim empty stack.** T4 adds the claim to the engine with `GameConfig.artifacts`
+   defaulting to empty, so every win is an immediate VP and the HTTP flows and scripted games
+   stay green until the claim route exists (T5). T6 switches the default to all three and
+   teaches the scripted games to claim.
+8. **`pot` keeps its name** in `Game`, the view and the log, as the VP a battle is worth
+   (always `victoryPointsPerBattle`), so the web UI keeps compiling and rendering.
+9. **The web UI is only kept compiling.** Adding `Phase.CLAIM` breaks the exhaustive `when`s
+   in `web/Pages.kt`; T4 adds plain `CLAIM` branches there and nothing else. The claim form
+   and artifact display are the web UI agent's work.
 
 ## Dependency graph
 ```
-T1 tier 2: +5 vs Horde, +3 vs the tier-1 unit it counters
-T2 race to 3 VP
- (T1 and T2 are independent; both edit GameConfig.kt, so they run in sequence)
-        └─ T3 playtest.http + docs (needs both numbers)
+T1 a tie gives nothing; the game awards the VP
+ ├─ T2 Banner + Amulet casualties
+ ├─ T3 Crown income
+ └─ T4 claim in the engine (interim empty stack)
+     └─ T5 claim over HTTP + view
+         └─ T6 default stack of three; full games take and decline artifacts
+             └─ T7 playtest + docs
 ```
+T2 and T3 only need `Player.artifacts` and are independent of T4–T5; they run in sequence
+because they share `Game.kt`.
 
 ## Phases and checkpoints
 
-### Phase 1 — Numbers
-**T1. Stronger tier 2.** `tier2VsHorde` 3 → 5, `higherTierCounter` 2 → 3; bonus-table cells,
-tier-2 strength cases, the worked example and the equal-cost duel as unit tests; a test
-pinning the config defaults.
+### Phase 1 — Rules in the engine
+**T1. A tie gives nothing.** Every battle is worth `victoryPointsPerBattle`; no rollover;
+`Game` awards the VP.
 
-**T2. Race to 3 VP.** `victoryPointsToWin` 5 → 3; view test, engine full game and the
-end-to-end games play to 3 VP with a rollover, a trade and a tier-2 unit.
+**T2. Resilient Banner and Amulet of Luck.** `Artifact`, `Player.artifacts`, adjusted
+casualties; the spec's casualty table as a parameterized test.
 
-**Checkpoint A:** `mise run build` green; `git diff --stat` since the spec shows no
-production change outside `GameConfig.kt`.
+**T3. Crown.** Extra Horde in income for its owner.
 
-### Phase 2 — Play and docs
-**T3. Playtest and docs.** `http/playtest.http` re-derived for the new numbers and played to
-`GAME_OVER` at 3 VP (the game is short enough now); README bonus table, example and VP
-target; idea docs note Iteration 4.
+**Checkpoint A:** build green; every artifact effect has a unit test.
 
-**Checkpoint B:** all 11 SPEC.md success criteria met.
+### Phase 2 — The claim
+**T4. Claim in the engine.** Stack, draw, CLAIM phase, `claim`, prize in the log, empty stack
+→ immediate VP, game over after a VP prize.
+
+**T5. Claim over HTTP.** Route, request, view fields, hidden-information API tests.
+
+**T6. Three artifacts by default.** Default stack; `FullGameTests` and both end-to-end games
+take one artifact and decline at least one, with a tie, a trade, a tier-2 unit, to 3 VP.
+
+**Checkpoint B:** build green; criteria 1–6, 8 and 9 met.
+
+### Phase 3 — Play and docs
+**T7. Playtest and docs.** `http/playtest.http` to `GAME_OVER` with a tie, a trade, a
+tier-2 unit, an artifact taken, one declined and a visible effect; README, one-pager note
+(artifact powers are no longer "Not Doing"), vision doc.
+
+**Checkpoint C:** all 10 SPEC.md success criteria met.
 
 ## Risks and mitigations
 | Risk | Impact | Mitigation |
 |---|---|---|
-| With 3 VP, a scripted game ends before anna fields a tier-2 unit | E2E can't show tier 2 | The others always tie each other (1 Horde each) while anna fields nothing, so nobody can win until anna fields tier 2; assert it |
-| A turn-2 win with a double pot ends the game before the asserted battles exist | Index errors in log assertions | Assert only what the script forces (turn 1 tie, then the pot grows until anna wins) |
-| Casualties remove ben's High Mage before playtest turn 3 | Playtest can't finish as written | Derive turn 3 from the actual seed-42 state on a running server; script whichever army wins |
-| Bonus literals in battle tests drift from `GameConfig` | Tests pass with the wrong defaults | T1 adds a test pinning `GameConfig()` to the spec values |
-| `WebRoutesTests` uses `victoryPointsToWin = 5` in a hand-built view | Looks stale | It's a fixture independent of the config and belongs to the web UI work; leave it |
+| The drawn artifact leaks to other players or into the log | Breaks the core of the mechanic | `drawnArtifact` only on `MyView` and only for the winner during CLAIM; API test scans every other view and the log for the declined artifact's name |
+| `Phase.CLAIM` breaks the web UI build | Other agent's work stops compiling | T4 adds plain `CLAIM` branches in `web/Pages.kt` in the same commit; nothing more |
+| Adding the claim stalls the scripted HTTP games (no route yet) | E2E red between tasks | Interim empty stack in T4 (decision 7) |
+| New `MyView` / `OtherPlayerView` fields break web UI tests that build views by hand | Other agent's tests stop compiling | New fields go last, with defaults |
+| The artifact draw shifts the seeded `Random` | Seeded games change | Scripts react to the seed; re-derive, never patch |
+| `apiTest` always uses the default config | API tests can't claim before T6 | `module()` takes an optional `GameServer`; `apiTest` takes an optional config |
 | Gradle needs `~/.gradle`, which the sandbox can't write | Agent-run builds fail | Run Gradle outside the sandbox (prompted) |
 
 ## Open questions
-None blocking. The balance questions to watch in play are in SPEC.md's Open Questions.
+None blocking. Balance questions to watch in play are in SPEC.md's Open Questions.
