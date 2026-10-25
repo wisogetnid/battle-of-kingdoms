@@ -4,9 +4,11 @@ Source: the "Stage 2 client: chat bot vs. minimal web page" decision in
 [docs/ideas/battle-of-kingdoms-core-loop.md](docs/ideas/battle-of-kingdoms-core-loop.md) —
 this spec picks the **minimal server-rendered page**.
 
-**Status:** new. Built **in parallel with Iteration 3** ([SPEC.md](SPEC.md)) and kept
-separate from it: this spec changes no game rule, no JSON route and no DTO. Its plan and
-tasks live in `tasks/web-ui/`, not in `tasks/plan.md` / `tasks/todo.md`.
+**Status:** Phase 1 (home page, create, join, game page) is delivered. Phase 2 (actions,
+battle, full game) runs **alongside Iteration 4** ([SPEC.md](SPEC.md)) and stays separate
+from it: this spec changes no game rule, no JSON route and no DTO, and Iteration 4 (new
+`GameConfig` defaults only) changes nothing the UI depends on. Its plan and tasks live in
+`tasks/web-ui/`, not in `tasks/plan.md` / `tasks/todo.md`.
 
 ## Objective
 A browser UI that lets 3–5 friends play a full game with zero setup: open a link, type a
@@ -75,8 +77,9 @@ Forms post `application/x-www-form-urlencoded` (read with `call.receiveParameter
    - `COMMIT_ARMY`: one form with a number field per creature in my hand (0 to the count I
      hold) and a "Commit army" button; all zero commits nothing.
    - None: a line saying what I'm waiting for (other players, or the game is over).
-8. Battle log, newest first: turn, pot, winner (or "no winner, pot rolls over"); per player
-   army, score, casualties, VP gained; every duel as "anna 6 – 7 ben".
+8. Battle log, newest first: battle number (its position in the log; the view has no turn
+   field, and there is one battle per turn), pot, winner (or "no winner, pot rolls over");
+   per player army, score, casualties, VP gained; every duel as "anna 8 – 7 ben".
 
 Creature and resource names are shown in words ("High Mage", "Wood"), never as enum
 constants.
@@ -97,10 +100,12 @@ domain     unchanged
   or `Player` directly.
 - **No game logic in `web/`.** The UI never decides whether an action is allowed; it shows
   what `availableActions` lists and reports what the engine rejects.
-- **Following Iteration 3 without blocking it:** buttons are generated from
-  `availableActions`, `CreatureType.entries` and the hand, so trading and tier-2 units
-  appear in the UI as soon as Iteration 3 lands them, with no UI change. If the UI needs
-  something that isn't in the player view, ask first instead of changing the DTO.
+- **Following the rules iterations without blocking them:** buttons are generated from
+  `availableActions`, `CreatureType.entries` and the hand, and every number (pot, VP to
+  win, strengths, scores) is printed from the view, never computed or hard-coded. So
+  Iteration 3's trading and tier-2 units work in the UI, and Iteration 4's new bonuses and
+  3 VP target show up with no UI change. If the UI needs something that isn't in the
+  player view, ask first instead of changing the DTO.
 - Touches to shared files are limited to: one dependency line in `build.gradle.kts`, one
   `webRoutes(server)` call in `Application.kt` (sharing the same `GameServer` instance as
   the JSON routes), and the exception → status mapping in `GameRoutes.kt` made `internal`
@@ -156,7 +161,8 @@ with a message, never a `500`.
   attribute.
 - **Full game through the forms:** 3 players, fixed seed, played via the UI POSTs to
   `GAME_OVER`. Asserts structure (phases advance, a winner is shown, the battle log grows),
-  **not** seeded numbers, so Iteration 3's rule changes don't break it.
+  **not** seeded numbers or the VP target, so rule changes (Iteration 4's +5 / +3 and
+  3 VP) don't break it.
 - Existing JSON API, unit and end-to-end tests stay green and unchanged.
 
 ## Boundaries
@@ -165,9 +171,10 @@ with a message, never a `500`.
 - **Ask first:** changing `PlayerView`, other DTOs, JSON routes or the engine; adding any
   dependency beyond `ktor-server-html-builder`; adding CSS, JavaScript, images or
   auto-refresh.
-- **Never:** put game rules in `web/`; change anything in SPEC.md or Iteration 3's
+- **Never:** put game rules in `web/`; change anything in SPEC.md or Iteration 4's
   `tasks/plan.md` / `tasks/todo.md`; add auth, sessions, cookies, WebSockets or
-  persistence; skip or weaken tests to get to green; commit (the user reviews and commits).
+  persistence; skip or weaken tests to get to green; commit unless the user asks (they
+  review first); push or pull.
 
 ## Success Criteria
 1. `mise run build` passes with every test green, including all pre-existing tests unchanged.
@@ -179,8 +186,9 @@ with a message, never a `500`.
 5. The game page shows exactly the actions in `availableActions` and no information missing
    from that player's JSON view (asserted).
 6. Rejected actions show the engine's message with the matching 400 / 404 / 409 status.
-7. Once Iteration 3's trading and tier-2 units are merged, they work in the UI without any
-   change to `web/`.
+7. Trading and tier-2 units (Iteration 3) work in the UI, and Iteration 4's new defaults
+   need no change to `web/`: the page shows whatever pot, VP target, strengths and scores
+   the view reports.
 
 ## Open Questions
 None blocking. To decide after the first session with friends: whether the manual Refresh

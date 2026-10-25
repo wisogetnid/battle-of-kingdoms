@@ -18,23 +18,23 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Verify: `mise run test`; tests for each redirect `Location`, each error status, a name `<b>x</b>` shown escaped, a name with a space linking correctly, no other player's hand on the page, every page text-only
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
 
-**Checkpoint A:** `mise run build` green; create and join a 3-player game in three browser tabs; review before actions.
+**Checkpoint A (passed):** build green; a 3-player game created and joined in three browser tabs. Review follow-up done: the hand lists Horde first, then the other creatures, then resources alphabetically.
 
 ## Phase 2 — Playing
 - [ ] **W4. Build-up actions**
   - Acceptance: `POST …/upgrades` (`into`), `POST …/trades` (`resource`) and `POST …/ready` call `GameServer` and answer `303` to the game page; the page shows, per `availableActions`: one "Upgrade X into Y (1 Z)" button per non-Horde creature type, one "Trade 1 Z for 1 Horde" button per resource in hand, one "Ready" button; units upgraded this turn are listed under my hand; a rejected action (wrong phase, already ready, can't afford) re-renders the game page with the engine's message and 400/409; an unknown `into` or `resource` is a 400, not a 500; with no available actions the page says what I'm waiting for
   - Verify: `mise run test`; tests for each route's success and error statuses, forms present exactly when their action is available, reloading the game page after a POST changes nothing
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
-  - Note: trade buttons only appear once Iteration 3's T2 adds `TRADE` to `availableActions`; until then the trade test drives the route directly and expects the engine's answer
+  - Note: trading shipped in Iteration 3, so the trade buttons are tested end to end like the others. Also set the hand-built view in `WebRoutesTests` to `victoryPointsToWin = 3` (left to this task by Iteration 4's plan)
 
 - [ ] **W5. Battle**
-  - Acceptance: in the battle phase the page shows one form with a number field (0 to count held) per creature in my hand and a "Commit army" button; `POST …/army` builds the army with `armyOf` from the non-blank fields and answers `303`; all zero commits nothing; a negative or non-number count is a 400 with a message; the battle log is shown newest first: turn, pot, winner or "no winner, pot rolls over", per player army, score, casualties and VP gained, every duel as "a 6 – 7 b"
+  - Acceptance: in the battle phase the page shows one form with a number field (0 to count held) per creature in my hand and a "Commit army" button; `POST …/army` builds the army with `armyOf` from the non-blank fields and answers `303`; all zero commits nothing; a negative or non-number count is a 400 with a message; the battle log is shown newest first, numbered by position (the view has no turn field): pot, winner or "no winner, pot rolls over", per player army, score, casualties and VP gained, every duel as "a 6 – 7 b"
   - Verify: `mise run test`; tests for commit success, empty commit, malformed counts, committing more than owned (400), and a resolved battle appearing in every player's log without anyone's uncommitted army
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
 
 - [ ] **W6. Full game through the forms and docs**
-  - Acceptance: `WebGameTest` plays a seeded 3-player game only through the UI POSTs and game pages: everyone marks ready each build-up; one player commits their whole hand (counts read from the JSON player view), the others commit nothing; it loops until the page shows `GAME_OVER` (capped at 20 turns) and asserts the winner is shown and the battle log grew every turn, with no seeded numbers asserted; README gains a "Play in the browser" section (`mise run server`, open `http://localhost:8080/`, share the invite link)
+  - Acceptance: `WebGameTest` plays a seeded 3-player game only through the UI POSTs and game pages: everyone marks ready each build-up; one player commits their whole hand (counts read from the JSON player view), the others commit nothing; it loops until the page shows `GAME_OVER` (capped at 20 turns) and asserts the winner is shown and the battle log grew every turn, with no seeded numbers or VP target asserted (works with Iteration 4's 3 VP: the lone committer wins every pot); README gains a "Play in the browser" section (`mise run server`, open `http://localhost:8080/`, share the invite link)
   - Verify: `mise run build`; manual full game in three browser tabs
-  - Files: `web/WebGameTest.kt`, `README.md`
+  - Files: `web/WebGameTest.kt`, `README.md` (new section only; Iteration 4's T3 rewrites the rules text)
 
 **Checkpoint B:** all 7 success criteria in SPEC-web-ui.md met.
