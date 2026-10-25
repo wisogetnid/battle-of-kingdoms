@@ -17,7 +17,7 @@ later stage · **dropped** — not planned.
 | `Food` as a universal upgrade resource | dropped | Upgrades cost 1 Horde + Wood (Bow), Iron (Sword) or Essence (Mage) |
 | **Limited supply**: finite shared pool of elite units players compete for | deferred | Elite units are unlimited; revisit as a scarcity lever once numbers are tuned |
 | `Defense` stat; ties broken by higher Defense | dropped | Strength is attack only; ties roll the pot over |
-| Ranged +2 attack against infantry-only armies | replaced | Counter triangle: Bow > Mage > Sword > Bow, +`counterBonus` per countering unit in the duel against that opponent (Stage 1's Shield is gone) |
+| Ranged +2 attack against infantry-only armies | replaced | Counter triangle: Bow > Mage > Sword > Bow in two tiers; each unit adds its single best bonus from a tier table (vs Horde, vs the countered line) in the duel against that opponent (Stage 1's Shield is gone) |
 | Winner loses some, loser keeps "a core" of its army | replaced | Winner loses `floor(n/2)`, everyone else `ceil(n/2)`, picked at random |
 | **Artifact stack**: ordered, revealed each turn, each artifact with a passive bonus (e.g. +2 attack for Ranged) | deferred | The pot holds plain victory points. Themed artifacts without leader snowball is the main open question of the core-loop one-pager |
 | Artifacts committed to armies alongside creatures | deferred | Depends on artifact powers |
@@ -25,7 +25,10 @@ later stage · **dropped** — not planned.
 | Fixed 5 turns, end-of-game scoring: 2 VP per artifact, 1 VP per battle won, 1 VP per 5 attack in the final hand | replaced | First to `victoryPointsToWin` VP wins |
 | Balancing levers: survivor formula, deck ratios, trait bonuses, artifact power, supply ratio | replaced | All numbers live in `GameConfig`; tune them there |
 
-Essence is adopted as the third resource since Iteration 2. Further flavour ideas (supporters,
+Essence is adopted as the third resource since Iteration 2; a second upgrade tier (Warbow,
+Knight, High Mage) and trading resources for Horde since Iteration 3. Renown (one extra Horde per
+turn for every battle fought) was tried in Stage 1 and Iteration 2 and removed in Iteration 3:
+it let whoever got ahead on army size stay ahead. Further flavour ideas (supporters,
 diplomacy, weapons/armour) live in the
 [README](../../README.md).
 

@@ -2,7 +2,8 @@
 
 > **Note:** this one-pager is the original Stage 1 idea and is kept as written. Iteration 2
 > changed its upgrade and battle rules: Wood / Iron / Essence upgrade into a Bow / Sword / Mage
-> counter triangle, and battles resolve as duels between every pair of players. The current
+> counter triangle, and battles resolve as duels between every pair of players. Iteration 3
+> added a second upgrade tier and trading resources for Horde, and removed renown. The current
 > rules are in [SPEC.md](../../SPEC.md).
 
 ## Problem Statement

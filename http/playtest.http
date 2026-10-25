@@ -1,7 +1,9 @@
 ### Playtest: a seeded 3-player game through two battles.
 # Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
 # Seed 42 deals: anna 4 Horde + Wood + Essence, ben 4 Horde + 2 Essence, cleo 4 Horde + Iron + Wood.
-# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword (+1 attack in that duel).
+# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +2 / tier 2 +3
+# against Horde, +1 against the countered unit of the same tier, +2 one tier below; only the
+# best bonus counts. First to 5 VP wins.
 @host = http://localhost:8080
 
 ### Create a game for 3 players; anna hosts
@@ -24,7 +26,7 @@ Content-Type: application/json
 
 { "name": "cleo" }
 
-### anna's view: BUILD_UP, pot 1, her hand, available actions
+### anna's view: BUILD_UP, pot 1, her hand, available actions TRADE / UPGRADE / READY
 GET {{host}}/games/{{gameId}}?player=anna
 
 ### ── Turn 1: build-up ──────────────────────────────────────────────
@@ -41,17 +43,17 @@ Content-Type: application/json
 
 { "into": "MAGE" }
 
-### ben upgrades a second Horde into a Mage
+### ben tries to turn that Mage into a High Mage right away — 400: a unit climbs one tier per turn
 POST {{host}}/games/{{gameId}}/players/ben/upgrades
 Content-Type: application/json
 
-{ "into": "MAGE" }
+{ "into": "HIGH_MAGE" }
 
-### cleo upgrades a Horde into a Sword (Horde + Iron)
-POST {{host}}/games/{{gameId}}/players/cleo/upgrades
+### cleo trades her Iron for a Horde
+POST {{host}}/games/{{gameId}}/players/cleo/trades
 Content-Type: application/json
 
-{ "into": "SWORD" }
+{ "resource": "IRON" }
 
 ### anna is ready
 POST {{host}}/games/{{gameId}}/players/anna/ready
@@ -62,7 +64,7 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 ### cleo is ready — the battle starts
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
-### ── Turn 1: battle (everyone keeps their upgrades hidden) ──────────
+### ── Turn 1: battle (upgraded units stay home) ──────────────────────
 # Duels: anna–ben 2:2, anna–cleo 2:0, ben–cleo 2:0 → scores anna +2, ben +2, cleo −4.
 # anna and ben tie at the top, so nobody wins and the victory point rolls over.
 
@@ -72,7 +74,7 @@ Content-Type: application/json
 
 { "HORDE": 2 }
 
-### ben commits 2 Horde and keeps his Mages back
+### ben commits 2 Horde and keeps his Mage back
 POST {{host}}/games/{{gameId}}/players/ben/army
 Content-Type: application/json
 
@@ -87,7 +89,13 @@ Content-Type: application/json
 ### ben's view: battle 1 in the log with no winner; turn 2 with a pot of 2
 GET {{host}}/games/{{gameId}}?player=ben
 
-### ── Turn 2: build-up (no upgrades) ──────────────────────────────
+### ── Turn 2: build-up ──────────────────────────────────────────────
+
+### ben upgrades his Mage, held since last turn, into a High Mage (Mage + Essence)
+POST {{host}}/games/{{gameId}}/players/ben/upgrades
+Content-Type: application/json
+
+{ "into": "HIGH_MAGE" }
 
 ### anna is ready
 POST {{host}}/games/{{gameId}}/players/anna/ready
@@ -98,9 +106,10 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 ### cleo is ready — the battle starts
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
-### ── Turn 2: battle (three armies of 2, decided by a counter) ──────
-# Duels: anna–ben 3:2 (anna's Bow counters ben's Mages), anna–cleo 2:2, ben–cleo 2:2
-# → scores anna +1, ben −1, cleo 0. Equal sizes, so anna wins the double pot through her Bow.
+### ── Turn 2: battle (the High Mage decides it) ─────────────────────
+# Duels: anna–ben 4:5 (anna's Bow +2 vs Horde, nothing vs the higher-tier High Mage;
+#        ben's High Mage +3 vs Horde), anna–cleo 4:3, ben–cleo 5:3
+# → scores anna 0, ben +3, cleo −3. ben wins the double pot (2 VP).
 
 ### anna commits her Bow and 1 Horde
 POST {{host}}/games/{{gameId}}/players/anna/army
@@ -108,17 +117,17 @@ Content-Type: application/json
 
 { "BOW": 1, "HORDE": 1 }
 
-### ben commits his 2 Mages (they would counter a Sword, but nobody brings one)
+### ben commits his High Mage and 1 Horde
 POST {{host}}/games/{{gameId}}/players/ben/army
 Content-Type: application/json
 
-{ "MAGE": 2 }
+{ "HIGH_MAGE": 1, "HORDE": 1 }
 
-### cleo commits 2 Horde and keeps her Sword back — the battle resolves
+### cleo commits 3 Horde — the battle resolves
 POST {{host}}/games/{{gameId}}/players/cleo/army
 Content-Type: application/json
 
-{ "HORDE": 2 }
+{ "HORDE": 3 }
 
-### anna's view: battle 2 won by anna with the double pot (2 VP); turn 3 with a pot of 1
-GET {{host}}/games/{{gameId}}?player=anna
+### ben's view: battle 2 won by ben with the double pot (2 VP); turn 3 with a pot of 1
+GET {{host}}/games/{{gameId}}?player=ben

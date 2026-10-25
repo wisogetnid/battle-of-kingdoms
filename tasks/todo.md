@@ -31,7 +31,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`
   - Files: `e2e/EndToEndMultiplayerTest.kt`, `game/FullGameTests.kt`
 
-- [ ] **T6. Playtest and docs**
+- [x] **T6. Playtest and docs**
   - Acceptance: `http/playtest.http` plays a seeded 3-player game through at least two battles with a trade and a tier-2 unit in a committed army, comments matching the actual outcome; README describes trading, both tiers, the bonus table, equal income and 5 VP; the vision doc records renown as removed and the second upgrade tier as adopted
   - Verify: run `mise run server`, replay `http/playtest.http` top to bottom and compare the log with the comments; `grep -rni "renown\|counterBonus" README.md http` finds nothing
   - Files: `http/playtest.http`, `README.md`, `docs/ideas/full-game-vision.md`
