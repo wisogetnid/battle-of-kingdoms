@@ -1,34 +1,39 @@
-# Todo: Counter Triangle (Iteration 2)
+# Todo: Two Tiers and Trading (Iteration 3)
 
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 1 — Engine
-- [x] **T1. Rename artifact → victory point**
-  - Acceptance: `GameConfig.victoryPointsToWin` replaces `artifactsToWin`; the player view field is `victoryPointsToWin`; no `artifact` naming remains in code, tests, or README; no behavior change
-  - Verify: `mise run build`; `grep -rni artifactsToWin src README.md` finds nothing
-  - Files: `game/GameConfig.kt`, `game/Game.kt`, `server/Dtos.kt`, `BattleTurnTests.kt`, `ApplicationKtTests.kt`, `README.md`
+- [ ] **T1. Remove renown, 5 VP to win**
+  - Acceptance: income is `baseCreaturesPerTurn` Horde (+ `startingHorde` on turn 1) and `resourcesPerTurn` resources for everyone; `Player.renown`, `GameConfig.renownPerBattle`, `ArmyResult.gainedRenown` and the view's `renown` / `renownGained` fields are gone; `victoryPointsToWin` defaults to 5; tests that asserted renown are rewritten to assert equal income
+  - Verify: `mise run build`; `grep -rni renown src README.md` finds nothing
+  - Files: `player/Player.kt`, `game/Game.kt`, `game/GameConfig.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `README.md`
 
-- [x] **T2. Duels and scores**
-  - Acceptance: `Army.duelStrength(opponent)` replaces `strength(otherArmies)`; `Battle.resolve` fights every pair once (join order), sums margins into scores that add up to 0; single highest score wins, ties at the top and all-zero have no winner, a single committer wins; empty armies fight at strength 0; `BattleResult` has `duels` and per-army `score`; the view shows `score` and `duels` as in the spec; casualties, renown, pot unchanged
-  - Verify: `mise run test`; `BattleTests` has parameterized cases for margins, zero-sum, tie, all-zero, single committer, bonus only in the duel against the countered opponent
-  - Files: `battle/Army.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `ArmyTests.kt`, `ActionRoutesTests.kt`
+- [ ] **T2. Trading**
+  - Acceptance: `Game.trade(name, resource)` swaps one resource for one Horde during build-up, any number of times; `RuleViolation` without that resource, `WrongPhase` outside build-up, `AlreadyActed` after ready, `UnknownPlayer`; `POST /games/{id}/players/{name}/trades` `{ "resource": … }` returns my view; a creature or unknown name in `resource` is a 400; `availableActions` lists `TRADE` with `UPGRADE` and `READY` in build-up
+  - Verify: `mise run test`
+  - Files: `game/Game.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `game/BuildUpTests.kt`, `ActionRoutesTests.kt`, `ApplicationKtTests.kt`
 
-- [x] **T3. Counter triangle and Essence**
-  - Acceptance: `ResourceType` WOOD, IRON, ESSENCE drawn 1/3 each; `CreatureType` HORDE, BOW (Wood), SWORD (Iron), MAGE (Essence), all attack 1, with `counters` Bow→Mage, Sword→Bow, Mage→Sword; `+counterBonus` per countering creature in a duel; `GameConfig.counterBonus = 1`; `Trait` and `SHIELD` removed; `SHIELD` in a request is a 400; the spec's worked example and a going-wide case are unit tests
-  - Verify: `mise run build`; `grep -rn "SHIELD\|Trait\|RANGED" src` finds nothing
-  - Files: `cards/CreatureType.kt`, `cards/ResourceType.kt`, `cards/Trait.kt` (delete), `battle/Army.kt`, `battle/Battle.kt`, `game/GameConfig.kt`, `game/Game.kt`, plus the tests naming old units: `CardTests`, `ArmyTests`, `BattleTests`, `BuildUpTests`, `IncomeTests`, `FullGameTests`, `ActionRoutesTests`, `EndToEndMultiplayerTest` (kept green only; rewritten in T4)
+- [ ] **T3. Tier-2 creatures, one tier per turn**
+  - Acceptance: `CreatureType` adds WARBOW, KNIGHT, HIGH_MAGE with `tier` and `line`; tier 2 costs the tier-1 unit of its line + 1 resource of that line (no Horde); a unit upgraded into this turn can't be upgraded again until next turn (`RuleViolation`); `Player.upgradedThisTurn` resets at turn start and appears only in my own view; tier-2 units use the existing flat counter bonus by line until T4
+  - Verify: `mise run test`; parameterized cases for each tier-2 upgrade, missing unit, missing resource, same-turn block, next-turn allowed
+  - Files: `cards/CreatureType.kt` (+ `Line`), `player/Player.kt`, `game/Game.kt`, `battle/Army.kt`, `server/Dtos.kt`, `CardTests.kt`, `BuildUpTests.kt`, `ApplicationKtTests.kt`
 
-### Checkpoint A — engine complete; review duels and counters before the end-to-end games
+- [ ] **T4. Tier bonus table**
+  - Acceptance: duel strength per creature = 1 + the single best bonus against the opponent's army, from `Bonuses(tier1VsHorde = 2, tier2VsHorde = 3, sameTierCounter = 1, higherTierCounter = 2)` built from `GameConfig`; lower tier gets nothing against higher; no bonus outside the table; bonuses never add up; `counterBonus` removed; every bonus-table cell for all three lines, the max-not-sum cases and the spec's worked example are unit tests
+  - Verify: `mise run build`; `grep -rn counterBonus src` finds nothing
+  - Files: `battle/Bonuses.kt` (new), `battle/Army.kt`, `battle/Battle.kt`, `game/GameConfig.kt`, `game/Game.kt`, `ArmyTests.kt`, `BattleTests.kt`, plus tests whose expected strengths change
+
+### Checkpoint A — engine complete; review tiers and bonuses before the end-to-end games
 
 ## Phase 2 — Games and play
-- [x] **T4. End-to-end games with counters**
-  - Acceptance: seeded 3- and 5-player games over HTTP each include a rollover and at least one battle whose winner is decided by a counter bonus (asserted from the log's duel strengths), and end in `GAME_OVER` with the expected winner; same-seed replay gives identical battle logs; `FullGameTests` covers the same at engine level
+- [ ] **T5. End-to-end games**
+  - Acceptance: seeded 3- and 5-player games over HTTP each include a rollover, at least one trade and at least one tier-2 unit in a committed army, and end in `GAME_OVER` at 5 VP with the expected winner; same-seed replay gives identical battle logs; `FullGameTests` covers the same at engine level
   - Verify: `mise run test`
   - Files: `e2e/EndToEndMultiplayerTest.kt`, `game/FullGameTests.kt`
 
-- [x] **T5. Playtest and docs**
-  - Acceptance: `http/playtest.http` plays a seeded 3-player game through two battles under the new rules, one decided by a counter, with comments matching the actual outcome; README rules, creature table and curl examples describe the triangle; the vision doc marks Shield as replaced and Essence as adopted; the core-loop one-pager notes that Iteration 2 changed its rules
-  - Verify: run `mise run server`, replay `http/playtest.http` top to bottom, check both battles in the log match the comments; `grep -rn "SHIELD\|Shield\|artifactsToWin" README.md http` finds nothing
-  - Files: `http/playtest.http`, `README.md`, `docs/ideas/full-game-vision.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`
+- [ ] **T6. Playtest and docs**
+  - Acceptance: `http/playtest.http` plays a seeded 3-player game through at least two battles with a trade and a tier-2 unit in a committed army, comments matching the actual outcome; README describes trading, both tiers, the bonus table, equal income and 5 VP; the vision doc records renown as removed and the second upgrade tier as adopted
+  - Verify: run `mise run server`, replay `http/playtest.http` top to bottom and compare the log with the comments; `grep -rni "renown\|counterBonus" README.md http` finds nothing
+  - Files: `http/playtest.http`, `README.md`, `docs/ideas/full-game-vision.md`
 
 ### Checkpoint B — all 9 SPEC.md success criteria met

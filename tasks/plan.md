@@ -1,75 +1,85 @@
-# Plan: Counter Triangle (Iteration 2)
+# Plan: Two Tiers and Trading (Iteration 3)
 
 Spec: [SPEC.md](../SPEC.md) · Tasks: [todo.md](todo.md)
 
-Stage 1 (T1–T10) is delivered and its plan retired; git history keeps it.
+Stage 1 and Iteration 2 are delivered and their plans retired; git history keeps them.
 
 ## Architecture decisions
-1. **Rename first, as its own slice.** "Artifact" → "victory point" (`victoryPointsToWin`,
-   view field) touches config, view and tests but no rule. Doing it alone keeps the later
-   rule diffs readable.
-2. **Duels before creatures.** The round-robin scoring is the riskiest change, so it comes
-   first and is proven with the existing Stage 1 creatures. `Army.duelStrength(opponent)`
-   replaces `Army.strength(otherArmies)`; the Shield's bonus temporarily applies per duel.
-   The creature swap then only changes *which* bonus applies, not *how* battles resolve.
-3. **Counters live on the creature.** `CreatureType.counters: CreatureType?` (a `when`
-   getter, since enum entries can't reference later entries in constructor arguments).
-   `Army.duelStrength(opponent, counterBonus)` = size + `counterBonus` × the number of my
-   creatures whose `counters` appears in the opponent's army. `Trait` is deleted.
-4. **Battle stays pure and Game-independent:**
-   `Battle.resolve(commits, pot, counterBonus, random): BattleResult`. Duels are the pairs
-   `(i, j)` with `i < j` in join order; `BattleResult` gains `duels: List<Duel>` and each
-   `ArmyResult` gets `score` instead of `strength`. Casualty draws keep their current order
-   (per player, join order), after all duels.
-5. **Resource draw:** `ResourceType.entries[random.nextInt(entries.size)]`. This changes every
-   seeded sequence, so seeded expectations are re-derived per task, never patched to pass.
-6. **The view mirrors the log:** `ArmyResultView.score`, `BattleLogEntryView.duels` as
-   `{ players: [a, b], strengths: { a: x, b: y } }`, exactly as in the spec.
+1. **Remove before adding.** Renown goes first, in its own slice, together with the new
+   default of 5 VP. It touches player, battle result, config and view, and keeping it apart
+   makes the later rule diffs readable.
+2. **Trading is one engine function and one route.** `Game.trade(name, resource)` follows the
+   shape of `upgrade`: phase and acted checks, then `hand - resource + HORDE`. The view gets a
+   `TRADE` action. No new state.
+3. **Tiers live on the creature.** `CreatureType` gets `tier` (0 for Horde, 1, 2) and `line`
+   (a small `Line` enum: BOW, SWORD, MAGE, with `Line.counters`). `upgradesFrom` is derived:
+   Horde for tier 1, the tier-1 unit of the same line for tier 2. The upgrade resource stays
+   on the creature. `counters` on `CreatureType` is replaced by the line relation.
+4. **"One tier per turn" is player state.** `Player.upgradedThisTurn: Map<CreatureType, Int>`
+   counts units created by upgrades this turn. A tier-2 upgrade needs
+   `hand.count(from) - upgradedThisTurn[from] >= 1`. It resets with income at turn start,
+   and only the owner's view shows it.
+5. **Bonuses are a pure function of two creature types plus a value object.**
+   `Bonuses(tier1VsHorde, tier2VsHorde, sameTierCounter, higherTierCounter)` lives in
+   `battle/` (so `battle/` keeps not depending on `game/`); `GameConfig` builds it. A
+   creature's duel strength is `attack + max(bonus(it, t) for t in opponent)`.
+   `Battle.resolve(commits, pot, bonuses, random)` replaces the `counterBonus` parameter.
+6. **Interim bonus in T3.** Between adding tier-2 creatures (T3) and the bonus table (T4),
+   tier-2 units use the existing line-based flat `counterBonus`, so every slice builds and
+   passes. T4 then replaces only the bonus calculation.
+7. **Seeded expectations are re-derived per task,** never patched until green. The
+   end-to-end scripts react to whatever the seed deals, as in Iteration 2.
 
 ## Dependency graph
 ```
-T1 rename artifact → victory point
- └─ T2 duels and scores (Stage 1 creatures)
-     └─ T3 counter triangle + Essence (engine and all tests)
-         └─ T4 e2e games with a counter-decided battle
-             └─ T5 playtest.http + docs
+T1 remove renown, 5 VP
+ └─ T2 trading
+     └─ T3 tier-2 creatures + one tier per turn (interim flat bonus)
+         └─ T4 tier bonus table (best bonus only, vs Horde, by tier)
+             └─ T5 end-to-end games: rollover, trade, tier-2 unit, 5 VP
+                 └─ T6 playtest.http + docs
 ```
-Strictly sequential: each task changes code the next one builds on.
+T2 and T3 are independent in principle, but both touch `Game`, the view and the upgrade/
+build-up tests, so they run in sequence.
 
 ## Phases and checkpoints
 
 ### Phase 1 — Engine
-**T1. Rename.** `artifactsToWin` → `victoryPointsToWin` in `GameConfig`, `Game`, the view DTO,
-tests and README. No behavior change.
+**T1. Remove renown, raise the target to 5 VP.** Equal income for everyone; no renown in
+player, battle result, config, view, tests or README.
 
-**T2. Duels and scores.** Round-robin resolution with summed margins, ties / all-zero /
-single committer, the `duels` and `score` fields in the log and the view. Stage 1 creatures,
-so existing end-to-end tests should keep their winners; re-derive them if not.
+**T2. Trading.** `trade` in the engine, `POST …/trades`, the `TRADE` action, error cases.
 
-**T3. Counter triangle and Essence.** New creatures and costs, `counterBonus` in config,
-`Trait` and `SHIELD` gone, 1/3 resource draws. Every test that names old units or relies on
-seeded draws is rewritten; the spec's worked example and the going-wide case become tests.
+**T3. Tier-2 creatures.** Warbow, Knight, High Mage with costs; `Line` and `tier`; the
+one-tier-per-turn limit and `upgradedThisTurn` in my own view; interim flat counter bonus by
+line.
+
+**T4. Tier bonus table.** Best-bonus-only duel strength from `Bonuses`; bonuses against Horde;
+lower tier gets nothing against higher; `counterBonus` removed; the spec's worked example and
+every cell of the bonus table as unit tests.
 
 **Checkpoint A:** `mise run build` green; every rule in SPEC.md's Game Rules has a unit test;
-review the duel and counter code before touching the end-to-end games.
+review the tier and bonus code before the end-to-end games.
 
 ### Phase 2 — Games and play
-**T4. End-to-end games.** Seeded 3- and 5-player games over HTTP, each with a rollover and at
-least one battle decided by a counter; same-seed replay gives identical logs.
+**T5. End-to-end games.** Seeded 3- and 5-player games over HTTP, each with a rollover, a
+trade and a tier-2 unit in a committed army, played to 5 VP; same-seed replay gives
+identical logs; `FullGameTests` covers the same at engine level.
 
-**T5. Playtest and docs.** `http/playtest.http` re-derived for the new seed outcomes, with one
-battle decided by a counter; README rules and examples, the vision doc (Shield → triangle,
-Essence adopted), and a note in the core-loop one-pager that Iteration 2 changed its rules.
+**T6. Playtest and docs.** `http/playtest.http` re-derived (trade and a tier-2 unit in
+battle 2 or later); README rules, tables and curl examples; vision doc (renown removed,
+deeper upgrades partly adopted).
 
 **Checkpoint B:** all 9 SPEC.md success criteria met.
 
 ## Risks and mitigations
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Seeded expectations shift with the third resource | Tests "fixed" by tweaking numbers until green hide real bugs | Re-derive each scripted game from the rules, assert outcomes the script forces (ties, counters), not incidental numbers |
-| Duel margins make one big army dominate 5-player games | Counters feel irrelevant | `counterBonus` is configurable; record the observation in SPEC Open Questions rather than changing defaults (ask first) |
-| Scripted games can't force a counter win with seeded draws | T4/T5 criteria unmet | Script upgrades from whatever resources the seed deals; pick seeds whose deals allow it, documented in the test |
-| Enum forward references for `counters` | Compile error or null at init | `when`-based getter, covered by a test per counter pair |
+| Random casualties remove the tier-1 unit a script planned to upgrade | E2E/playtest can't field a tier-2 unit | Upgrade into tier 1 in one turn and keep that unit home (don't commit it); upgrade it to tier 2 next turn |
+| "Best bonus only" mis-implemented as a sum | Wrong strengths everywhere | Parameterized test per bonus-table cell plus explicit max-not-sum cases and the worked example |
+| `upgradedThisTurn` leaks into other players' views | Reveals plans | API test asserts the field is absent from `others` |
+| Horde bonus makes any committed Horde a liability | Going wide looks useless in play | Out of scope to change; recorded in SPEC Open Questions; tunable via `tier1VsHorde` / `tier2VsHorde` |
+| Seeded expectations shift with new rules | Tests "fixed" until green hide bugs | Re-derive scripted games from the rules; assert what the script forces |
 | Gradle needs `~/.gradle`, which the sandbox can't write | Agent-run builds fail | Agent runs Gradle outside the sandbox (prompted), or adjust via `/sandbox` |
 
 ## Open questions
