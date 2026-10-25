@@ -50,7 +50,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.server.*'`
   - Files: `server/GameRoutes.kt`, `server/Dtos.kt`, `server/ActionRoutesTests.kt`
 
-- [ ] **T9. HTTP end-to-end games**
+- [x] **T9. HTTP end-to-end games**
   - Acceptance: seeded 3-player and 5-player games over HTTP, each with a forced tie/rollover, end in `GAME_OVER` with the expected winner; same-seed replay gives identical battle logs
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.e2e.*'`
   - Files: `e2e/EndToEndMultiplayerTest.kt`
