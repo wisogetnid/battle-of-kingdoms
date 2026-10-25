@@ -30,7 +30,12 @@ class GameConfigTests {
     }
 
     @Test
-    fun `the Crown gives 1 extra Horde by default`() {
+    fun `the Famous Crown gives 1 extra Horde by default`() {
         assertEquals(1, GameConfig().crownHorde)
+    }
+
+    @Test
+    fun `the Horn of Frenzy gives each Horde +1 by default`() {
+        assertEquals(1, GameConfig().frenzyBonus)
     }
 }

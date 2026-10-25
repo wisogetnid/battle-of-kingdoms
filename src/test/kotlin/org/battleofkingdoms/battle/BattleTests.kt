@@ -1,8 +1,8 @@
 package org.battleofkingdoms.battle
 
 import org.battleofkingdoms.cards.Artifact
-import org.battleofkingdoms.cards.Artifact.AMULET_OF_LUCK
-import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
+import org.battleofkingdoms.cards.Artifact.HORN_OF_FRENZY
 import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.BOW
@@ -165,9 +165,9 @@ class BattleTests {
 
     @Test
     fun `an artifact prize gives no VP`() {
-        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1))).worth(1).awarded(Prize.Taken(CROWN))
+        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1))).worth(1).awarded(Prize.Taken(FAMOUS_CROWN))
 
-        Assertions.assertEquals(Prize.Taken(CROWN), result.prize)
+        Assertions.assertEquals(Prize.Taken(FAMOUS_CROWN), result.prize)
         Assertions.assertTrue(result.armies.values.all { it.vpGained == 0 })
     }
 
@@ -196,7 +196,7 @@ class BattleTests {
 
     @ParameterizedTest(name = "{0} committed, won {1}, {2}: loses {3}")
     @MethodSource("artifactLosses")
-    fun `the Resilient Banner rounds down and the Amulet of Luck saves one`(
+    fun `the Resilient Banner always rounds down`(
         committed: Int,
         won: Boolean,
         owned: Set<Artifact>,
@@ -213,19 +213,44 @@ class BattleTests {
     }
 
     @Test
-    fun `artifacts only protect their owner`() {
-        val commits = mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(HORDE to 4))
+    fun `the Resilient Banner only protects its owner`() {
+        val commits = mapOf("anna" to Army.of(HORDE to 5), "ben" to Army.of(HORDE to 3), "cleo" to Army.of(HORDE to 3))
 
-        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("ben" to setOf(RESILIENT_BANNER, AMULET_OF_LUCK)))
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("ben" to setOf(RESILIENT_BANNER)))
 
-        Assertions.assertEquals(2, result.armies.getValue("anna").casualties.size) // ceil(3 / 2)
-        Assertions.assertEquals(1, result.armies.getValue("ben").casualties.size) // floor(4 / 2) - 1
+        Assertions.assertEquals("anna", result.winner)
+        Assertions.assertEquals(1, result.armies.getValue("ben").casualties.size) // floor(3 / 2)
+        Assertions.assertEquals(2, result.armies.getValue("cleo").casualties.size) // ceil(3 / 2)
+    }
+
+    @Test
+    fun `the Horn of Frenzy gives each of its owner's Horde the bonus in every duel`() {
+        val commits = mapOf("anna" to Army.of(HORDE to 2, BOW to 1), "ben" to Army.of(HORDE to 3), "cleo" to Army.of(HORDE to 1))
+
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to setOf(HORN_OF_FRENZY)), frenzyBonus = 1)
+
+        // anna: 2 Horde × (1 + 1) + Bow (1 + 1 vs Horde) = 6; the Bow and the others' Horde get nothing extra
+        Assertions.assertEquals(
+            listOf(Duel("anna", "ben", 6, 3), Duel("anna", "cleo", 6, 1), Duel("ben", "cleo", 3, 1)),
+            result.duels,
+        )
+    }
+
+    @Test
+    fun `the Horn of Frenzy's bonus is a parameter, and without the Horn there is none`() {
+        val commits = mapOf("anna" to Army.of(HORDE to 2), "ben" to Army.of(HORDE to 3))
+
+        val horn = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to setOf(HORN_OF_FRENZY)), frenzyBonus = 2)
+        val none = Battle.resolve(commits, BONUSES, Random(SEED), emptyMap(), frenzyBonus = 2)
+
+        Assertions.assertEquals(listOf(Duel("anna", "ben", 6, 3)), horn.duels)
+        Assertions.assertEquals(listOf(Duel("anna", "ben", 2, 3)), none.duels)
     }
 
     @Test
     fun `a player who sits out loses nothing, whatever they own`() {
         val commits = mapOf("anna" to Army(), "ben" to Army.of(HORDE to 2), "cleo" to Army.of(HORDE to 1))
-        val everything = setOf(RESILIENT_BANNER, AMULET_OF_LUCK, CROWN)
+        val everything = Artifact.entries.toSet()
 
         val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to everything))
 
@@ -233,10 +258,10 @@ class BattleTests {
     }
 
     @Test
-    fun `the Crown doesn't change casualties`() {
+    fun `the Famous Crown doesn't change casualties`() {
         val commits = mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(HORDE to 4))
 
-        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to setOf(CROWN)))
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to setOf(FAMOUS_CROWN)))
 
         Assertions.assertEquals(2, result.armies.getValue("anna").casualties.size)
     }
@@ -324,16 +349,14 @@ class BattleTests {
         fun artifactLosses(): List<Arguments> {
             val none = emptySet<Artifact>()
             val banner = setOf(RESILIENT_BANNER)
-            val amulet = setOf(AMULET_OF_LUCK)
-            val both = setOf(RESILIENT_BANNER, AMULET_OF_LUCK)
             return listOf(
-                Triple(1, false, listOf(1, 0, 0, 0)),
-                Triple(3, false, listOf(2, 1, 1, 0)),
-                Triple(3, true, listOf(1, 1, 0, 0)),
-                Triple(4, false, listOf(2, 2, 1, 1)),
-                Triple(5, false, listOf(3, 2, 2, 1)),
+                Triple(1, false, listOf(1, 0)),
+                Triple(3, false, listOf(2, 1)),
+                Triple(3, true, listOf(1, 1)),
+                Triple(4, false, listOf(2, 2)),
+                Triple(5, false, listOf(3, 2)),
             ).flatMap { (committed, won, losses) ->
-                listOf(none, banner, amulet, both).zip(losses) { owned, lost -> Arguments.of(committed, won, owned, lost) }
+                listOf(none, banner).zip(losses) { owned, lost -> Arguments.of(committed, won, owned, lost) }
             }
         }
 

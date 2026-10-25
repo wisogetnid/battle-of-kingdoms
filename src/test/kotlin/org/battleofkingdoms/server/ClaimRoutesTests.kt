@@ -10,12 +10,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private val PLAYERS = arrayOf("anna", "ben", "cleo")
-private val ALL_THREE = GameConfig(artifacts = Artifact.entries)
+private val ALL_ARTIFACTS = GameConfig(artifacts = Artifact.entries)
 
 class ClaimRoutesTests {
 
     @Test
-    fun `only the winner sees the drawn artifact and can claim`() = apiTest(ALL_THREE) { api ->
+    fun `only the winner sees the drawn artifact and can claim`() = apiTest(ALL_ARTIFACTS) { api ->
         val gameId = annaWins(api)
 
         val anna = api.view(gameId, "anna")
@@ -35,7 +35,7 @@ class ClaimRoutesTests {
     }
 
     @Test
-    fun `taking the VP never reveals the declined artifact`() = apiTest(ALL_THREE) { api ->
+    fun `taking the VP never reveals the declined artifact`() = apiTest(ALL_ARTIFACTS) { api ->
         val gameId = annaWins(api)
         val declined = api.view(gameId, "anna")["me"]["drawnArtifact"].asText()
 
@@ -52,7 +52,7 @@ class ClaimRoutesTests {
     }
 
     @Test
-    fun `a taken artifact is public`() = apiTest(ALL_THREE) { api ->
+    fun `a taken artifact is public`() = apiTest(ALL_ARTIFACTS) { api ->
         val gameId = annaWins(api)
         val drawn = api.view(gameId, "anna")["me"]["drawnArtifact"].asText()
 
@@ -70,7 +70,7 @@ class ClaimRoutesTests {
     }
 
     @Test
-    fun `claiming as anyone but the winner, or outside CLAIM, is a conflict`() = apiTest(ALL_THREE) { api ->
+    fun `claiming as anyone but the winner, or outside CLAIM, is a conflict`() = apiTest(ALL_ARTIFACTS) { api ->
         val buildUp = api.startGame(*PLAYERS)
         assertError(HttpStatusCode.Conflict, api.post("/games/$buildUp/players/anna/claim", mapOf("take" to "VICTORY_POINT")))
 
@@ -80,10 +80,10 @@ class ClaimRoutesTests {
     }
 
     @Test
-    fun `a claim must take ARTIFACT or VICTORY_POINT`() = apiTest(ALL_THREE) { api ->
+    fun `a claim must take ARTIFACT or VICTORY_POINT`() = apiTest(ALL_ARTIFACTS) { api ->
         val gameId = annaWins(api)
 
-        assertError(HttpStatusCode.BadRequest, api.post("/games/$gameId/players/anna/claim", mapOf("take" to "CROWN")))
+        assertError(HttpStatusCode.BadRequest, api.post("/games/$gameId/players/anna/claim", mapOf("take" to "FAMOUS_CROWN")))
         assertError(HttpStatusCode.BadRequest, api.post("/games/$gameId/players/anna/claim", emptyMap<String, String>()))
         assertEquals("CLAIM", api.view(gameId, "anna")["phase"].asText())
     }
@@ -100,7 +100,7 @@ class ClaimRoutesTests {
     }
 
     @Test
-    fun `a game created without artifacts has an empty stack`() = apiTest(ALL_THREE) { api ->
+    fun `a game created without artifacts has an empty stack`() = apiTest(ALL_ARTIFACTS) { api ->
         val created = api.post("/games", mapOf("players" to 3, "host" to "anna", "artifacts" to false))
         assertEquals(HttpStatusCode.Created, created.status)
 

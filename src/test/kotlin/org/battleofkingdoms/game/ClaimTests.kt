@@ -3,7 +3,9 @@ package org.battleofkingdoms.game
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.battle.Prize
 import org.battleofkingdoms.cards.Artifact
-import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.battle.Duel
+import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
+import org.battleofkingdoms.cards.Artifact.HORN_OF_FRENZY
 import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.game.Phase.BUILD_UP
@@ -17,13 +19,13 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val SEED = 42L
-private val ALL_THREE = GameConfig(artifacts = Artifact.entries)
+private val ALL_ARTIFACTS = GameConfig(artifacts = Artifact.entries)
 
 class ClaimTests {
 
     @Test
     fun `a winner draws an artifact from the stack and the game waits for their claim`() {
-        val game = annaWins(started(ALL_THREE))
+        val game = annaWins(started(ALL_ARTIFACTS))
 
         assertEquals(CLAIM, game.phase)
         assertNotNull(game.drawnArtifact)
@@ -36,7 +38,7 @@ class ClaimTests {
 
     @Test
     fun `taking the artifact gives it to the winner and no VP`() {
-        val claiming = annaWins(started(ALL_THREE))
+        val claiming = annaWins(started(ALL_ARTIFACTS))
         val drawn = claiming.drawnArtifact!!
 
         val game = claiming.claim("anna", Take.ARTIFACT)
@@ -53,7 +55,7 @@ class ClaimTests {
 
     @Test
     fun `taking the VP leaves the artifact in the stack`() {
-        val game = annaWins(started(ALL_THREE)).claim("anna", Take.VICTORY_POINT)
+        val game = annaWins(started(ALL_ARTIFACTS)).claim("anna", Take.VICTORY_POINT)
 
         assertEquals(1, game.player("anna").vp)
         assertEquals(emptySet(), game.player("anna").artifacts)
@@ -77,7 +79,7 @@ class ClaimTests {
 
     @Test
     fun `a tie draws nothing and the next turn starts`() {
-        val game = everyoneCommits(started(ALL_THREE), "anna" to 1, "ben" to 1)
+        val game = everyoneCommits(started(ALL_ARTIFACTS), "anna" to 1, "ben" to 1)
 
         assertNull(game.battleLog.single().winner)
         assertNull(game.drawnArtifact)
@@ -96,7 +98,7 @@ class ClaimTests {
 
     @Test
     fun `the stack runs out once every artifact is owned`() {
-        val config = GameConfig(artifacts = listOf(CROWN))
+        val config = GameConfig(artifacts = listOf(FAMOUS_CROWN))
         val owned = annaWins(started(config)).claim("anna", Take.ARTIFACT)
 
         val game = annaWins(owned)
@@ -108,7 +110,7 @@ class ClaimTests {
 
     @Test
     fun `the game only ends after a VP prize`() {
-        val config = GameConfig(artifacts = listOf(CROWN), victoryPointsToWin = 1)
+        val config = GameConfig(artifacts = listOf(FAMOUS_CROWN), victoryPointsToWin = 1)
         val claiming = annaWins(started(config))
         assertEquals(CLAIM, claiming.phase)
 
@@ -131,8 +133,8 @@ class ClaimTests {
     }
 
     @Test
-    fun `a Crown taken in battle 1 pays from turn 2`() {
-        val claiming = annaWins(started(GameConfig(artifacts = listOf(CROWN))))
+    fun `a Famous Crown taken in battle 1 pays from turn 2`() {
+        val claiming = annaWins(started(GameConfig(artifacts = listOf(FAMOUS_CROWN))))
         val hordeBefore = claiming.player("anna").hand.count(HORDE)
 
         val game = claiming.claim("anna", Take.ARTIFACT)
@@ -142,20 +144,30 @@ class ClaimTests {
     }
 
     @Test
+    fun `a Horn of Frenzy taken in battle 1 strengthens its owner's Horde from battle 2`() {
+        val game = annaWins(started(GameConfig(artifacts = listOf(HORN_OF_FRENZY)))).claim("anna", Take.ARTIFACT)
+
+        val battle2 = everyoneCommits(game, "anna" to 1, "ben" to 1)
+
+        assertEquals(listOf(Duel("anna", "ben", 2, 1)), battle2.battleLog.last().duels)
+        assertEquals("anna", battle2.battleLog.last().winner)
+    }
+
+    @Test
     fun `only the winner can claim, and only during CLAIM`() {
-        val claiming = annaWins(started(ALL_THREE))
+        val claiming = annaWins(started(ALL_ARTIFACTS))
 
         assertFailsWith<NotTheWinner> { claiming.claim("ben", Take.VICTORY_POINT) }
         assertFailsWith<UnknownPlayer> { claiming.claim("zed", Take.VICTORY_POINT) }
-        assertFailsWith<WrongPhase> { started(ALL_THREE).claim("anna", Take.VICTORY_POINT) }
+        assertFailsWith<WrongPhase> { started(ALL_ARTIFACTS).claim("anna", Take.VICTORY_POINT) }
         assertFailsWith<WrongPhase> { claiming.ready("anna") }
     }
 
     @Test
     fun `the draw comes from the seeded random`() {
-        val draws = (1L..30L).map { seed -> annaWins(started(ALL_THREE, seed)).drawnArtifact }
+        val draws = (1L..30L).map { seed -> annaWins(started(ALL_ARTIFACTS, seed)).drawnArtifact }
 
-        assertEquals(draws, (1L..30L).map { seed -> annaWins(started(ALL_THREE, seed)).drawnArtifact })
+        assertEquals(draws, (1L..30L).map { seed -> annaWins(started(ALL_ARTIFACTS, seed)).drawnArtifact })
         assertTrue(draws.toSet() == Artifact.entries.toSet(), "every artifact should be drawn for some seed: $draws")
     }
 

@@ -14,11 +14,13 @@ import kotlinx.html.html
 import kotlinx.html.stream.createHTML
 import org.battleofkingdoms.cards.CreatureType.HIGH_MAGE
 import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.game.GameConfig
 import org.battleofkingdoms.game.Phase
 import org.battleofkingdoms.server.MyView
 import org.battleofkingdoms.server.PlayerView
 import org.battleofkingdoms.server.TestApi
-import org.battleofkingdoms.server.module
+import org.battleofkingdoms.server.GameServer
+import org.battleofkingdoms.server.gameModule
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -33,8 +35,8 @@ fun assertTextOnly(html: String) {
 }
 
 /** The app with a client that doesn't follow redirects, so tests see each `303`. */
-fun webTest(block: suspend (HttpClient) -> Unit) = testApplication {
-    application { module() }
+fun webTest(config: GameConfig = GameConfig(), block: suspend (HttpClient) -> Unit) = testApplication {
+    application { gameModule(GameServer(config)) }
     block(createClient { followRedirects = false })
 }
 
@@ -511,7 +513,7 @@ class WebRoutesTests {
         val gameId = annaWins(client, artifacts = true)
 
         page(client.post("/ui/games/$gameId/players/ben/claim", "take" to "VICTORY_POINT"), HttpStatusCode.Conflict)
-        page(client.post("/ui/games/$gameId/players/anna/claim", "take" to "CROWN"), HttpStatusCode.BadRequest)
+        page(client.post("/ui/games/$gameId/players/anna/claim", "take" to "FAMOUS_CROWN"), HttpStatusCode.BadRequest)
     }
 
     /** Everyone readies; anna commits 1 Horde and the others nothing, so she wins uncontested. */

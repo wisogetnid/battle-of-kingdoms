@@ -17,7 +17,10 @@ data class GameConfig(
     val tier2VsCounteredTier2: Int = 2,
     val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
+    /** The Famous Crown's extra Horde per turn. */
     val crownHorde: Int = 1,
+    /** The Horn of Frenzy's extra strength per Horde in every duel. */
+    val frenzyBonus: Int = 1,
     /** The starting artifact stack; empty means every win is an immediate VP. */
     val artifacts: List<Artifact> = Artifact.entries,
 ) {

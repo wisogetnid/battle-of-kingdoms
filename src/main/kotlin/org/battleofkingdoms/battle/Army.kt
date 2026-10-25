@@ -1,6 +1,7 @@
 package org.battleofkingdoms.battle
 
 import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.cards.CreatureType.HORDE
 
 data class Army(val creatures: Map<CreatureType, Int> = emptyMap()) {
     init {
@@ -11,10 +12,13 @@ data class Army(val creatures: Map<CreatureType, Int> = emptyMap()) {
 
     /**
      * Strength in a duel: each creature's attack plus its single best bonus against any
-     * creature in this one [opponent]'s army. Bonuses never add up.
+     * creature in this one [opponent]'s army. Bonuses never add up. Each Horde also gets
+     * [hordeBonus] (the Horn of Frenzy).
      */
-    fun duelStrength(opponent: Army, bonuses: Bonuses): Int =
-        creatures.entries.sumOf { (type, count) -> (type.attack + bestBonus(type, opponent, bonuses)) * count }
+    fun duelStrength(opponent: Army, bonuses: Bonuses, hordeBonus: Int = 0): Int =
+        creatures.entries.sumOf { (type, count) ->
+            (type.attack + bestBonus(type, opponent, bonuses) + if (type == HORDE) hordeBonus else 0) * count
+        }
 
     private fun bestBonus(type: CreatureType, opponent: Army, bonuses: Bonuses): Int =
         opponent.creatures.keys.maxOfOrNull { bonuses.against(type, it) } ?: 0

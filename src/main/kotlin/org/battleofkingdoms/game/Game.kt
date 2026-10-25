@@ -5,7 +5,7 @@ import org.battleofkingdoms.battle.Battle
 import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.battle.Prize
 import org.battleofkingdoms.cards.Artifact
-import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
@@ -167,7 +167,7 @@ data class Game(
     private fun resolveBattle(): Game {
         val armies = players.keys.associateWith { commits.getValue(it) }
         val owned = players.mapValues { it.value.artifacts }
-        val result = Battle.resolve(armies, config.bonuses, random, owned).worth(pot)
+        val result = Battle.resolve(armies, config.bonuses, random, owned, config.frenzyBonus).worth(pot)
         val resolved = copy(
             players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
             commits = emptyMap(),
@@ -249,7 +249,7 @@ data class Game(
         else -> 0
     }
 
-    private fun crownHorde(player: Player): Int = when (CROWN) {
+    private fun crownHorde(player: Player): Int = when (FAMOUS_CROWN) {
         in player.artifacts -> config.crownHorde
         else -> 0
     }

@@ -23,8 +23,8 @@ import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
 import org.battleofkingdoms.cards.Artifact
-import org.battleofkingdoms.cards.Artifact.AMULET_OF_LUCK
-import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
+import org.battleofkingdoms.cards.Artifact.HORN_OF_FRENZY
 import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
@@ -184,8 +184,8 @@ private fun FlowContent.claimForm(view: PlayerView, action: String) {
 
 private fun effect(artifact: Artifact): String = when (artifact) {
     RESILIENT_BANNER -> "your casualties always round down"
-    AMULET_OF_LUCK -> "your first casualty in every battle survives"
-    CROWN -> "extra Horde every turn"
+    HORN_OF_FRENZY -> "every Horde in your army is stronger in every duel"
+    FAMOUS_CROWN -> "extra Horde every turn"
 }
 
 /** A game without artifacts never mentions them. */

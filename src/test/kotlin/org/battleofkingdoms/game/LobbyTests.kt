@@ -1,7 +1,7 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Army
-import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType
@@ -118,7 +118,7 @@ class IncomeTests {
     }
 
     @Test
-    fun `the Crown's owner gets extra Horde every turn, nobody else does`() {
+    fun `the Famous Crown's owner gets extra Horde every turn, nobody else does`() {
         val crowned = withCrown(startedGame(GameConfig()), "anna")
 
         val turn2 = nextTurn(crowned)
@@ -131,14 +131,14 @@ class IncomeTests {
     }
 
     @Test
-    fun `the Crown's extra Horde come from the config`() {
+    fun `the Famous Crown's extra Horde come from the config`() {
         val crowned = withCrown(startedGame(GameConfig(crownHorde = 3)), "anna")
 
         assertEquals(1 + 1 + 3, nextTurn(crowned).player("anna").hand.count(HORDE))
     }
 
     private fun withCrown(game: Game, name: String) =
-        game.copy(players = game.players + (name to game.player(name).copy(artifacts = setOf(CROWN))))
+        game.copy(players = game.players + (name to game.player(name).copy(artifacts = setOf(FAMOUS_CROWN))))
 
     /** Everyone readies and commits nothing: a battle without a winner, then the next turn's income. */
     private fun nextTurn(game: Game): Game {

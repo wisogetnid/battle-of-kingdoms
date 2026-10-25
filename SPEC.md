@@ -67,7 +67,7 @@ WAITING_FOR_PLAYERS ──(game full)──▶ BUILD_UP ──(all ready)──�
 ```
 
 1. **Income** (start of every turn): each player receives `baseCreaturesPerTurn` Horde and
-   `resourcesPerTurn` resources, plus `crownHorde` Horde if they own the Crown. On turn 1,
+   `resourcesPerTurn` resources, plus `crownHorde` Horde if they own the Famous Crown. On turn 1,
    each player additionally receives `startingHorde` Horde (0 by default, so turn 1 deals
    1 Horde and 2 resources).
 2. **Build-up:** a player may trade and upgrade any number of times, in any order, then marks
@@ -118,7 +118,8 @@ against any creature in that opponent's army. Bonuses never add up.
 +2 against a Bow). Any matchup not in the table (e.g. a Bow against a Sword, or a Warbow
 against a Knight) gives no bonus. For example, a Warbow in a duel against an army with a
 Bow and a Horde gets max(+2, +4) = +4, so its strength is 5; against an army with only
-Swords it gets +2, so its strength is 3. Artifacts never change duel strength.
+Swords it gets +2, so its strength is 3. The only artifact that changes duel strength is
+the Horn of Frenzy: each of its owner's Horde gets +`frenzyBonus` (1) in every duel.
 
 ### Battle resolution
 1. **Duels:** only players who committed at least one creature take part. Every pair of
@@ -161,7 +162,7 @@ but loses to cleo.
 
 ### Prize and artifacts
 The **artifact stack** starts with the artifacts in `GameConfig.artifacts`: by default one
-each of the Resilient Banner, the Amulet of Luck and the Crown, face down.
+each of the Resilient Banner, the Horn of Frenzy and the Famous Crown, face down.
 
 1. **Draw:** when a battle has a winner and the stack isn't empty, one artifact is drawn
    uniformly at random from the stack with the seeded `Random` (the same as taking the top
@@ -180,18 +181,16 @@ each of the Resilient Banner, the Amulet of Luck and the Crown, face down.
 | Artifact | Effect for its owner, from the turn after it's taken |
 |---|---|
 | **Resilient Banner** | Casualties always round down: `floor(n / 2)`, win or lose. |
-| **Amulet of Luck** | In every battle, the first casualty drawn survives: one creature fewer is lost (never fewer than 0). |
-| **Crown** | `crownHorde` (1) extra Horde in every turn's income. |
+| **Horn of Frenzy** | Each Horde in the owner's army gets +`frenzyBonus` (1) strength in every duel, on top of its attack (a Horde has no bonuses). |
+| **Famous Crown** | `crownHorde` (1) extra Horde in every turn's income. |
 
-The Banner and the Amulet combine: the Banner rounds down first, then the Amulet saves one.
-
-| Committed (n) | Won? | No artifact | Banner | Amulet | Banner + Amulet |
-|---|---|---|---|---|---|
-| 1 | lost | 1 | 0 | 0 | 0 |
-| 3 | lost | 2 | 1 | 1 | 0 |
-| 3 | won | 1 | 1 | 0 | 0 |
-| 4 | lost | 2 | 2 | 1 | 1 |
-| 5 | lost | 3 | 2 | 2 | 1 |
+| Committed (n) | Won? | No artifact | Banner |
+|---|---|---|---|
+| 1 | lost | 1 | 0 |
+| 3 | lost | 2 | 1 |
+| 3 | won | 1 | 1 |
+| 4 | lost | 2 | 2 |
+| 5 | lost | 3 | 2 |
 
 ### Configuration
 All numbers live in one object; nothing in the rules above is hard-coded elsewhere.
@@ -211,7 +210,8 @@ data class GameConfig(
     val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
     val artifacts: List<Artifact> = Artifact.entries,   // the starting stack
-    val crownHorde: Int = 1,
+    val crownHorde: Int = 1,                             // the Famous Crown
+    val frenzyBonus: Int = 1,                            // the Horn of Frenzy, per Horde
 )
 ```
 A game is created with a `GameConfig` and a seed. The same config, seed, and sequence of
@@ -221,7 +221,7 @@ player actions always produce the same game.
 JSON in and out (Ktor + Jackson, already in the build). Player names are trusted — no auth.
 Creature and resource names in JSON: `HORDE`, `BOW`, `SWORD`, `MAGE`, `WARBOW`, `KNIGHT`,
 `HIGH_MAGE`, `WOOD`, `IRON`, `ESSENCE`. Artifact names: `RESILIENT_BANNER`,
-`AMULET_OF_LUCK`, `CROWN`.
+`HORN_OF_FRENZY`, `FAMOUS_CROWN`.
 
 | Method & path | Body | Success | Purpose |
 |---|---|---|---|
@@ -259,7 +259,7 @@ the current turn's commits, and an artifact someone else drew are never included
 {
   "pot": 1,
   "winner": "cleo",
-  "prize": "CROWN",
+  "prize": "FAMOUS_CROWN",
   "armies": {
     "cleo": { "army": { "BOW": 1, "KNIGHT": 1 }, "score": 12, "casualties": { "BOW": 1 },
               "survivors": { "KNIGHT": 1 }, "vpGained": 0 }
@@ -292,14 +292,15 @@ Games live in memory; restarting the server loses them.
 | Pot | 1 VP per turn; a tie rolls it over and it grows | Every battle is worth `victoryPointsPerBattle` (1); a tie gives nothing |
 | Battle win | The winner gains the pot | The winner draws an artifact and takes it or the VP; with an empty stack, the VP |
 | Phases | … → BATTLE → next turn | … → BATTLE → CLAIM (winner, stack not empty) → next turn |
-| Casualties | floor / ceil by win or loss | the same, adjusted by the Resilient Banner and the Amulet of Luck |
-| Income | 1 Horde + 2 resources | + `crownHorde` Horde for the Crown's owner |
+| Casualties | floor / ceil by win or loss | the same, adjusted by the Resilient Banner |
+| Income | 1 Horde + 2 resources | + `crownHorde` Horde for the Famous Crown's owner |
 | Who fights (playtest) | Every player, including empty armies at strength 0 | Only players who committed something; the others sit out (score 0, nobody scores against them); a lone committer wins uncontested |
 | Bonuses (playtest) | tier 1: +2 vs Horde, +1 vs countered tier 1; tier 2: +5 vs Horde, +3 vs countered tier 1, +1 vs countered tier 2 | tier 1: +1 vs Horde, +1 vs countered tier 1; tier 2: +4 vs Horde, +4 vs countered tier 1, **+2 vs any other tier 1 (new)**, +2 vs countered tier 2 |
 | API | — | `POST …/claim`; `CLAIM` phase and action; `artifactsInStack`, `me.artifacts`, `me.drawnArtifact`, `others[].artifacts`, battle log `prize` |
-| Config | `tier1VsHorde`, `tier2VsHorde`, `sameTierCounter`, `higherTierCounter` | `victoryPointsPerBattle`, `artifacts`, `crownHorde`; bonuses: `tier1VsHorde`, `tier1VsCountered`, `tier2VsHorde`, `tier2VsCounteredTier1`, `tier2VsOtherTier1`, `tier2VsCounteredTier2` |
+| Config | `tier1VsHorde`, `tier2VsHorde`, `sameTierCounter`, `higherTierCounter` | `victoryPointsPerBattle`, `artifacts`, `crownHorde`, `frenzyBonus`; bonuses: `tier1VsHorde`, `tier1VsCountered`, `tier2VsHorde`, `tier2VsCounteredTier1`, `tier2VsOtherTier1`, `tier2VsCounteredTier2` |
 
-Unchanged: creatures, upgrades, trading, the single best bonus, duel strength and margins,
+Unchanged: creatures, upgrades, trading, the single best bonus, duel strength (except the
+Horn of Frenzy) and margins,
 the 3-VP target, and every existing route and view field (`pot` keeps its name).
 
 Seeded expectations change: rollover tests are rewritten for "a tie gives nothing", and the
@@ -393,7 +394,8 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   that opponent, duel margins summed into scores that add up to 0, winner / tie / all-zero /
   single committer, a tie giving nothing and the next battle still worth 1, floor/ceil
   losses, every row of the artifact casualty table, random casualties with a fixed seed,
-  equal income for everyone, the Crown's extra Horde from the turn after it's taken, the
+  equal income for everyone, the Famous Crown's extra Horde from the turn after it's taken,
+  the Horn of Frenzy's bonus for its owner's Horde only, the
   1/3 resource draw, the draw only with a winner and a non-empty stack, taking the artifact
   vs taking the VP, a declined artifact going back, an empty stack giving the VP without a
   CLAIM phase, game-over at 3 VP only after a VP prize.
@@ -423,11 +425,10 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   changing files under `web/` beyond what keeps the build compiling.
 - **Never:** build anything from the one-pager's "Not Doing" list (marketplace, supporters,
   diplomacy, auth, persistence, deployment) or the out-of-scope items of this iteration:
-  more than three artifacts or more than one copy of any, artifacts that change duel
-  strength or are committed to armies, trading, stealing or losing artifacts, any
+  more than three artifacts or more than one copy of any, artifacts committed to armies, trading, stealing or losing artifacts, any
   rollover, changes to tiers, bonuses, trading or the VP target, a third tier, simulation
   tooling, web UI features; let more than one player score in a battle; raise base attacks
-  above 1; add bonuses together; disable or skip tests to get to green; commit secrets.
+  above 1 (the Horn of Frenzy's bonus is an artifact effect, not a base attack); add bonuses together; disable or skip tests to get to green; commit secrets.
 
 ## Success Criteria
 1. `mise run build` passes with every test green.
@@ -454,7 +455,8 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
 None that block this iteration. To watch in play:
 - Is any artifact worth a VP? If everyone always takes the VP, the effects are too weak; if
   everyone always takes the artifact, games drag.
-- Does the Crown snowball like renown did, now that it costs a VP?
+- Does the Famous Crown snowball like renown did, now that it costs a VP?
+- Does the Horn of Frenzy make all-Horde armies too strong against tier-1 units?
 - Does the private knowledge of a declined artifact change anyone's later choice?
 - With tier 2 at +4 against Horde, does any Horde in an army become a liability, so armies
   split into "all Horde" and "no Horde"?
