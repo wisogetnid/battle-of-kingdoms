@@ -6,8 +6,7 @@ import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
-import org.battleofkingdoms.cards.ResourceType.IRON
-import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
 import org.battleofkingdoms.game.Phase.GAME_OVER
@@ -103,7 +102,7 @@ data class Game(
 
     /** Commits are resolved in join order, so the casualty draws don't depend on who committed first. */
     private fun resolveBattle(): Game {
-        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, random)
+        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, config.counterBonus, random)
         val resolved = copy(
             pot = if (result.rolledOver) pot else 0,
             players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
@@ -165,10 +164,8 @@ data class Game(
         else -> 0
     }
 
-    private fun drawResource() = when (random.nextBoolean()) {
-        true -> WOOD
-        false -> IRON
-    }
+    /** Each resource is equally likely. */
+    private fun drawResource(): ResourceType = ResourceType.entries[random.nextInt(ResourceType.entries.size)]
 
     companion object {
         fun create(config: GameConfig, seed: Long, playerCount: Int, host: String): Game = when (playerCount) {

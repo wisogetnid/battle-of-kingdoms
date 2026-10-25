@@ -2,11 +2,7 @@ package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.CreatureType
-import org.battleofkingdoms.cards.CreatureType.BOW
 import org.battleofkingdoms.cards.CreatureType.HORDE
-import org.battleofkingdoms.cards.CreatureType.SHIELD
-import org.battleofkingdoms.cards.ResourceType.IRON
-import org.battleofkingdoms.cards.ResourceType.WOOD
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -65,9 +61,10 @@ class FullGameTests {
         val hand = game.player(name).hand
         return when {
             !hand.has(HORDE) -> game
-            hand.has(IRON) -> upgradeAll(game.upgrade(name, BOW), name)
-            hand.has(WOOD) -> upgradeAll(game.upgrade(name, SHIELD), name)
-            else -> game
+            else -> when (val into = CreatureType.entries.firstOrNull { it.upgradeResource?.let(hand::has) == true }) {
+                null -> game
+                else -> upgradeAll(game.upgrade(name, into), name)
+            }
         }
     }
 

@@ -4,7 +4,7 @@ import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.CreatureType.BOW
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
-import org.battleofkingdoms.cards.ResourceType.IRON
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.cards.ResourceType.WOOD
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
@@ -80,7 +80,7 @@ class BattleTurnTests {
         // turn 2 income: base 1 + renown 1 Horde, 2 resources
         val anna = game.player("anna")
         assertEquals(1 + 2 + 2, anna.hand.count(HORDE)) // 1 kept back, 3 - floor(3/2) = 2 survivors, 2 income
-        assertEquals(1 + 2, anna.hand.count(WOOD) + anna.hand.count(IRON))
+        assertEquals(1 + 2, ResourceType.entries.sumOf { anna.hand.count(it) })
         assertEquals(0 + 2, game.player("ben").hand.count(HORDE)) // 1 - ceil(1/2) = 0 survivors, 2 income
     }
 

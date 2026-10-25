@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 private const val SEED = 2024L
 private const val MAX_TURNS = 20
 private val NAMES = listOf("anna", "ben", "cleo", "dora", "emil")
-private val CREATURES = listOf("HORDE", "SHIELD", "BOW")
+private val CREATURES = listOf("HORDE", "BOW", "SWORD", "MAGE")
 
 /**
  * Full seeded games played over HTTP only. Turn 1 every player commits 1 Horde, which forces
@@ -73,8 +73,9 @@ class EndToEndMultiplayerTest {
             val hand = api.view(gameId, name)["me"]["hand"]
             val into = when {
                 !hand.has("HORDE") -> return
-                hand.has("IRON") -> "BOW"
-                hand.has("WOOD") -> "SHIELD"
+                hand.has("WOOD") -> "BOW"
+                hand.has("IRON") -> "SWORD"
+                hand.has("ESSENCE") -> "MAGE"
                 else -> return
             }
             expectOk(api.post("/games/$gameId/players/$name/upgrades", mapOf("into" to into)))

@@ -34,8 +34,9 @@ class ActionRoutesTests {
 
             assertError(HttpStatusCode.BadRequest, api.upgrade(gameId, "anna", "HORDE"))
             assertError(HttpStatusCode.BadRequest, api.upgrade(gameId, "anna", "DRAGON"))
-            var response = api.upgrade(gameId, "anna", "SHIELD")
-            while (response.status == HttpStatusCode.OK) response = api.upgrade(gameId, "anna", "SHIELD")
+            assertError(HttpStatusCode.BadRequest, api.upgrade(gameId, "anna", "SHIELD"))
+            var response = api.upgrade(gameId, "anna", "BOW")
+            while (response.status == HttpStatusCode.OK) response = api.upgrade(gameId, "anna", "BOW")
             assertError(HttpStatusCode.BadRequest, response)
         }
 
@@ -56,7 +57,7 @@ class ActionRoutesTests {
         api.post("/games/$gameId/players/anna/ready")
 
         assertError(HttpStatusCode.Conflict, api.post("/games/$gameId/players/anna/ready"))
-        assertError(HttpStatusCode.Conflict, api.upgrade(gameId, "anna", "SHIELD"))
+        assertError(HttpStatusCode.Conflict, api.upgrade(gameId, "anna", "BOW"))
     }
 
     @Test
@@ -67,7 +68,7 @@ class ActionRoutesTests {
         val gameId = api.startGame(*PLAYERS)
         assertError(HttpStatusCode.Conflict, api.commit(gameId, "anna", mapOf("HORDE" to 1)))
         allReady(api, gameId)
-        assertError(HttpStatusCode.Conflict, api.upgrade(gameId, "anna", "SHIELD"))
+        assertError(HttpStatusCode.Conflict, api.upgrade(gameId, "anna", "BOW"))
     }
 
     @Test
@@ -98,6 +99,7 @@ class ActionRoutesTests {
         assertError(HttpStatusCode.BadRequest, api.commit(gameId, "anna", mapOf("BOW" to 1)))
         assertError(HttpStatusCode.BadRequest, api.commit(gameId, "anna", mapOf("HORDE" to -1)))
         assertError(HttpStatusCode.BadRequest, api.commit(gameId, "anna", mapOf("DRAGON" to 1)))
+        assertError(HttpStatusCode.BadRequest, api.commit(gameId, "anna", mapOf("SHIELD" to 1)))
     }
 
     @Test
@@ -157,8 +159,9 @@ class ActionRoutesTests {
         view["others"].single { it["name"].asText() == "anna" }["handSize"].asInt()
 
     private fun affordableUpgrade(hand: JsonNode): Pair<String, String> = when {
-        hand.has("WOOD") -> "SHIELD" to "WOOD"
-        else -> "BOW" to "IRON"
+        hand.has("WOOD") -> "BOW" to "WOOD"
+        hand.has("IRON") -> "SWORD" to "IRON"
+        else -> "MAGE" to "ESSENCE"
     }
 }
 

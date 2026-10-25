@@ -3,9 +3,11 @@ package org.battleofkingdoms.game
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.BOW
 import org.battleofkingdoms.cards.CreatureType.HORDE
-import org.battleofkingdoms.cards.CreatureType.SHIELD
+import org.battleofkingdoms.cards.CreatureType.MAGE
+import org.battleofkingdoms.cards.CreatureType.SWORD
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType
+import org.battleofkingdoms.cards.ResourceType.ESSENCE
 import org.battleofkingdoms.cards.ResourceType.IRON
 import org.battleofkingdoms.cards.ResourceType.WOOD
 import org.battleofkingdoms.game.Phase.BATTLE
@@ -26,19 +28,19 @@ class BuildUpTests {
     @ParameterizedTest
     @MethodSource("upgrades")
     fun `an upgrade consumes 1 Horde and the matching resource`(into: CreatureType, resource: ResourceType) {
-        val game = startedGame(hand = Hand.of(HORDE to 2, WOOD to 1, IRON to 1))
+        val game = startedGame(hand = Hand.of(HORDE to 2, WOOD to 1, IRON to 1, ESSENCE to 1))
 
         val upgraded = game.upgrade("anna", into)
 
-        val other = ResourceType.entries.single { it != resource }
-        assertEquals(Hand.of(HORDE to 1, into to 1, other to 1), upgraded.player("anna").hand)
+        val (otherA, otherB) = ResourceType.entries.filter { it != resource }
+        assertEquals(Hand.of(HORDE to 1, into to 1, otherA to 1, otherB to 1), upgraded.player("anna").hand)
     }
 
     @ParameterizedTest
     @MethodSource("upgrades")
     fun `an upgrade without the matching resource is a rule violation`(into: CreatureType, resource: ResourceType) {
-        val other = ResourceType.entries.single { it != resource }
-        val game = startedGame(hand = Hand.of(HORDE to 1, other to 3))
+        val (otherA, otherB) = ResourceType.entries.filter { it != resource }
+        val game = startedGame(hand = Hand.of(HORDE to 1, otherA to 3, otherB to 3))
 
         assertFailsWith<RuleViolation> { game.upgrade("anna", into) }
     }
@@ -60,18 +62,18 @@ class BuildUpTests {
 
     @Test
     fun `a player may upgrade several times`() {
-        val game = startedGame(hand = Hand.of(HORDE to 3, WOOD to 2, IRON to 1))
+        val game = startedGame(hand = Hand.of(HORDE to 4, WOOD to 2, IRON to 1, ESSENCE to 1))
 
-        val upgraded = game.upgrade("anna", SHIELD).upgrade("anna", SHIELD).upgrade("anna", BOW)
+        val upgraded = game.upgrade("anna", BOW).upgrade("anna", BOW).upgrade("anna", SWORD).upgrade("anna", MAGE)
 
-        assertEquals(Hand.of(SHIELD to 2, BOW to 1), upgraded.player("anna").hand)
+        assertEquals(Hand.of(BOW to 2, SWORD to 1, MAGE to 1), upgraded.player("anna").hand)
     }
 
     @Test
     fun `an upgrade after ready is rejected`() {
         val game = startedGame(hand = Hand.of(HORDE to 1, WOOD to 1)).ready("anna")
 
-        assertFailsWith<AlreadyActed> { game.upgrade("anna", SHIELD) }
+        assertFailsWith<AlreadyActed> { game.upgrade("anna", BOW) }
     }
 
     @Test
@@ -79,13 +81,13 @@ class BuildUpTests {
         val waiting = Game.create(GameConfig(), SEED, 3, "anna")
         val battle = allReady(startedGame())
 
-        assertFailsWith<WrongPhase> { waiting.upgrade("anna", SHIELD) }
-        assertFailsWith<WrongPhase> { battle.upgrade("anna", SHIELD) }
+        assertFailsWith<WrongPhase> { waiting.upgrade("anna", BOW) }
+        assertFailsWith<WrongPhase> { battle.upgrade("anna", BOW) }
     }
 
     @Test
     fun `an upgrade by an unknown player is rejected`() {
-        assertFailsWith<UnknownPlayer> { startedGame().upgrade("zed", SHIELD) }
+        assertFailsWith<UnknownPlayer> { startedGame().upgrade("zed", BOW) }
     }
 
     @Test
@@ -136,8 +138,9 @@ class BuildUpTests {
     companion object {
         @JvmStatic
         fun upgrades() = listOf(
-            Arguments.of(SHIELD, WOOD),
-            Arguments.of(BOW, IRON),
+            Arguments.of(BOW, WOOD),
+            Arguments.of(SWORD, IRON),
+            Arguments.of(MAGE, ESSENCE),
         )
     }
 }

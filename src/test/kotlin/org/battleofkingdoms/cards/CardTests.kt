@@ -2,11 +2,11 @@ package org.battleofkingdoms.cards
 
 import org.battleofkingdoms.cards.CreatureType.BOW
 import org.battleofkingdoms.cards.CreatureType.HORDE
-import org.battleofkingdoms.cards.CreatureType.SHIELD
+import org.battleofkingdoms.cards.CreatureType.MAGE
+import org.battleofkingdoms.cards.CreatureType.SWORD
+import org.battleofkingdoms.cards.ResourceType.ESSENCE
 import org.battleofkingdoms.cards.ResourceType.IRON
 import org.battleofkingdoms.cards.ResourceType.WOOD
-import org.battleofkingdoms.cards.Trait.INFANTRY
-import org.battleofkingdoms.cards.Trait.RANGED
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -22,28 +22,40 @@ class CardTests {
     @MethodSource("creatures")
     fun `creature stats match the rules table`(
         type: CreatureType,
-        attack: Int,
-        attackAgainstRanged: Int,
-        traits: Set<Trait>,
         upgradeResource: ResourceType?,
+        counters: CreatureType?,
     ) {
-        assertEquals(attack, type.attack(facingRanged = false))
-        assertEquals(attackAgainstRanged, type.attack(facingRanged = true))
-        assertEquals(traits, type.traits)
+        assertEquals(1, type.attack)
         assertEquals(upgradeResource, type.upgradeResource)
+        assertEquals(counters, type.counters)
     }
 
     @Test
-    fun `only the bow is ranged`() {
-        assertEquals(listOf(BOW), CreatureType.entries.filter { it.ranged })
+    fun `the upgraded creatures form a counter triangle`() {
+        val upgraded = CreatureType.entries.filter { it.counters != null }
+
+        assertEquals(setOf(BOW, SWORD, MAGE), upgraded.toSet())
+        assertEquals(upgraded.toSet(), upgraded.map { it.counters }.toSet(), "each upgraded creature is countered exactly once")
+        upgraded.forEach { assertEquals(it, it.counters!!.counters!!.counters, "$it closes the cycle in three steps") }
+    }
+
+    @Test
+    fun `the horde is never countered`() {
+        assertTrue(CreatureType.entries.none { it.counters == HORDE })
+    }
+
+    @Test
+    fun `each resource upgrades into exactly one creature`() {
+        assertEquals(ResourceType.entries.toSet(), CreatureType.entries.mapNotNull { it.upgradeResource }.toSet())
+        assertEquals(ResourceType.entries.size, CreatureType.entries.count { it.upgradeResource != null })
     }
 
     @Test
     fun `a hand counts creatures and resources`() {
-        val hand = Hand() + HORDE + HORDE + WOOD
+        val hand = Hand() + HORDE + HORDE + ESSENCE
 
         assertEquals(2, hand.count(HORDE))
-        assertEquals(1, hand.count(WOOD))
+        assertEquals(1, hand.count(ESSENCE))
         assertEquals(0, hand.count(IRON))
         assertTrue(hand.has(HORDE, 2))
         assertFalse(hand.has(HORDE, 3))
@@ -52,9 +64,9 @@ class CardTests {
 
     @Test
     fun `removing the last card of a type drops it from the hand`() {
-        val hand = Hand.of(HORDE to 1, WOOD to 1) - HORDE - WOOD + SHIELD
+        val hand = Hand.of(HORDE to 1, WOOD to 1) - HORDE - WOOD + BOW
 
-        assertEquals(Hand.of(SHIELD to 1), hand)
+        assertEquals(Hand.of(BOW to 1), hand)
     }
 
     @Test
@@ -65,9 +77,10 @@ class CardTests {
     companion object {
         @JvmStatic
         fun creatures() = listOf(
-            Arguments.of(HORDE, 1, 1, setOf(INFANTRY), null),
-            Arguments.of(SHIELD, 1, 2, setOf(INFANTRY), WOOD),
-            Arguments.of(BOW, 2, 2, setOf(INFANTRY, RANGED), IRON),
+            Arguments.of(HORDE, null, null),
+            Arguments.of(BOW, WOOD, MAGE),
+            Arguments.of(SWORD, IRON, BOW),
+            Arguments.of(MAGE, ESSENCE, SWORD),
         )
     }
 }

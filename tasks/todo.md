@@ -13,7 +13,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`; `BattleTests` has parameterized cases for margins, zero-sum, tie, all-zero, single committer, bonus only in the duel against the countered opponent
   - Files: `battle/Army.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `ArmyTests.kt`, `ActionRoutesTests.kt`
 
-- [ ] **T3. Counter triangle and Essence**
+- [x] **T3. Counter triangle and Essence**
   - Acceptance: `ResourceType` WOOD, IRON, ESSENCE drawn 1/3 each; `CreatureType` HORDE, BOW (Wood), SWORD (Iron), MAGE (Essence), all attack 1, with `counters` Bow→Mage, Sword→Bow, Mage→Sword; `+counterBonus` per countering creature in a duel; `GameConfig.counterBonus = 1`; `Trait` and `SHIELD` removed; `SHIELD` in a request is a 400; the spec's worked example and a going-wide case are unit tests
   - Verify: `mise run build`; `grep -rn "SHIELD\|Trait\|RANGED" src` finds nothing
   - Files: `cards/CreatureType.kt`, `cards/ResourceType.kt`, `cards/Trait.kt` (delete), `battle/Army.kt`, `battle/Battle.kt`, `game/GameConfig.kt`, `game/Game.kt`, plus the tests naming old units: `CardTests`, `ArmyTests`, `BattleTests`, `BuildUpTests`, `IncomeTests`, `FullGameTests`, `ActionRoutesTests`, `EndToEndMultiplayerTest` (kept green only; rewritten in T4)

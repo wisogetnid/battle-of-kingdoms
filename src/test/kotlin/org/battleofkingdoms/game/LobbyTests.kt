@@ -1,8 +1,8 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.cards.CreatureType.HORDE
-import org.battleofkingdoms.cards.ResourceType.IRON
-import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.cards.Hand
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Phase.BUILD_UP
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
 import org.junit.jupiter.api.Test
@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 private const val SEED = 42L
 
@@ -81,7 +82,7 @@ class IncomeTests {
 
         game.players.values.forEach { player ->
             assertEquals(3 + 1, player.hand.count(HORDE))
-            assertEquals(2, player.hand.count(WOOD) + player.hand.count(IRON))
+            assertEquals(2, resources(player.hand))
             assertEquals(0, player.renown)
             assertEquals(false, player.acted)
         }
@@ -94,7 +95,7 @@ class IncomeTests {
 
         game.players.values.forEach { player ->
             assertEquals(5 + 2, player.hand.count(HORDE))
-            assertEquals(4, player.hand.count(WOOD) + player.hand.count(IRON))
+            assertEquals(4, resources(player.hand))
         }
     }
 
@@ -106,12 +107,16 @@ class IncomeTests {
     }
 
     @Test
-    fun `resources are drawn as both wood and iron`() {
-        val hands = startedGame(GameConfig(resourcesPerTurn = 20)).players.values.map { it.hand }
+    fun `each resource is drawn about a third of the time`() {
+        val hands = startedGame(GameConfig(resourcesPerTurn = 1000)).players.values.map { it.hand }
 
-        assertEquals(true, hands.sumOf { it.count(WOOD) } > 0)
-        assertEquals(true, hands.sumOf { it.count(IRON) } > 0)
+        ResourceType.entries.forEach { resource ->
+            val drawn = hands.sumOf { it.count(resource) }
+            assertTrue(drawn in 900..1100, "$resource drawn $drawn of 3000 times")
+        }
     }
+
+    private fun resources(hand: Hand) = ResourceType.entries.sumOf { hand.count(it) }
 
     private fun startedGame(config: GameConfig) =
         Game.create(config, SEED, 3, "anna").join("ben").join("cleo")

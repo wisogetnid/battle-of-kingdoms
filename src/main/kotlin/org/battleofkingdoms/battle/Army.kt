@@ -9,11 +9,20 @@ data class Army(val creatures: Map<CreatureType, Int> = emptyMap()) {
 
     val size: Int get() = creatures.values.sum()
 
-    val hasRanged: Boolean get() = creatures.keys.any { it.ranged }
+    /**
+     * Strength in a duel: each creature's attack, plus [counterBonus] for each of my creatures
+     * whose countered creature is in this one [opponent]'s army.
+     */
+    fun duelStrength(opponent: Army, counterBonus: Int): Int =
+        creatures.entries.sumOf { (type, count) -> (type.attack + bonus(type, opponent, counterBonus)) * count }
 
-    /** Strength in a duel: bonuses count only against this one [opponent]. */
-    fun duelStrength(opponent: Army): Int =
-        creatures.entries.sumOf { (type, count) -> type.attack(facingRanged = opponent.hasRanged) * count }
+    private fun bonus(type: CreatureType, opponent: Army, counterBonus: Int): Int {
+        val countered = type.counters ?: return 0
+        return when (countered) {
+            in opponent.creatures -> counterBonus
+            else -> 0
+        }
+    }
 
     companion object {
         fun of(vararg creatures: Pair<CreatureType, Int>): Army = Army(creatures.toMap().filterValues { it > 0 })
