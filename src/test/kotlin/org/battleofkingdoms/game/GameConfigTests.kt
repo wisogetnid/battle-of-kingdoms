@@ -13,4 +13,9 @@ class GameConfigTests {
             GameConfig().bonuses,
         )
     }
+
+    @Test
+    fun `a game runs to 3 VP by default`() {
+        assertEquals(3, GameConfig().victoryPointsToWin)
+    }
 }

@@ -31,7 +31,7 @@ class EndToEndMultiplayerTest {
 
     @ParameterizedTest(name = "{0} players")
     @ValueSource(ints = [3, 5])
-    fun `a seeded game with a rollover, trades and tier-2 units is played over HTTP to 5 VP`(playerCount: Int) =
+    fun `a seeded game with a rollover, trades and tier-2 units is played over HTTP to 3 VP`(playerCount: Int) =
         apiTest { api ->
             val players = NAMES.take(playerCount)
 
@@ -39,7 +39,7 @@ class EndToEndMultiplayerTest {
 
             assertEquals("GAME_OVER", final["phase"].asText())
             assertEquals("anna", final["winner"].asText())
-            assertTrue(final["me"]["vp"].asInt() >= 5)
+            assertTrue(final["me"]["vp"].asInt() >= 3)
             assertTrue(final["availableActions"].isEmpty)
             assertTrue(trades > 0, "the others should have traded")
             val log = final["battleLog"].toList()

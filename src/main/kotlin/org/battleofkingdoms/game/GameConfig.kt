@@ -12,7 +12,7 @@ data class GameConfig(
     val tier2VsHorde: Int = 5,
     val sameTierCounter: Int = 1,
     val higherTierCounter: Int = 3,
-    val victoryPointsToWin: Int = 5,
+    val victoryPointsToWin: Int = 3,
 ) {
     val bonuses: Bonuses get() = Bonuses(tier1VsHorde, tier2VsHorde, sameTierCounter, higherTierCounter)
 }

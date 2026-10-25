@@ -23,12 +23,12 @@ private const val MAX_TURNS = 30
 class FullGameTests {
 
     @Test
-    fun `a seeded 3-player game with a rollover, trades and tier-2 units plays to 5 VP`() {
+    fun `a seeded 3-player game with a rollover, trades and tier-2 units plays to 3 VP`() {
         val (game, trades) = play()
 
         assertEquals(GAME_OVER, game.phase)
         assertEquals("anna", game.winner)
-        assertTrue(game.player("anna").vp >= 5)
+        assertTrue(game.player("anna").vp >= 3)
         assertTrue(trades > 0, "ben and cleo should have traded")
 
         val first = game.battleLog.first()

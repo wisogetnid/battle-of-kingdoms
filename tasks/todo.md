@@ -8,10 +8,10 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; `git diff --stat` shows `GameConfig.kt` as the only production file
   - Files: `game/GameConfig.kt`, `battle/ArmyTests.kt`, `battle/BattleTests.kt`, `game/GameConfigTests.kt` (new, config defaults), plus any seeded test whose outcome changes
 
-- [ ] **T2. Race to 3 VP**
+- [x] **T2. Race to 3 VP**
   - Acceptance: `GameConfig` defaults to `victoryPointsToWin = 3`; the player view shows 3; `FullGameTests` and both end-to-end games (3 and 5 players) end in `GAME_OVER` with anna on at least 3 VP, a turn-1 rollover, at least one trade and a tier-2 unit in a committed army; same-seed replays give identical logs; test names say 3 VP
   - Verify: `mise run build`
-  - Files: `game/GameConfig.kt`, `server/ApplicationKtTests.kt`, `game/FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`
+  - Files: `game/GameConfig.kt`, `game/GameConfigTests.kt`, `server/ApplicationKtTests.kt`, `game/FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`
 
 ### Checkpoint A — build green; no production change outside `GameConfig.kt`
 
