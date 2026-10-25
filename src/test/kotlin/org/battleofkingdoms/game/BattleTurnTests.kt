@@ -121,8 +121,8 @@ class BattleTurnTests {
     }
 
     @Test
-    fun `reaching artifactsToWin ends the game with a winner`() {
-        val game = battle(anna = Hand.of(HORDE to 1), config = GameConfig(artifactsToWin = 1))
+    fun `reaching victoryPointsToWin ends the game with a winner`() {
+        val game = battle(anna = Hand.of(HORDE to 1), config = GameConfig(victoryPointsToWin = 1))
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army())
             .commitArmy("cleo", Army())

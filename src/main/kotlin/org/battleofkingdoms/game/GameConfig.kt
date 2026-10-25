@@ -7,5 +7,5 @@ data class GameConfig(
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
     val renownPerBattle: Int = 1,
-    val artifactsToWin: Int = 3,
+    val victoryPointsToWin: Int = 3,
 )

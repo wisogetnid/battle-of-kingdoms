@@ -5,7 +5,7 @@ battle for artifacts and hope that one day become the overlords of all other tri
 This is a try on a deck building/strategy card game, built digitally first to allow for easier testing and playing.
 
 The current version (Stage 1) is the **core loop** for 3–5 players, played over a JSON HTTP
-API: build up your army, then bid it blindly for the artifact. The full rules and API contract
+API: build up your army, then bid it blindly for the victory point. The full rules and API contract
 live in [SPEC.md](SPEC.md).
 
 # How to play (Stage 1)
@@ -16,9 +16,9 @@ Every turn has two phases:
    mark yourself ready:
    - Horde + Wood → **Shield**
    - Horde + Iron → **Bow**
-2. **Battle.** One artifact is added to the pot. Everyone secretly commits any part of their
+2. **Battle.** One victory point (VP) is added to the pot. Everyone secretly commits any part of their
    creatures (or nothing). Once all have committed, the armies are revealed:
-   - The single strongest army wins the whole pot as victory points (VP).
+   - The single strongest army wins the whole pot.
    - A tie at the top, or nobody committing, means no winner: the pot rolls over.
    - Everyone loses half of what they committed, picked at random. The winner rounds down,
      everyone else rounds up. Survivors go back to your hand.

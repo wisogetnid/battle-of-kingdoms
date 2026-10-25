@@ -104,7 +104,7 @@ class ApplicationKtTests {
         assertEquals(gameId, view["gameId"].asText())
         assertEquals("WAITING_FOR_PLAYERS", view["phase"].asText())
         assertEquals(0, view["turn"].asInt())
-        assertEquals(3, view["artifactsToWin"].asInt())
+        assertEquals(3, view["victoryPointsToWin"].asInt())
         assertTrue(view["availableActions"].isEmpty)
     }
 

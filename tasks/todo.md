@@ -3,7 +3,7 @@
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 1 — Engine
-- [ ] **T1. Rename artifact → victory point**
+- [x] **T1. Rename artifact → victory point**
   - Acceptance: `GameConfig.victoryPointsToWin` replaces `artifactsToWin`; the player view field is `victoryPointsToWin`; no `artifact` naming remains in code, tests, or README; no behavior change
   - Verify: `mise run build`; `grep -rni artifactsToWin src README.md` finds nothing
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `server/Dtos.kt`, `BattleTurnTests.kt`, `ApplicationKtTests.kt`, `README.md`

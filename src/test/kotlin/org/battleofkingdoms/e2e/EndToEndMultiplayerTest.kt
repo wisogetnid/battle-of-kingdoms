@@ -34,7 +34,7 @@ class EndToEndMultiplayerTest {
         assertEquals(3, final["me"]["vp"].asInt())
         val log = final["battleLog"]
         assertTrue(log[0]["winner"].isNull, "turn 1 should be a tie")
-        assertEquals(2, log[1]["pot"].asInt(), "the tied artifact should roll over")
+        assertEquals(2, log[1]["pot"].asInt(), "the tied victory point should roll over")
         assertEquals(players.toSet(), log[0]["armies"].fieldNames().asSequence().toSet())
         assertTrue(final["availableActions"].isEmpty)
     }

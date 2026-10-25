@@ -110,7 +110,7 @@ data class Game(
             commits = emptyMap(),
             battleLog = battleLog + result,
         )
-        return when (val champion = resolved.players.values.find { it.vp >= config.artifactsToWin }) {
+        return when (val champion = resolved.players.values.find { it.vp >= config.victoryPointsToWin }) {
             null -> resolved.startTurn()
             else -> resolved.copy(phase = GAME_OVER, winner = champion.name)
         }
