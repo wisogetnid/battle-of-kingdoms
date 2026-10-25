@@ -99,6 +99,14 @@ class ClaimRoutesTests {
         assertEquals("VICTORY_POINT", view["battleLog"].single()["prize"].asText())
     }
 
+    @Test
+    fun `a game created without artifacts has an empty stack`() = apiTest(ALL_THREE) { api ->
+        val created = api.post("/games", mapOf("players" to 3, "host" to "anna", "artifacts" to false))
+        assertEquals(HttpStatusCode.Created, created.status)
+
+        assertEquals(0, api.view(TestApi.json(created)["gameId"].asText(), "anna")["artifactsInStack"].asInt())
+    }
+
     /** Starts a game; everyone readies, anna commits 1 Horde and the others nothing, so she wins uncontested. */
     private suspend fun annaWins(api: TestApi): String {
         val gameId = api.startGame(*PLAYERS)

@@ -17,7 +17,7 @@ import org.battleofkingdoms.game.Take
 import org.battleofkingdoms.player.Player
 import java.util.UUID
 
-data class CreateGameRequest(val players: Int, val host: String, val seed: Long? = null)
+data class CreateGameRequest(val players: Int, val host: String, val seed: Long? = null, val artifacts: Boolean = true)
 
 data class CreateGameResponse(val gameId: UUID)
 

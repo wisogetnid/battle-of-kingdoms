@@ -7,6 +7,7 @@ import kotlinx.html.FormMethod
 import kotlinx.html.HTML
 import kotlinx.html.a
 import kotlinx.html.body
+import kotlinx.html.checkBoxInput
 import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
@@ -21,9 +22,14 @@ import kotlinx.html.submitInput
 import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
+import org.battleofkingdoms.cards.Artifact
+import org.battleofkingdoms.cards.Artifact.AMULET_OF_LUCK
+import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.ResourceType
+import org.battleofkingdoms.game.Action.CLAIM as CLAIM_PRIZE
 import org.battleofkingdoms.game.Action.COMMIT_ARMY
 import org.battleofkingdoms.game.Action.READY
 import org.battleofkingdoms.game.Action.TRADE
@@ -34,6 +40,7 @@ import org.battleofkingdoms.game.Phase.BUILD_UP
 import org.battleofkingdoms.game.Phase.CLAIM
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
+import org.battleofkingdoms.game.Take
 import org.battleofkingdoms.server.PlayerView
 
 /** `HIGH_MAGE` → "High Mage", `WOOD` → "Wood". */
@@ -101,6 +108,7 @@ private fun FlowContent.status(view: PlayerView) {
         li { +"Turn: ${view.turn}" }
         li { +"Pot: ${view.pot} VP" }
         li { +"VP to win: ${view.victoryPointsToWin}" }
+        if (playsWithArtifacts(view)) li { +"Artifacts left in the stack: ${view.artifactsInStack}" }
         if (view.winner != null) li { +"Winner: ${view.winner}" }
     }
 }
@@ -125,6 +133,7 @@ private fun FlowContent.me(view: PlayerView) {
             li { +"Upgraded this turn: ${counts(view.me.upgradedThisTurn.mapKeys { it.key.name })}" }
         }
         li { +"VP: ${view.me.vp}" }
+        if (playsWithArtifacts(view)) li { +"Artifacts: ${artifacts(view.me.artifacts)}" }
         actedLabel(view.phase, view.me.acted)?.let { li { +"You are $it" } }
     }
 }
@@ -162,7 +171,28 @@ private fun FlowContent.actions(view: PlayerView) {
     }
     if (READY in view.availableActions) actionButton("$path/ready", "Ready")
     if (COMMIT_ARMY in view.availableActions) armyForm(view, "$path/army")
+    if (CLAIM_PRIZE in view.availableActions) claimForm(view, "$path/claim")
 }
+
+/** Only the winner sees the drawn artifact; turning it down shuffles it back, unseen by the others. */
+private fun FlowContent.claimForm(view: PlayerView, action: String) {
+    val drawn = view.me.drawnArtifact ?: return
+    p { +"You won the battle and drew the ${drawn.displayName}: ${effect(drawn)}. Take it, or take ${view.pot} VP and shuffle it back." }
+    actionButton(action, "Take the ${drawn.displayName}", "take" to Take.ARTIFACT.name)
+    actionButton(action, "Take ${view.pot} VP", "take" to Take.VICTORY_POINT.name)
+}
+
+private fun effect(artifact: Artifact): String = when (artifact) {
+    RESILIENT_BANNER -> "your casualties always round down"
+    AMULET_OF_LUCK -> "your first casualty in every battle survives"
+    CROWN -> "extra Horde every turn"
+}
+
+/** A game without artifacts never mentions them. */
+private fun playsWithArtifacts(view: PlayerView): Boolean =
+    view.artifactsInStack > 0 || view.me.artifacts.isNotEmpty() || view.others.any { it.artifacts.isNotEmpty() }
+
+private fun artifacts(owned: List<Artifact>): String = owned.joinToString(", ") { it.displayName }.ifEmpty { "none" }
 
 /** A count per creature I hold; all zero commits nothing. */
 private fun FlowContent.armyForm(view: PlayerView, action: String) {
@@ -201,7 +231,8 @@ private fun FlowContent.others(view: PlayerView) {
     ul {
         view.others.forEach {
             val acted = actedLabel(view.phase, it.acted)?.let { label -> ", $label" }.orEmpty()
-            li { +"${it.name}: ${it.vp} VP, ${it.handSize} cards$acted" }
+            val owned = if (it.artifacts.isEmpty()) "" else ", ${artifacts(it.artifacts)}"
+            li { +"${it.name}: ${it.vp} VP, ${it.handSize} cards$owned$acted" }
         }
     }
 }
@@ -268,6 +299,7 @@ private fun FlowContent.createGameForm() {
         p { label { +"Players (3–5): "; numberInput(name = "players") { min = "3"; max = "5"; value = "3" } } }
         p { label { +"Your name: "; textInput(name = "name") } }
         p { label { +"Seed (optional): "; numberInput(name = "seed") } }
+        p { label { checkBoxInput(name = "artifacts") { checked = true }; +" Play with artifacts" } }
         submitInput { value = "Create game" }
     }
 }

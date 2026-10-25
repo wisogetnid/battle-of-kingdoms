@@ -18,9 +18,9 @@ class GameServer(private val config: GameConfig = GameConfig()) {
     fun getGame(gameId: UUID): Game = games[gameId] ?: throw UnknownGame(gameId.toString())
 
     @Synchronized
-    fun createGame(playerCount: Int, host: String, seed: Long = Random.nextLong()): UUID {
+    fun createGame(playerCount: Int, host: String, seed: Long = Random.nextLong(), artifacts: Boolean = true): UUID {
         val gameId = UUID.randomUUID()
-        games[gameId] = Game.create(config, seed, playerCount, host)
+        games[gameId] = Game.create(if (artifacts) config else config.copy(artifacts = emptyList()), seed, playerCount, host)
         return gameId
     }
 

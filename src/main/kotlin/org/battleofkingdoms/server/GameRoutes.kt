@@ -28,7 +28,7 @@ fun Route.gameRoutes(server: GameServer) {
         post {
             respondOrError {
                 val request = call.receive<CreateGameRequest>()
-                val gameId = server.createGame(request.players, request.host, request.seed ?: Random.nextLong())
+                val gameId = server.createGame(request.players, request.host, request.seed ?: Random.nextLong(), request.artifacts)
                 call.respond(HttpStatusCode.Created, CreateGameResponse(gameId))
             }
         }

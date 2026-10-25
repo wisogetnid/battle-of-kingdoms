@@ -15,9 +15,8 @@ import kotlinx.html.HTML
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.GameException
-import org.battleofkingdoms.game.Phase.CLAIM
 import org.battleofkingdoms.game.RuleViolation
-import org.battleofkingdoms.game.Take.VICTORY_POINT
+import org.battleofkingdoms.game.Take
 import org.battleofkingdoms.game.UnknownGame
 import org.battleofkingdoms.game.UnknownPlayer
 import org.battleofkingdoms.server.GameServer
@@ -38,7 +37,7 @@ fun Route.webRoutes(server: GameServer) {
             val form = call.receiveParameters()
             orErrorPage({ homePage(error = it) }) {
                 val name = form["name"].orEmpty()
-                val gameId = server.createGame(form.int("players"), name, form.seed())
+                val gameId = server.createGame(form.int("players"), name, form.seed(), artifacts = form["artifacts"] != null)
                 seeOther(playerPath(gameId.toString(), name))
             }
         }
@@ -74,11 +73,11 @@ fun Route.webRoutes(server: GameServer) {
                 }
 
                 post("/army") {
-                    playerAction(server) {
-                        val game = server.commitArmy(gameId(), playerName(), it.army())
-                        // No claim form yet: the winner always takes the VP, so the web UI plays as if there were no artifacts.
-                        if (game.phase == CLAIM) server.claim(gameId(), checkNotNull(game.battleLog.last().winner), VICTORY_POINT)
-                    }
+                    playerAction(server) { server.commitArmy(gameId(), playerName(), it.army()) }
+                }
+
+                post("/claim") {
+                    playerAction(server) { server.claim(gameId(), playerName(), it.enum<Take>("take")) }
                 }
             }
         }

@@ -3,15 +3,10 @@ package org.battleofkingdoms.web
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
-import io.ktor.client.request.request
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.http.parameters
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.server.testing.testApplication
@@ -60,13 +55,15 @@ suspend fun HttpClient.post(path: String, vararg fields: Pair<String, String>): 
     submitForm(path, parameters { fields.forEach { (name, value) -> append(name, value) } })
 
 /** Creates a game through the home page form and returns its id. */
-suspend fun HttpClient.createGame(players: Int, host: String, seed: Long = 42): String {
-    val location = seeOther(post("/ui/games", "players" to "$players", "name" to host, "seed" to "$seed"))
+suspend fun HttpClient.createGame(players: Int, host: String, seed: Long = 42, artifacts: Boolean = false): String {
+    val fields = listOf("players" to "$players", "name" to host, "seed" to "$seed") + listOfNotNull(("artifacts" to "on").takeIf { artifacts })
+    val location = seeOther(post("/ui/games", *fields.toTypedArray()))
     return location.removePrefix("/ui/games/").substringBefore("/")
 }
 
-suspend fun HttpClient.startGame(vararg names: String): String =
-    createGame(names.size, names.first()).also { id -> names.drop(1).forEach { seeOther(post("/ui/games/$id/players", "name" to it)) } }
+/** Without [artifacts] unless asked, like an unticked box. */
+suspend fun HttpClient.startGame(vararg names: String, artifacts: Boolean = false): String =
+    createGame(names.size, names.first(), artifacts = artifacts).also { id -> names.drop(1).forEach { seeOther(post("/ui/games/$id/players", "name" to it)) } }
 
 suspend fun HttpClient.gamePage(gameId: String, name: String): String = page(get("/ui/games/$gameId/players/$name"))
 
@@ -95,6 +92,7 @@ class WebRoutesTests {
 
         assertTrue(html.contains("""action="/ui/games" method="post""""), html)
         assertTrue(html.contains("""name="players""""), html)
+        assertTrue(html.contains("""<input type="checkbox" name="artifacts" checked="checked">"""), html)
         assertTrue(html.contains("""action="/" method="get""""), html)
         assertTrue(html.contains("""name="game""""), html)
     }
@@ -449,21 +447,80 @@ class WebRoutesTests {
     }
 
     @Test
-    fun `the log names the prize, here an artifact taken over the JSON API`() = webTest { client ->
-        val gameId = client.startGame("anna", "ben", "cleo")
+    fun `without artifacts a win is 1 VP and artifacts are never mentioned`() = webTest { client ->
+        val gameId = annaWins(client, artifacts = false)
+
+        listOf("anna", "ben", "cleo").forEach { name ->
+            val html = client.gamePage(gameId, name)
+            assertTrue(html.contains("anna won 1 VP."), html)
+            assertFalse(html.contains("rtifact"), html)
+        }
+    }
+
+    @Test
+    fun `with artifacts only the winner sees the drawn artifact and may claim`() = webTest { client ->
+        val gameId = annaWins(client, artifacts = true)
+        val drawn = displayName(client.view(gameId, "anna")["drawnArtifact"].asText())
+
+        val mine = client.gamePage(gameId, "anna")
+        assertTrue(mine.contains("You won the battle and drew the $drawn"), mine)
+        assertTrue(mine.contains("Take the $drawn"), mine)
+        assertTrue(mine.contains("Take 1 VP"), mine)
+        listOf("ben", "cleo").forEach { name ->
+            val html = client.gamePage(gameId, name)
+            assertTrue(html.contains("anna won and is choosing a prize."), html)
+            assertTrue(html.contains("Waiting for the battle's winner to take a prize."), html)
+            assertTrue(html.contains("Artifacts left in the stack: 3"), html)
+            assertFalse(html.contains(drawn), "$name must not see the drawn $drawn:\n$html")
+        }
+    }
+
+    @Test
+    fun `a taken artifact shows for everyone`() = webTest { client ->
+        val gameId = annaWins(client, artifacts = true)
+        val drawn = displayName(client.view(gameId, "anna")["drawnArtifact"].asText())
+
+        seeOther(client.post("/ui/games/$gameId/players/anna/claim", "take" to "ARTIFACT"))
+
+        assertTrue(client.gamePage(gameId, "anna").contains("Artifacts: $drawn"))
+        val html = client.gamePage(gameId, "ben")
+        assertTrue(html.contains("anna won the $drawn."), html)
+        assertTrue(html.contains("anna: 0 VP"), html)
+        assertTrue(html.contains(", $drawn"), html)
+        assertTrue(html.contains("Artifacts left in the stack: 2"), html)
+    }
+
+    @Test
+    fun `taking the VP keeps the declined artifact hidden`() = webTest { client ->
+        val gameId = annaWins(client, artifacts = true)
+        val drawn = displayName(client.view(gameId, "anna")["drawnArtifact"].asText())
+
+        seeOther(client.post("/ui/games/$gameId/players/anna/claim", "take" to "VICTORY_POINT"))
+
+        assertEquals(1, client.view(gameId, "anna")["vp"].asInt())
+        listOf("anna", "ben", "cleo").forEach { name ->
+            val html = client.gamePage(gameId, name)
+            assertTrue(html.contains("anna won 1 VP."), html)
+            assertTrue(html.contains("Artifacts left in the stack: 3"), html)
+            assertFalse(html.contains(drawn), "$name's page names the declined $drawn:\n$html")
+        }
+    }
+
+    @Test
+    fun `only the winner can claim`() = webTest { client ->
+        val gameId = annaWins(client, artifacts = true)
+
+        page(client.post("/ui/games/$gameId/players/ben/claim", "take" to "VICTORY_POINT"), HttpStatusCode.Conflict)
+        page(client.post("/ui/games/$gameId/players/anna/claim", "take" to "CROWN"), HttpStatusCode.BadRequest)
+    }
+
+    /** Everyone readies; anna commits 1 Horde and the others nothing, so she wins uncontested. */
+    private suspend fun annaWins(client: HttpClient, artifacts: Boolean): String {
+        val gameId = client.startGame("anna", "ben", "cleo", artifacts = artifacts)
         client.allReady(gameId, "anna", "ben", "cleo")
         seeOther(client.post("/ui/games/$gameId/players/ben/army"))
         seeOther(client.post("/ui/games/$gameId/players/cleo/army"))
-        // the last army over the JSON API, so the web UI doesn't take the VP for anna
-        assertEquals(HttpStatusCode.OK, client.postJson("/games/$gameId/players/anna/army", """{"HORDE": 1}""").status)
-        assertTrue(client.gamePage(gameId, "ben").contains("anna won and is choosing a prize."))
-
-        assertEquals(HttpStatusCode.OK, client.postJson("/games/$gameId/players/anna/claim", """{"take": "ARTIFACT"}""").status)
-        val artifact = displayName(client.view(gameId, "anna")["artifacts"].single().asText())
-        val html = client.gamePage(gameId, "ben")
-        assertTrue(html.contains("anna won the $artifact."), html)
+        seeOther(client.post("/ui/games/$gameId/players/anna/army", "HORDE" to "1"))
+        return gameId
     }
-
-    private suspend fun HttpClient.postJson(path: String, json: String): HttpResponse =
-        request(path) { method = HttpMethod.Post; contentType(ContentType.Application.Json); setBody(json) }
 }
