@@ -12,6 +12,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.html.HTML
+import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.GameException
 import org.battleofkingdoms.game.RuleViolation
 import org.battleofkingdoms.game.UnknownGame
@@ -48,10 +50,24 @@ fun Route.webRoutes(server: GameServer) {
                 }
             }
 
-            get("/players/{name}") {
-                orErrorPage({ notFoundPage(it) }) {
-                    val view = PlayerView.of(gameId(), server.getGame(gameId()), playerName())
-                    call.respondHtml { gamePage(view) }
+            route("/players/{name}") {
+                get {
+                    orErrorPage({ notFoundPage(it) }) {
+                        val view = PlayerView.of(gameId(), server.getGame(gameId()), playerName())
+                        call.respondHtml { gamePage(view) }
+                    }
+                }
+
+                post("/upgrades") {
+                    playerAction(server) { server.upgrade(gameId(), playerName(), it.enum<CreatureType>("into")) }
+                }
+
+                post("/trades") {
+                    playerAction(server) { server.trade(gameId(), playerName(), it.enum<ResourceType>("resource")) }
+                }
+
+                post("/ready") {
+                    playerAction(server) { server.ready(gameId(), playerName()) }
                 }
             }
         }
@@ -77,6 +93,19 @@ private suspend fun RoutingContext.orErrorPage(
     }
 }
 
+/**
+ * One game action from my game page: on success back to the page with `303`; a rejected action
+ * shows the page again with the engine's message.
+ */
+private suspend fun RoutingContext.playerAction(server: GameServer, action: RoutingContext.(Parameters) -> Unit) {
+    val form = call.receiveParameters()
+    orErrorPage({ gamePage(PlayerView.of(gameId(), server.getGame(gameId()), playerName()), error = it) }) {
+        server.getGame(gameId()).player(playerName()) // unknown game or player → not found, before parsing the form
+        action(form)
+        seeOther(playerPath(rawGameId(), playerName()))
+    }
+}
+
 /** Post/Redirect/Get: answer a successful POST with `303`, so reloading never repeats it. */
 private suspend fun RoutingContext.seeOther(path: String) {
     call.response.headers.append(HttpHeaders.Location, path)
@@ -92,6 +121,9 @@ private fun RoutingContext.playerName(): String = call.parameters["name"].orEmpt
 
 private fun Parameters.int(field: String): Int =
     this[field]?.trim()?.toIntOrNull() ?: throw RuleViolation("'$field' must be a whole number")
+
+private inline fun <reified T : Enum<T>> Parameters.enum(field: String): T =
+    enumValues<T>().find { it.name == this[field] } ?: throw RuleViolation("Unknown $field '${this[field].orEmpty()}'")
 
 private fun Parameters.seed(): Long = when {
     this["seed"].isNullOrBlank() -> Random.nextLong()

@@ -21,7 +21,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
 **Checkpoint A (passed):** build green; a 3-player game created and joined in three browser tabs. Review follow-up done: the hand lists Horde first, then the other creatures, then resources alphabetically.
 
 ## Phase 2 — Playing
-- [ ] **W4. Build-up actions**
+- [x] **W4. Build-up actions**
   - Acceptance: `POST …/upgrades` (`into`), `POST …/trades` (`resource`) and `POST …/ready` call `GameServer` and answer `303` to the game page; the page shows, per `availableActions`: one "Upgrade X into Y (1 Z)" button per non-Horde creature type, one "Trade 1 Z for 1 Horde" button per resource in hand, one "Ready" button; units upgraded this turn are listed under my hand; a rejected action (wrong phase, already ready, can't afford) re-renders the game page with the engine's message and 400/409; an unknown `into` or `resource` is a 400, not a 500; with no available actions the page says what I'm waiting for
   - Verify: `mise run test`; tests for each route's success and error statuses, forms present exactly when their action is available, reloading the game page after a POST changes nothing
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`

@@ -11,6 +11,7 @@ import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.head
+import kotlinx.html.hiddenInput
 import kotlinx.html.label
 import kotlinx.html.li
 import kotlinx.html.numberInput
@@ -20,6 +21,11 @@ import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
 import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.cards.CreatureType.HORDE
+import org.battleofkingdoms.cards.ResourceType
+import org.battleofkingdoms.game.Action.READY
+import org.battleofkingdoms.game.Action.TRADE
+import org.battleofkingdoms.game.Action.UPGRADE
 import org.battleofkingdoms.game.Phase
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
@@ -75,6 +81,7 @@ fun HTML.gamePage(view: PlayerView, error: String? = null) {
         status(view)
         if (view.phase == WAITING_FOR_PLAYERS) invite(view)
         me(view)
+        actions(view)
         others(view)
     }
 }
@@ -107,9 +114,47 @@ private fun FlowContent.me(view: PlayerView) {
     h2 { +"You" }
     ul {
         li { +"Hand: ${counts(view.me.hand)}" }
+        if (view.me.upgradedThisTurn.isNotEmpty()) {
+            li { +"Upgraded this turn: ${counts(view.me.upgradedThisTurn.mapKeys { it.key.name })}" }
+        }
         li { +"VP: ${view.me.vp}" }
         actedLabel(view.phase, view.me.acted)?.let { li { +"You are $it" } }
     }
+}
+
+/** One form per action I can take right now, as listed in [PlayerView.availableActions]. */
+private fun FlowContent.actions(view: PlayerView) {
+    val path = playerPath(view.gameId.toString(), view.me.name)
+    h2 { +"Actions" }
+    if (view.availableActions.isEmpty()) {
+        p { +waitingFor(view) }
+        return
+    }
+    if (UPGRADE in view.availableActions) {
+        CreatureType.entries.filter { it != HORDE }.forEach { into ->
+            val label = "Upgrade ${into.upgradesFrom!!.displayName} into ${into.displayName} (1 ${into.upgradeResource!!.displayName})"
+            actionButton("$path/upgrades", label, "into" to into.name)
+        }
+    }
+    if (TRADE in view.availableActions) {
+        ResourceType.entries.filter { (view.me.hand[it.name] ?: 0) > 0 }.forEach { resource ->
+            actionButton("$path/trades", "Trade 1 ${resource.displayName} for 1 Horde", "resource" to resource.name)
+        }
+    }
+    if (READY in view.availableActions) actionButton("$path/ready", "Ready")
+}
+
+private fun FlowContent.actionButton(action: String, label: String, field: Pair<String, String>? = null) =
+    form(action = action, method = FormMethod.post) {
+        field?.let { (name, value) -> hiddenInput(name = name) { this.value = value } }
+        submitInput { value = label }
+    }
+
+private fun waitingFor(view: PlayerView): String = when (view.phase) {
+    WAITING_FOR_PLAYERS -> "Waiting for more players to join. Refresh to check."
+    BUILD_UP -> "You are ready. Waiting for the others to finish building up. Refresh to check."
+    BATTLE -> "Army committed. Waiting for the others to commit. Refresh to check."
+    GAME_OVER -> "The game is over. ${view.winner} won."
 }
 
 private fun FlowContent.others(view: PlayerView) {
