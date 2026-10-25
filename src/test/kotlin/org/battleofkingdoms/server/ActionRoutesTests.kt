@@ -3,6 +3,7 @@ package org.battleofkingdoms.server
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
+import org.battleofkingdoms.game.GameConfig
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -175,7 +176,7 @@ class ActionRoutesTests {
     }
 
     @Test
-    fun `after the battle everyone sees all armies in the battle log`() = apiTest { api ->
+    fun `after the battle everyone sees all armies in the battle log`() = apiTest(GameConfig(artifacts = emptyList())) { api ->
         val gameId = api.startGame(*PLAYERS)
         tradeAllResources(api, gameId, "anna") // 1 Horde + 2 traded
         allReady(api, gameId)

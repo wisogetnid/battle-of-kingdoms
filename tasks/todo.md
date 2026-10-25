@@ -50,10 +50,11 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`
   - Files: `server/GameRoutes.kt`, `server/GameServer.kt`, `server/Dtos.kt`, `server/Application.kt` (optional `GameServer`), `TestApi.kt` (optional config), `server/ClaimRoutesTests.kt` (new), `ApplicationKtTests.kt`
 
-- [ ] **T6. Three artifacts by default; full games claim**
+- [x] **T6. Three artifacts by default; full games claim**
   - Acceptance: `GameConfig.artifacts` defaults to all three; `FullGameTests` and both end-to-end games (3 and 5 players) include a tie, a trade, a tier-2 unit in a committed army, one artifact taken and at least one declined, and end in `GAME_OVER` at 3 VP; same-seed replays are identical
   - Verify: `mise run build`
   - Files: `game/GameConfig.kt`, `game/GameConfigTests.kt`, `game/FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`
+  - Status: until the web UI has a claim form, its army handler takes the VP for the winner, so the web UI plays as if there were no artifacts
 
 ### Checkpoint B — build green; SPEC.md criteria 1–6, 8 and 9 met
 

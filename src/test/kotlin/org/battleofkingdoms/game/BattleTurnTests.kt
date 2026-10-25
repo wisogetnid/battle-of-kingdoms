@@ -17,6 +17,9 @@ import kotlin.test.assertTrue
 
 private const val SEED = 42L
 
+/** No artifacts, so every win pays its VP straight away; the claim is covered in [ClaimTests]. */
+private val NO_ARTIFACTS = GameConfig(artifacts = emptyList())
+
 class BattleTurnTests {
 
     @Test
@@ -119,7 +122,7 @@ class BattleTurnTests {
 
     @Test
     fun `the VP per battle comes from the config`() {
-        val game = battle(anna = Hand.of(HORDE to 1), config = GameConfig(victoryPointsPerBattle = 2))
+        val game = battle(anna = Hand.of(HORDE to 1), config = NO_ARTIFACTS.copy(victoryPointsPerBattle = 2))
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army())
             .commitArmy("cleo", Army())
@@ -145,7 +148,7 @@ class BattleTurnTests {
 
     @Test
     fun `reaching victoryPointsToWin ends the game with a winner`() {
-        val game = battle(anna = Hand.of(HORDE to 1), config = GameConfig(victoryPointsToWin = 1))
+        val game = battle(anna = Hand.of(HORDE to 1), config = NO_ARTIFACTS.copy(victoryPointsToWin = 1))
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army())
             .commitArmy("cleo", Army())
@@ -155,7 +158,7 @@ class BattleTurnTests {
         assertFailsWith<WrongPhase> { game.ready("anna") }
     }
 
-    private fun started(config: GameConfig = GameConfig()) =
+    private fun started(config: GameConfig = NO_ARTIFACTS) =
         Game.create(config, SEED, 3, "anna").join("ben").join("cleo")
 
     /** A game in the battle of turn 1 with the given hands (others keep their income). */
@@ -163,7 +166,7 @@ class BattleTurnTests {
         anna: Hand? = null,
         ben: Hand? = null,
         cleo: Hand? = null,
-        config: GameConfig = GameConfig(),
+        config: GameConfig = NO_ARTIFACTS,
     ): Game {
         val game = started(config).let { g -> g.players.keys.fold(g) { acc, name -> acc.ready(name) } }
         val hands = mapOf("anna" to anna, "ben" to ben, "cleo" to cleo)

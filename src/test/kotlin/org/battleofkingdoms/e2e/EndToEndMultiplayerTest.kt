@@ -25,13 +25,15 @@ private val TIER_2 = mapOf("BOW" to ("WARBOW" to "WOOD"), "SWORD" to ("KNIGHT" t
  * - anna upgrades every Horde she can into tier-1 units and keeps those at home, then upgrades
  *   settled tier-1 units into tier 2 when she draws the resource. She commits only her tier-2
  *   units, which get the tier-2 bonus against the others' Horde; without any yet (always on
- *   turn 1) she commits nothing, the others tie and nobody scores.
+ *   turn 1) she commits nothing, the others tie and nobody scores;
+ * - the winner of a battle takes the drawn artifact if it's anna's first, otherwise the VP,
+ *   declining the artifact they saw.
  */
 class EndToEndMultiplayerTest {
 
     @ParameterizedTest(name = "{0} players")
     @ValueSource(ints = [3, 5])
-    fun `a seeded game with a tie, trades and tier-2 units is played over HTTP to 3 VP`(playerCount: Int) =
+    fun `a seeded game with a tie, trades, tier-2 units and artifacts is played over HTTP to 3 VP`(playerCount: Int) =
         apiTest { api ->
             val players = NAMES.take(playerCount)
 
@@ -50,6 +52,13 @@ class EndToEndMultiplayerTest {
             assertEquals(committed * (committed - 1) / 2, log.first()["duels"].size(), "only committed armies duel")
             val annasArmies = log.map { it["armies"]["anna"]["army"] }
             assertTrue(annasArmies.any { army -> TIER_2.values.any { (tier2, _) -> army.has(tier2) } }, "anna should field a tier-2 unit")
+
+            val prizes = log.mapNotNull { it["prize"].takeUnless(JsonNode::isNull)?.asText() }
+            val taken = prizes.filter { it != "VICTORY_POINT" }
+            assertEquals(1, taken.size, "anna takes exactly one artifact: $prizes")
+            assertEquals(taken, final["me"]["artifacts"].map { it.asText() })
+            assertEquals(2, final["artifactsInStack"].asInt())
+            assertTrue(prizes.count { it == "VICTORY_POINT" } >= 3, "taking the VP with artifacts left declines one: $prizes")
         }
 
     @ParameterizedTest(name = "{0} players")
@@ -81,9 +90,19 @@ class EndToEndMultiplayerTest {
             players.forEach { expectOk(api.post("/games/$gameId/players/$it/ready")) }
             val armies = others.associateWith { mapOf("HORDE" to 1) } + (anna to annasArmy(api, gameId, anna))
             players.forEach { expectOk(api.post("/games/$gameId/players/$it/army", armies.getValue(it))) }
+            claim(api, gameId, anna)
             turn++
         }
         return api.view(gameId, anna) to trades
+    }
+
+    /** During CLAIM the winner takes the artifact if it's anna's first one, otherwise the VP. */
+    private suspend fun claim(api: TestApi, gameId: String, anna: String) {
+        val view = api.view(gameId, anna)
+        if (view["phase"].asText() != "CLAIM") return
+        val winner = view["battleLog"].last()["winner"].asText()
+        val take = if (winner == anna && view["me"]["artifacts"].isEmpty) "ARTIFACT" else "VICTORY_POINT"
+        expectOk(api.post("/games/$gameId/players/$winner/claim", mapOf("take" to take)))
     }
 
     /** Tier 2 first for every settled tier-1 unit with its resource, then every Horde into tier 1. */

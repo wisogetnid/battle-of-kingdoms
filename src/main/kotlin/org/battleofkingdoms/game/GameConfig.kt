@@ -18,8 +18,8 @@ data class GameConfig(
     val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
     val crownHorde: Int = 1,
-    /** The starting artifact stack. Empty until the claim route exists, so every win is an immediate VP. */
-    val artifacts: List<Artifact> = emptyList(),
+    /** The starting artifact stack; empty means every win is an immediate VP. */
+    val artifacts: List<Artifact> = Artifact.entries,
 ) {
     val bonuses: Bonuses
         get() = Bonuses(

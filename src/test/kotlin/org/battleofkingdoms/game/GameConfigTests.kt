@@ -1,6 +1,7 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Bonuses
+import org.battleofkingdoms.cards.Artifact
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -21,6 +22,11 @@ class GameConfigTests {
     fun `a game runs to 3 VP, 1 per battle, by default`() {
         assertEquals(3, GameConfig().victoryPointsToWin)
         assertEquals(1, GameConfig().victoryPointsPerBattle)
+    }
+
+    @Test
+    fun `the stack starts with one of each artifact by default`() {
+        assertEquals(Artifact.entries, GameConfig().artifacts)
     }
 
     @Test

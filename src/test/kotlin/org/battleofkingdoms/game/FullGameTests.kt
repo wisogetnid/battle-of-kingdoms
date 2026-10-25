@@ -1,9 +1,12 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.battle.Prize
+import org.battleofkingdoms.cards.Artifact
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.ResourceType
+import org.battleofkingdoms.game.Phase.CLAIM
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -18,12 +21,13 @@ private const val MAX_TURNS = 30
  * every turn ben and cleo trade all their resources for Horde and commit 1 Horde. anna upgrades
  * every Horde she can into tier-1 units and keeps them home, upgrades settled tier-1 units into
  * tier 2 when she draws the resource, and commits only her tier-2 units. While she has none she
- * commits nothing, so ben and cleo tie and nobody scores (always on turn 1).
+ * commits nothing, so ben and cleo tie and nobody scores (always on turn 1). anna takes the first
+ * artifact she draws and the VP after that, declining the rest.
  */
 class FullGameTests {
 
     @Test
-    fun `a seeded 3-player game with a tie, trades and tier-2 units plays to 3 VP`() {
+    fun `a seeded 3-player game with a tie, trades, tier-2 units and artifacts plays to 3 VP`() {
         val (game, trades) = play()
 
         assertEquals(GAME_OVER, game.phase)
@@ -38,6 +42,13 @@ class FullGameTests {
         assertTrue(game.battleLog.filter { it.winner == null }.all { log -> log.armies.values.all { it.vpGained == 0 } })
         val annasArmies = game.battleLog.map { it.armies.getValue("anna").army }
         assertTrue(annasArmies.any { army -> army.creatures.keys.any { it.tier == 2 } }, "anna should field a tier-2 unit")
+
+        val prizes = game.battleLog.mapNotNull { it.prize }
+        val taken = prizes.filterIsInstance<Prize.Taken>().map { it.artifact }
+        assertEquals(1, taken.size, "anna takes exactly one artifact: $prizes")
+        assertEquals(game.player("anna").artifacts, taken.toSet())
+        assertEquals(Artifact.entries.toSet() - taken.toSet(), game.artifactStack)
+        assertTrue(prizes.count { it == Prize.VictoryPoint } >= 3, "taking the VP with artifacts left declines one: $prizes")
     }
 
     @Test
@@ -59,6 +70,7 @@ class FullGameTests {
             game = game.players.keys.fold(game) { g, name -> g.ready(name) }
             val armies = mapOf("anna" to annasArmy(game), "ben" to Army.of(HORDE to 1), "cleo" to Army.of(HORDE to 1))
             game = game.players.keys.fold(game) { g, name -> g.commitArmy(name, armies.getValue(name)) }
+            if (game.phase == CLAIM) game = claim(game)
         }
         return game to trades
     }
@@ -72,6 +84,13 @@ class FullGameTests {
             null -> game
             else -> upgradeAll(game.upgrade(name, into), name)
         }
+    }
+
+    /** anna takes her first artifact; every other prize is the VP, declining the drawn artifact. */
+    private fun claim(game: Game): Game {
+        val winner = game.battleLog.last().winner!!
+        val take = if (winner == "anna" && game.player("anna").artifacts.isEmpty()) Take.ARTIFACT else Take.VICTORY_POINT
+        return game.claim(winner, take)
     }
 
     /** anna's tier-2 units; nothing while she has none. */
