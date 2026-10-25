@@ -47,6 +47,7 @@ data class PlayerView(
     val availableActions: List<Action>,
     val battleLog: List<BattleLogEntryView>,
     val winner: String?,
+    val affordableUpgrades: List<CreatureType> = emptyList(),
 ) {
     companion object {
         fun of(gameId: UUID, game: Game, playerName: String): PlayerView = PlayerView(
@@ -60,6 +61,7 @@ data class PlayerView(
             availableActions = game.availableActions(playerName),
             battleLog = game.battleLog.map(BattleLogEntryView::of),
             winner = game.winner,
+            affordableUpgrades = game.affordableUpgrades(playerName),
         )
     }
 }

@@ -22,7 +22,6 @@ import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
 import org.battleofkingdoms.cards.CreatureType
-import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Action.COMMIT_ARMY
 import org.battleofkingdoms.game.Action.READY
@@ -134,7 +133,8 @@ private fun FlowContent.actions(view: PlayerView) {
         return
     }
     if (UPGRADE in view.availableActions) {
-        CreatureType.entries.filter { it != HORDE }.forEach { into ->
+        if (view.affordableUpgrades.isEmpty()) p { +"No upgrade is affordable right now." }
+        view.affordableUpgrades.forEach { into ->
             val label = "Upgrade ${into.upgradesFrom!!.displayName} into ${into.displayName} (1 ${into.upgradeResource!!.displayName})"
             actionButton("$path/upgrades", label, "into" to into.name)
         }

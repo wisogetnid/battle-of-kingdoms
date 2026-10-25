@@ -240,7 +240,10 @@ acted, and their `artifacts`; the battle log; the winner once the game is over; 
 `availableActions`, the actions I can take right now: `TRADE`, `UPGRADE` and `READY` during
 build-up until I'm ready, `COMMIT_ARMY` during the battle until I've committed, `CLAIM`
 during CLAIM if I won the battle, otherwise none. `TRADE` and `UPGRADE` are listed by phase
-only, even if I can't currently afford one. Other players' hands, their `upgradedThisTurn`,
+only, even if I can't currently afford one; `affordableUpgrades` lists the creatures I can
+upgrade into right now (I hold the unit and the resource, a tier-2 upgrade starts from a
+unit I held at the start of the turn, it's build-up and I'm not ready), otherwise it's
+empty. Other players' hands, their `upgradedThisTurn`,
 the current turn's commits, and an artifact someone else drew are never included.
 
 **Battle log entry** in the player view:

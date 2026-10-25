@@ -60,21 +60,33 @@ data class Game(
     /** Upgrades one unit by one tier: a Horde into a tier-1 unit, or a settled tier-1 unit into its tier-2 unit. */
     fun upgrade(playerName: String, into: CreatureType): Game {
         val player = player(playerName)
-        val from = into.upgradesFrom ?: throw RuleViolation("Nothing can be upgraded into $into")
+        upgradeViolation(player, into)?.let { throw it }
+        return updatePlayer(
+            player.copy(
+                hand = player.hand - into.upgradesFrom!! - into.upgradeResource!! + into,
+                upgradedThisTurn = player.upgradedThisTurn + (into to (player.upgradedThisTurn[into] ?: 0) + 1),
+            )
+        )
+    }
+
+    /** What [playerName] could upgrade into right now: exactly the creatures [upgrade] would accept. */
+    fun affordableUpgrades(playerName: String): List<CreatureType> {
+        val player = player(playerName)
+        return CreatureType.entries.filter { upgradeViolation(player, it) == null }
+    }
+
+    /** Why [player] can't upgrade into [into] right now, or `null` if they can. */
+    private fun upgradeViolation(player: Player, into: CreatureType): GameException? {
+        val from = into.upgradesFrom ?: return RuleViolation("Nothing can be upgraded into $into")
         val resource = into.upgradeResource!!
         return when {
-            phase != BUILD_UP -> throw WrongPhase(phase)
-            player.acted -> throw AlreadyActed(playerName)
+            phase != BUILD_UP -> WrongPhase(phase)
+            player.acted -> AlreadyActed(player.name)
             !player.hand.has(from) || !player.hand.has(resource) ->
-                throw RuleViolation("$playerName needs 1 $from and 1 $resource to upgrade into $into")
+                RuleViolation("${player.name} needs 1 $from and 1 $resource to upgrade into $into")
             player.settled(from) < 1 ->
-                throw RuleViolation("$playerName's $from was upgraded this turn and can't become $into until next turn")
-            else -> updatePlayer(
-                player.copy(
-                    hand = player.hand - from - resource + into,
-                    upgradedThisTurn = player.upgradedThisTurn + (into to (player.upgradedThisTurn[into] ?: 0) + 1),
-                )
-            )
+                RuleViolation("${player.name}'s $from was upgraded this turn and can't become $into until next turn")
+            else -> null
         }
     }
 

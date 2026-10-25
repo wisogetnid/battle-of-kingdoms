@@ -71,8 +71,9 @@ Forms post `application/x-www-form-urlencoded` (read with `call.receiveParameter
 6. Others: one line each — name, VP, hand size, ready/committed or not.
 7. Actions, driven only by `availableActions`:
    - `TRADE`: one button per resource in my hand ("Trade 1 Wood for 1 Horde").
-   - `UPGRADE`: one button per non-Horde creature type, labelled with its cost
-     ("Upgrade Bow into Warbow (1 Wood)").
+   - `UPGRADE`: one button per creature in the view's `affordableUpgrades`, labelled with
+     its cost ("Upgrade Bow into Warbow (1 Wood)"); if there are none, a line saying no
+     upgrade is affordable right now. The engine decides what is affordable, not the UI.
    - `READY`: one button.
    - `COMMIT_ARMY`: one form with a number field per creature in my hand (0 to the count I
      hold) and a "Commit army" button; all zero commits nothing.

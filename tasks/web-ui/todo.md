@@ -38,3 +38,9 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Files: `web/WebGameTest.kt`, `README.md` (new section only; Iteration 4's T3 rewrites the rules text)
 
 **Checkpoint B:** all 7 success criteria in SPEC-web-ui.md met.
+
+## Review follow-ups
+- [x] **W7. Only affordable upgrades**
+  - Acceptance: `Game.affordableUpgrades(name)` lists the creatures `upgrade` would accept right now (same checks, one shared validation); `PlayerView.affordableUpgrades` (last field, default empty) carries it; the game page shows upgrade buttons only for those, or "No upgrade is affordable right now."; trade buttons (resources held) and army fields (creatures held) already follow the hand
+  - Verify: `mise run build`; engine tests for tier 1 by resource, tier 2 from a settled unit, none from a unit upgraded this turn, none after ready or outside build-up; API and page tests
+  - Files: `game/Game.kt`, `server/Dtos.kt`, `web/Pages.kt`, `game/BuildUpTests.kt`, `server/ApplicationKtTests.kt`, `web/WebRoutesTests.kt`

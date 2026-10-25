@@ -234,6 +234,53 @@ class BuildUpTests {
         assertEquals(emptyList(), game.ready("anna").availableActions("anna"))
     }
 
+    @Test
+    fun `affordable upgrades are the tier-1 units whose resource I hold`() {
+        val game = startedGame(hand = Hand.of(HORDE to 1, WOOD to 1, ESSENCE to 2))
+
+        assertEquals(listOf(BOW, MAGE), game.affordableUpgrades("anna"))
+    }
+
+    @Test
+    fun `a settled tier-1 unit with its resource makes tier 2 affordable`() {
+        val game = startedGame(hand = Hand.of(BOW to 1, SWORD to 1, WOOD to 1))
+
+        assertEquals(listOf(WARBOW), game.affordableUpgrades("anna"))
+    }
+
+    @Test
+    fun `a unit upgraded this turn doesn't make tier 2 affordable`() {
+        val game = startedGame(hand = Hand.of(HORDE to 1, WOOD to 2)).upgrade("anna", BOW)
+
+        assertEquals(emptyList(), game.affordableUpgrades("anna"))
+        assertFailsWith<RuleViolation> { game.upgrade("anna", WARBOW) }
+    }
+
+    @Test
+    fun `nothing is affordable once ready or outside build-up`() {
+        val hand = Hand.of(HORDE to 1, WOOD to 1, IRON to 1, ESSENCE to 1)
+        val ready = startedGame(hand = hand).ready("anna")
+        assertEquals(emptyList(), ready.affordableUpgrades("anna"))
+
+        val battle = allReady(startedGame(hand = hand))
+        assertEquals(BATTLE, battle.phase)
+        assertEquals(emptyList(), battle.affordableUpgrades("anna"))
+
+        val waiting = Game.create(GameConfig(), SEED, 3, "anna")
+        assertEquals(emptyList(), waiting.affordableUpgrades("anna"))
+    }
+
+    @Test
+    fun `every affordable upgrade succeeds and every other one is rejected`() {
+        val game = startedGame(hand = Hand.of(HORDE to 1, MAGE to 1, ESSENCE to 1, IRON to 1))
+        val affordable = game.affordableUpgrades("anna")
+
+        CreatureType.entries.forEach { into ->
+            val succeeded = runCatching { game.upgrade("anna", into) }.isSuccess
+            assertEquals(into in affordable, succeeded, "upgrade into $into")
+        }
+    }
+
     private fun startedGame(hand: Hand? = null): Game {
         val game = Game.create(GameConfig(), SEED, 3, "anna").join("ben").join("cleo")
         return when (hand) {

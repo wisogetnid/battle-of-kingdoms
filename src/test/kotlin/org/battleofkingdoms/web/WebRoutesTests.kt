@@ -229,20 +229,34 @@ class WebRoutesTests {
     }
 
     @Test
-    fun `in build-up the page offers every upgrade, a trade per resource held, and ready`() = webTest { client ->
+    fun `in build-up the page offers only affordable upgrades, a trade per resource held, and ready`() = webTest { client ->
         val gameId = client.startGame("anna", "ben", "cleo")
         val hand = client.view(gameId, "anna")["hand"]
 
         val html = client.gamePage(gameId, "anna")
 
         val path = "/ui/games/$gameId/players/anna"
-        assertEquals(6, Regex("""action="$path/upgrades"""").findAll(html).count(), html)
-        assertTrue(html.contains("Upgrade Horde into Bow (1 Wood)"), html)
-        assertTrue(html.contains("Upgrade Mage into High Mage (1 Essence)"), html)
+        val held = RESOURCES.filter { hand.has(it) }
+        assertEquals(held.size, Regex("""action="$path/upgrades"""").findAll(html).count(), html)
         RESOURCES.forEach { resource ->
+            val upgrade = "Upgrade Horde into ${displayName(TIER_1.getValue(resource))} (1 ${displayName(resource)})"
+            assertEquals(hand.has(resource), html.contains(upgrade), html)
             assertEquals(hand.has(resource), html.contains("Trade 1 ${displayName(resource)} for 1 Horde"), html)
         }
+        assertFalse(html.contains("into Warbow"), html)
         assertEquals(1, Regex("""action="$path/ready"""").findAll(html).count(), html)
+    }
+
+    @Test
+    fun `with nothing affordable the page says so instead of offering upgrades`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.tradeAll(gameId, "anna")
+
+        val html = client.gamePage(gameId, "anna")
+
+        assertFalse(html.contains("/upgrades"), html)
+        assertTrue(html.contains("No upgrade is affordable right now."), html)
+        assertTrue(html.contains("/ready"), html)
     }
 
     @Test

@@ -122,6 +122,9 @@ class ApplicationKtTests {
         val resources = listOf("WOOD", "IRON", "ESSENCE").sumOf { view["me"]["hand"].path(it).asInt(0) }
         assertEquals(2, resources)
         assertEquals(listOf("TRADE", "UPGRADE", "READY"), view["availableActions"].map { it.asText() })
+        val tier1 = mapOf("WOOD" to "BOW", "IRON" to "SWORD", "ESSENCE" to "MAGE")
+        val affordable = tier1.filterKeys { view["me"]["hand"].has(it) }.values.sortedBy { tier1.values.indexOf(it) }
+        assertEquals(affordable, view["affordableUpgrades"].map { it.asText() })
         assertTrue(view["battleLog"].isEmpty)
         assertTrue(view["winner"].isNull)
     }
