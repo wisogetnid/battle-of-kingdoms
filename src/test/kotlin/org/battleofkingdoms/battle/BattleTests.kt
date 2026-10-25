@@ -23,10 +23,54 @@ class BattleTests {
     }
 
     @Test
-    fun `strength includes the shield bonus against other ranged armies`() {
-        val result = resolve(mapOf("anna" to Army.of(SHIELD to 2), "ben" to Army.of(BOW to 1), "cleo" to Army()))
+    fun `every pair fights one duel in join order`() {
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army(), "cleo" to Army.of(HORDE to 2)))
 
-        Assertions.assertEquals(mapOf("anna" to 4, "ben" to 2, "cleo" to 0), result.armies.mapValues { it.value.strength })
+        Assertions.assertEquals(
+            listOf(Duel("anna", "ben", 1, 0), Duel("anna", "cleo", 1, 2), Duel("ben", "cleo", 0, 2)),
+            result.duels,
+        )
+    }
+
+    @ParameterizedTest(name = "{0} players")
+    @MethodSource("playerCounts")
+    fun `a round robin fights every pair exactly once`(players: Int) {
+        val commits = (1..players).associate { "p$it" to Army.of(HORDE to it) }
+
+        Assertions.assertEquals(players * (players - 1) / 2, resolve(commits).duels.size)
+    }
+
+    @Test
+    fun `a bonus counts only in the duel against the countered opponent`() {
+        val result = resolve(mapOf("anna" to Army.of(SHIELD to 2), "ben" to Army.of(BOW to 1), "cleo" to Army.of(HORDE to 3)))
+
+        Assertions.assertEquals(
+            listOf(Duel("anna", "ben", 4, 2), Duel("anna", "cleo", 2, 3), Duel("ben", "cleo", 2, 3)),
+            result.duels,
+        )
+    }
+
+    @Test
+    fun `a score is the sum of duel margins`() {
+        val result = resolve(mapOf("anna" to Army.of(SHIELD to 2), "ben" to Army.of(BOW to 1), "cleo" to Army.of(HORDE to 3)))
+
+        // anna: +2 vs ben, -1 vs cleo; ben: -2 vs anna, -1 vs cleo; cleo: +1 vs anna, +1 vs ben
+        Assertions.assertEquals(mapOf("anna" to 1, "ben" to -3, "cleo" to 2), result.armies.mapValues { it.value.score })
+    }
+
+    @ParameterizedTest(name = "{2}")
+    @MethodSource("winners")
+    fun `scores always add up to zero`(commits: Map<String, Army>, expectedWinner: String?, case: String) {
+        Assertions.assertEquals(0, resolve(commits).armies.values.sumOf { it.score })
+    }
+
+    @Test
+    fun `without bonuses the largest army wins by n times its size minus the total`() {
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 5), "ben" to Army.of(HORDE to 2), "cleo" to Army.of(BOW to 1)))
+
+        // strengths 5, 2, 2 (total 9): score = 3 × strength − 9
+        Assertions.assertEquals(mapOf("anna" to 6, "ben" to -3, "cleo" to -3), result.armies.mapValues { it.value.score })
+        Assertions.assertEquals("anna", result.winner)
     }
 
     @Test
@@ -123,7 +167,8 @@ class BattleTests {
             Arguments.of(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army.of(HORDE to 3), "cleo" to Army.of(HORDE to 1)), "ben", "tie below the top doesn't matter"),
             Arguments.of(mapOf("anna" to Army(), "ben" to Army(), "cleo" to Army()), null, "nobody commits"),
             Arguments.of(mapOf("anna" to Army(), "ben" to Army.of(HORDE to 1), "cleo" to Army()), "ben", "single committer wins"),
-            Arguments.of(mapOf("anna" to Army.of(SHIELD to 2), "ben" to Army.of(BOW to 1), "cleo" to Army.of(HORDE to 3)), "anna", "shield bonus decides"),
+            Arguments.of(mapOf("anna" to Army.of(SHIELD to 2), "ben" to Army.of(BOW to 1), "cleo" to Army.of(HORDE to 3)), "cleo", "a bonus in one duel doesn't outweigh losing the other"),
+            Arguments.of(mapOf("anna" to Army.of(SHIELD to 3), "ben" to Army.of(BOW to 1), "cleo" to Army.of(HORDE to 3)), "anna", "a decisive duel margin decides"),
         )
 
         @JvmStatic
@@ -140,5 +185,8 @@ class BattleTests {
 
         @JvmStatic
         fun seeds() = (1L..10L).toList()
+
+        @JvmStatic
+        fun playerCounts() = listOf(3, 4, 5)
     }
 }

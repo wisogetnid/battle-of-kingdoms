@@ -3,6 +3,7 @@ package org.battleofkingdoms.server
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.battle.ArmyResult
 import org.battleofkingdoms.battle.BattleResult
+import org.battleofkingdoms.battle.Duel
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.game.Action
@@ -73,16 +74,34 @@ data class OtherPlayerView(val name: String, val vp: Int, val renown: Int, val h
     }
 }
 
-data class BattleLogEntryView(val pot: Int, val winner: String?, val armies: Map<String, ArmyResultView>) {
+data class BattleLogEntryView(
+    val pot: Int,
+    val winner: String?,
+    val armies: Map<String, ArmyResultView>,
+    val duels: List<DuelView>,
+) {
     companion object {
-        fun of(result: BattleResult) =
-            BattleLogEntryView(result.pot, result.winner, result.armies.mapValues { (_, army) -> ArmyResultView.of(army) })
+        fun of(result: BattleResult) = BattleLogEntryView(
+            pot = result.pot,
+            winner = result.winner,
+            armies = result.armies.mapValues { (_, army) -> ArmyResultView.of(army) },
+            duels = result.duels.map(DuelView::of),
+        )
+    }
+}
+
+data class DuelView(val players: List<String>, val strengths: Map<String, Int>) {
+    companion object {
+        fun of(duel: Duel) = DuelView(
+            players = listOf(duel.first, duel.second),
+            strengths = linkedMapOf(duel.first to duel.firstStrength, duel.second to duel.secondStrength),
+        )
     }
 }
 
 data class ArmyResultView(
     val army: Map<CreatureType, Int>,
-    val strength: Int,
+    val score: Int,
     val casualties: Map<CreatureType, Int>,
     val survivors: Map<CreatureType, Int>,
     val vpGained: Int,
@@ -91,7 +110,7 @@ data class ArmyResultView(
     companion object {
         fun of(result: ArmyResult) = ArmyResultView(
             army = counts(result.army),
-            strength = result.strength,
+            score = result.score,
             casualties = counts(result.casualties),
             survivors = counts(result.survivors),
             vpGained = result.vpGained,

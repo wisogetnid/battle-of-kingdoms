@@ -8,7 +8,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; `grep -rni artifactsToWin src README.md` finds nothing
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `server/Dtos.kt`, `BattleTurnTests.kt`, `ApplicationKtTests.kt`, `README.md`
 
-- [ ] **T2. Duels and scores**
+- [x] **T2. Duels and scores**
   - Acceptance: `Army.duelStrength(opponent)` replaces `strength(otherArmies)`; `Battle.resolve` fights every pair once (join order), sums margins into scores that add up to 0; single highest score wins, ties at the top and all-zero have no winner, a single committer wins; empty armies fight at strength 0; `BattleResult` has `duels` and per-army `score`; the view shows `score` and `duels` as in the spec; casualties, renown, pot unchanged
   - Verify: `mise run test`; `BattleTests` has parameterized cases for margins, zero-sum, tie, all-zero, single committer, bonus only in the duel against the countered opponent
   - Files: `battle/Army.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `ArmyTests.kt`, `ActionRoutesTests.kt`

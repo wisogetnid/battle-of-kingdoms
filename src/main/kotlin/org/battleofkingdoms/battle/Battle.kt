@@ -4,37 +4,47 @@ import org.battleofkingdoms.cards.CreatureType
 import kotlin.random.Random
 
 /**
- * Resolves one battle between all committed armies. Pure: the only randomness is [Random],
- * consumed per player in the iteration order of `commits`.
+ * Resolves one battle as a round robin: every pair of players fights one duel, and each
+ * player's score is the sum of their duel margins. Pure: the only randomness is [Random],
+ * consumed for casualties per player in the iteration order of `commits`, after all duels.
  */
 object Battle {
     fun resolve(commits: Map<String, Army>, pot: Int, random: Random): BattleResult {
-        val strengths = commits.mapValues { (name, army) -> army.strength(otherArmies(commits, name)) }
-        val winner = singleStrongest(strengths)
+        val duels = roundRobin(commits)
+        val scores = commits.keys.associateWith { name -> duels.sumOf { it.margin(name) } }
+        val winner = singleHighest(scores)
         val armies = commits.mapValues { (name, army) ->
             val won = name == winner
             val casualties = pickCasualties(army, losses(army.size, won), random)
             ArmyResult(
                 army = army,
-                strength = strengths.getValue(name),
+                score = scores.getValue(name),
                 casualties = casualties,
                 survivors = survivors(army, casualties),
                 vpGained = if (won) pot else 0,
                 gainedRenown = army.size > 0,
             )
         }
-        return BattleResult(pot, winner, armies)
+        return BattleResult(pot, winner, armies, duels)
     }
 
-    private fun otherArmies(commits: Map<String, Army>, name: String): List<Army> =
-        commits.filterKeys { it != name }.values.toList()
+    /** Every pair once, in the iteration order of [commits]; empty armies fight at strength 0. */
+    private fun roundRobin(commits: Map<String, Army>): List<Duel> {
+        val names = commits.keys.toList()
+        return names.flatMapIndexed { i, first ->
+            names.drop(i + 1).map { second ->
+                val (a, b) = commits.getValue(first) to commits.getValue(second)
+                Duel(first, second, a.duelStrength(b), b.duelStrength(a))
+            }
+        }
+    }
 
-    /** Ties at the top, including everyone at zero, mean nobody wins. */
-    private fun singleStrongest(strengths: Map<String, Int>): String? {
-        val top = strengths.values.maxOrNull() ?: return null
-        val leaders = strengths.filterValues { it == top }.keys
+    /** Scores add up to 0, so a single highest score is positive; ties at the top mean nobody wins. */
+    private fun singleHighest(scores: Map<String, Int>): String? {
+        val top = scores.values.maxOrNull() ?: return null
+        val leaders = scores.filterValues { it == top }.keys
         return when {
-            top == 0 || leaders.size > 1 -> null
+            top <= 0 || leaders.size > 1 -> null
             else -> leaders.single()
         }
     }
