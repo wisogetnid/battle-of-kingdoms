@@ -213,9 +213,11 @@ private fun FlowContent.battleLog(view: PlayerView) {
     view.battleLog.withIndex().reversed().forEach { (index, battle) ->
         h3 { +"Battle ${index + 1}" }
         p {
-            +when (battle.winner) {
-                null -> "No winner, the pot of ${battle.pot} VP rolls over."
-                else -> "${battle.winner} won the pot of ${battle.pot} VP."
+            +when {
+                battle.winner == null -> "No winner, nobody scores."
+                battle.prize == null -> "${battle.winner} won and is choosing a prize."
+                battle.prize == "VICTORY_POINT" -> "${battle.winner} won ${battle.pot} VP."
+                else -> "${battle.winner} won the ${displayName(battle.prize)}."
             }
         }
         ul {

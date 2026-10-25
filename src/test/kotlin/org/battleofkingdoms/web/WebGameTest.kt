@@ -40,7 +40,7 @@ class WebGameTest {
 
             val html = client.gamePage(gameId, "ben")
             assertTrue(html.contains("Battle $turn"), "battle $turn should be in the log:\n$html")
-            assertTrue(html.contains("anna won the pot"), html)
+            assertTrue(html.contains("anna won 1 VP."), html)
             turn++
         }
 
