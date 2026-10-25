@@ -9,8 +9,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 import io.ktor.server.testing.testApplication
+import kotlinx.html.html
+import kotlinx.html.stream.createHTML
 import org.battleofkingdoms.cards.CreatureType.HIGH_MAGE
 import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.game.Phase
+import org.battleofkingdoms.server.MyView
+import org.battleofkingdoms.server.PlayerView
 import org.battleofkingdoms.server.module
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -132,8 +137,21 @@ class WebRoutesTests {
 
         val html = client.gamePage(gameId, "anna")
 
-        assertTrue(Regex("Hand: [^<]*4 Horde").containsMatchIn(html), html)
+        assertTrue(html.contains("Hand: "), html)
         assertEquals(1, Regex("Hand:").findAll(html).count(), html)
+    }
+
+    @Test
+    fun `the hand lists Horde first, then the other creatures, then resources alphabetically`() {
+        val view = PlayerView(
+            gameId = UUID.randomUUID(), phase = Phase.BUILD_UP, turn = 1, pot = 1, victoryPointsToWin = 5,
+            me = MyView("anna", mapOf("WOOD" to 1, "BOW" to 1, "ESSENCE" to 2, "HORDE" to 3, "IRON" to 1, "WARBOW" to 1), emptyMap(), 0, false),
+            others = emptyList(), availableActions = emptyList(), battleLog = emptyList(), winner = null,
+        )
+
+        val html = createHTML().html { gamePage(view) }
+
+        assertTrue(html.contains("Hand: 3 Horde, 1 Bow, 1 Warbow, 2 Essence, 1 Iron, 1 Wood"), html)
     }
 
     @Test

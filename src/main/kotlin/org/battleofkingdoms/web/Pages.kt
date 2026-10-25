@@ -19,6 +19,7 @@ import kotlinx.html.submitInput
 import kotlinx.html.textInput
 import kotlinx.html.title
 import kotlinx.html.ul
+import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.game.Phase
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
@@ -127,10 +128,17 @@ private fun actedLabel(phase: Phase, acted: Boolean): String? = when (phase) {
     WAITING_FOR_PLAYERS, GAME_OVER -> null
 }
 
-/** `{HORDE=3, WOOD=1}` → "3 Horde, 1 Wood". */
+/** `{WOOD=1, HORDE=3}` → "3 Horde, 1 Wood", in [handOrder]. */
 private fun counts(counts: Map<String, Int>): String =
-    counts.filterValues { it > 0 }.entries.joinToString(", ") { (name, count) -> "$count ${displayName(name)}" }
+    counts.filterValues { it > 0 }.toSortedMap(handOrder).entries
+        .joinToString(", ") { (name, count) -> "$count ${displayName(name)}" }
         .ifEmpty { "nothing" }
+
+/** Horde first, then the other creatures in [CreatureType] order, then resources alphabetically. */
+private val handOrder: Comparator<String> = compareBy(
+    { name -> CreatureType.entries.indexOfFirst { it.name == name }.takeIf { it >= 0 } ?: CreatureType.entries.size },
+    { it },
+)
 
 private fun FlowContent.createGameForm() {
     h2 { +"Create a game" }
