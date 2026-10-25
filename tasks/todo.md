@@ -26,7 +26,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint A — engine complete; review tiers and bonuses before the end-to-end games
 
 ## Phase 2 — Games and play
-- [ ] **T5. End-to-end games**
+- [x] **T5. End-to-end games**
   - Acceptance: seeded 3- and 5-player games over HTTP each include a rollover, at least one trade and at least one tier-2 unit in a committed army, and end in `GAME_OVER` at 5 VP with the expected winner; same-seed replay gives identical battle logs; `FullGameTests` covers the same at engine level
   - Verify: `mise run test`
   - Files: `e2e/EndToEndMultiplayerTest.kt`, `game/FullGameTests.kt`
