@@ -1,5 +1,8 @@
 package org.battleofkingdoms.game
 
+import org.battleofkingdoms.battle.Army
+import org.battleofkingdoms.battle.Battle
+import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
@@ -7,6 +10,7 @@ import org.battleofkingdoms.cards.ResourceType.IRON
 import org.battleofkingdoms.cards.ResourceType.WOOD
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
+import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
 import org.battleofkingdoms.player.Player
 import kotlin.random.Random
@@ -17,6 +21,10 @@ enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, GAME_OVER }
  * Immutable game state; every action returns a new [Game] or throws a [GameException].
  * The only source of randomness is [random], seeded at creation, so the same config, seed,
  * and actions always produce the same game.
+ *
+ * [commits] are hidden information: they stay out of every player view until the battle
+ * resolves into a [battleLog] entry. Committed creatures stay in the hand until then, so
+ * hand sizes don't reveal them either.
  */
 data class Game(
     val config: GameConfig,
@@ -26,6 +34,9 @@ data class Game(
     val turn: Int = 0,
     val pot: Int = 0,
     val players: Map<String, Player> = emptyMap(),
+    val commits: Map<String, Army> = emptyMap(),
+    val battleLog: List<BattleResult> = emptyList(),
+    val winner: String? = null,
 ) {
     fun join(name: String): Game = when {
         name.isBlank() -> throw RuleViolation("Player name must not be blank")
@@ -55,7 +66,54 @@ data class Game(
         }
     }
 
+    fun commitArmy(playerName: String, army: Army): Game {
+        val player = player(playerName)
+        return when {
+            phase != BATTLE -> throw WrongPhase(phase)
+            player.acted -> throw AlreadyActed(playerName)
+            !owns(player, army) -> throw RuleViolation("$playerName doesn't have $army")
+            else -> updatePlayer(player.copy(acted = true))
+                .copy(commits = commits + (playerName to army))
+                .resolveWhenAllCommitted()
+        }
+    }
+
     fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
+
+    private fun owns(player: Player, army: Army): Boolean =
+        army.creatures.all { (type, count) -> player.hand.has(type, count) }
+
+    private fun resolveWhenAllCommitted(): Game = when {
+        players.values.all { it.acted } -> resolveBattle()
+        else -> this
+    }
+
+    /** Commits are resolved in join order, so the casualty draws don't depend on who committed first. */
+    private fun resolveBattle(): Game {
+        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, random)
+        val resolved = copy(
+            pot = if (result.rolledOver) pot else 0,
+            players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
+            commits = emptyMap(),
+            battleLog = battleLog + result,
+        )
+        return when (val champion = resolved.players.values.find { it.vp >= config.artifactsToWin }) {
+            null -> resolved.startTurn()
+            else -> resolved.copy(phase = GAME_OVER, winner = champion.name)
+        }
+    }
+
+    private fun afterBattle(player: Player, committed: Army, result: BattleResult): Player {
+        val armyResult = result.armies.getValue(player.name)
+        val withoutArmy = committed.creatures.entries.fold(player.hand) { hand, (type, n) -> hand.remove(type, n) }
+        val withSurvivors = armyResult.survivors.creatures.entries.fold(withoutArmy) { hand, (type, n) -> hand.add(type, n) }
+        return player.copy(
+            hand = withSurvivors,
+            vp = player.vp + armyResult.vpGained,
+            renown = player.renown + if (armyResult.gainedRenown) config.renownPerBattle else 0,
+            acted = false,
+        )
+    }
 
     private fun updatePlayer(player: Player): Game = copy(players = players + (player.name to player))
 

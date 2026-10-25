@@ -16,9 +16,11 @@ data class Hand(val counts: Map<Card, Int> = emptyMap()) {
         return withCount(card, count(card) + amount)
     }
 
-    operator fun minus(card: Card): Hand {
-        require(has(card)) { "Hand has no $card" }
-        return withCount(card, count(card) - 1)
+    operator fun minus(card: Card): Hand = remove(card, 1)
+
+    fun remove(card: Card, amount: Int): Hand {
+        require(amount >= 0 && has(card, amount)) { "Hand has fewer than $amount $card" }
+        return withCount(card, count(card) - amount)
     }
 
     private fun withCount(card: Card, amount: Int): Hand = when (amount) {

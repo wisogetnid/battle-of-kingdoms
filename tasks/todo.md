@@ -32,7 +32,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests '*BattleTests'` (parameterized cases for every rule)
   - Files: `battle/Battle.kt`, `battle/BattleResult.kt`, `BattleTests.kt`
 
-- [ ] **T6. Battle wiring and turn loop**
+- [x] **T6. Battle wiring and turn loop**
   - Acceptance: `commitArmy` validates ownership (`RuleViolation`), phase, and double commits; commits are hidden until all are in; resolution applies VP, renown, survivors, log; next turn adds 1 to the pot and pays income including renown; reaching `artifactsToWin` → `GAME_OVER` with winner
   - Verify: `./gradlew test`; includes a full seeded 3-player engine game with a rollover, plus a same-seed replay with an identical log
   - Files: `game/Game.kt`, `game/BattleTurnTests.kt`, `game/FullGameTests.kt`
