@@ -32,7 +32,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Verify: `mise run test`; tests for commit success, empty commit, malformed counts, committing more than owned (400), and a resolved battle appearing in every player's log without anyone's uncommitted army
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
 
-- [ ] **W6. Full game through the forms and docs**
+- [x] **W6. Full game through the forms and docs**
   - Acceptance: `WebGameTest` plays a seeded 3-player game only through the UI POSTs and game pages: everyone marks ready each build-up; one player commits their whole hand (counts read from the JSON player view), the others commit nothing; it loops until the page shows `GAME_OVER` (capped at 20 turns) and asserts the winner is shown and the battle log grew every turn, with no seeded numbers or VP target asserted (works with Iteration 4's 3 VP: the lone committer wins every pot); README gains a "Play in the browser" section (`mise run server`, open `http://localhost:8080/`, share the invite link)
   - Verify: `mise run build`; manual full game in three browser tabs
   - Files: `web/WebGameTest.kt`, `README.md` (new section only; Iteration 4's T3 rewrites the rules text)

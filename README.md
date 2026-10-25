@@ -59,6 +59,12 @@ Other players need to reach this address: on the same network use your machine's
 instead of `localhost`, or share it through a tunnel of your choice.
 
 ## 2. Play
+**In the browser (easiest):** open `http://localhost:8080/`, enter the number of players and
+your name, and create the game. Your game page shows an invite link; send it to the others,
+who open it and enter their names. The page is plain text and links: your hand, the other
+players, the buttons for what you can do right now, and the battle log. Click **Refresh** to
+see what the others have done.
+
 **Scripted playtest in IntelliJ:** open [`http/playtest.http`](http/playtest.http) and run
 the requests top to bottom. It plays a seeded 3-player game to the end in three battles: a
 trade and a tie that rolls the pot over, a double pot won by a High Mage built over two
