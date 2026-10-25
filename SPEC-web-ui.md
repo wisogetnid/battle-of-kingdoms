@@ -80,7 +80,8 @@ Forms post `application/x-www-form-urlencoded` (read with `call.receiveParameter
    - None: a line saying what I'm waiting for (other players, or the game is over).
 8. Battle log, newest first: battle number (its position in the log; the view has no turn
    field, and there is one battle per turn), pot, winner (or "no winner, pot rolls over");
-   per player army, score, casualties, VP gained; every duel as "anna 8 – 7 ben".
+   per player army, score, casualties, VP gained, or "anna sat out" for a player who
+   committed nothing; every duel as "anna 8 – 7 ben".
 
 Creature and resource names are shown in words ("High Mage", "Wood"), never as enum
 constants.

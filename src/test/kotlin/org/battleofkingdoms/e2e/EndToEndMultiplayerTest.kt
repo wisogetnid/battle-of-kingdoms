@@ -45,7 +45,9 @@ class EndToEndMultiplayerTest {
             val log = final["battleLog"].toList()
             assertTrue(log.first()["winner"].isNull, "turn 1 should be a tie")
             assertEquals(2, log[1]["pot"].asInt(), "the tied victory point should roll over")
-            assertEquals(players.size * (players.size - 1) / 2, log.first()["duels"].size())
+            val committed = log.first()["armies"].count { !it["army"].isEmpty }
+            assertEquals(players.size - 1, committed, "anna sits out turn 1")
+            assertEquals(committed * (committed - 1) / 2, log.first()["duels"].size(), "only committed armies duel")
             val annasArmies = log.map { it["armies"]["anna"]["army"] }
             assertTrue(annasArmies.any { army -> TIER_2.values.any { (tier2, _) -> army.has(tier2) } }, "anna should field a tier-2 unit")
         }

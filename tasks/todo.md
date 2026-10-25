@@ -14,7 +14,12 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Files: `README.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`, `http/playtest.http`
   - Status: edits done; the replay against a running server is still to do
 
-### Checkpoint 0 — build green; the bonus table in SPEC.md, README and the playtest agree
+- [x] **B3. Only committed armies fight**
+  - Acceptance: a player who commits nothing sits out — no duels, score 0, no casualties, and nobody scores against them; duels are a round robin among committed players only; a lone committer wins uncontested (score 0, no duels, loses `floor(n / 2)`); nobody committing means no winner; the playtest's case (anna 3 Horde vs bob Horde + Mage, cleo empty) is a 3:3 tie with no winner; the battle log page shows "cleo sat out"; tests that counted duels against empty armies are rewritten to the new rule
+  - Verify: `mise run build`
+  - Files: `battle/Battle.kt`, `web/Pages.kt`, `BattleTests.kt`, `ActionRoutesTests.kt`, `e2e/EndToEndMultiplayerTest.kt`, `web/WebRoutesTests.kt`, plus SPEC.md, SPEC-web-ui.md, README.md, `http/playtest.http`
+
+### Checkpoint 0 — build green; the bonus table in SPEC.md, README and the playtest agree; empty armies sit out
 
 ## Phase 1 — Rules in the engine
 - [ ] **T1. A tie gives nothing; the game awards the VP**

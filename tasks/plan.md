@@ -48,7 +48,8 @@ rebalance of the bonus table (Phase 0) lands before the artifact work.
 ```
 B1 new bonus table in the engine
  └─ B2 bonus docs + playtest comments
-B1 ─▶ T1 (T1 rewrites the same BattleTests, so B1 lands first)
+B3 only committed armies fight (independent of B1/B2)
+B1, B3 ─▶ T1 (T1 rewrites the same BattleTests, so they land first)
 
 T1 a tie gives nothing; the game awards the VP
  ├─ T2 Banner + Amulet casualties
@@ -71,6 +72,10 @@ example and the equal-cost duel re-derived.
 
 **B2. Docs and playtest.** README table and examples, one-pager note, playtest comments
 recomputed for battles 2 and 3 (same winners, so casualties and hands don't change).
+
+**B3. Only committed armies fight.** Empty armies sit out of the round robin (score 0, no
+duels, nobody scores against them); a lone committer wins uncontested. Only `Battle.resolve`
+changes, plus a "sat out" line in the web UI's battle log.
 
 **Checkpoint 0:** build green; SPEC.md, README and the playtest show the same table; the
 playtest replays as commented.

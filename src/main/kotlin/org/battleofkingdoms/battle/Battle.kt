@@ -4,15 +4,17 @@ import org.battleofkingdoms.cards.CreatureType
 import kotlin.random.Random
 
 /**
- * Resolves one battle as a round robin: every pair of players fights one duel, and each
- * player's score is the sum of their duel margins. Pure: the only randomness is [Random],
- * consumed for casualties per player in the iteration order of `commits`, after all duels.
+ * Resolves one battle as a round robin among the players who committed something: every pair
+ * of them fights one duel, and each player's score is the sum of their duel margins. Players
+ * who committed nothing sit out with score 0. Pure: the only randomness is [Random], consumed
+ * for casualties per player in the iteration order of `commits`, after all duels.
  */
 object Battle {
     fun resolve(commits: Map<String, Army>, pot: Int, bonuses: Bonuses, random: Random): BattleResult {
-        val duels = roundRobin(commits, bonuses)
+        val fighting = commits.filterValues { it.size > 0 }
+        val duels = roundRobin(fighting, bonuses)
         val scores = commits.keys.associateWith { name -> duels.sumOf { it.margin(name) } }
-        val winner = singleHighest(scores)
+        val winner = fighting.keys.singleOrNull() ?: singleHighest(scores.filterKeys { it in fighting })
         val armies = commits.mapValues { (name, army) ->
             val won = name == winner
             val casualties = pickCasualties(army, losses(army.size, won), random)
@@ -27,7 +29,7 @@ object Battle {
         return BattleResult(pot, winner, armies, duels)
     }
 
-    /** Every pair once, in the iteration order of [commits]; empty armies fight at strength 0. */
+    /** Every pair of committed armies once, in the iteration order of [commits]. */
     private fun roundRobin(commits: Map<String, Army>, bonuses: Bonuses): List<Duel> {
         val names = commits.keys.toList()
         return names.flatMapIndexed { i, first ->
@@ -38,7 +40,7 @@ object Battle {
         }
     }
 
-    /** Scores add up to 0, so a single highest score is positive; ties at the top mean nobody wins. */
+    /** Among two or more armies scores add up to 0, so a single highest score is positive; ties at the top mean nobody wins. */
     private fun singleHighest(scores: Map<String, Int>): String? {
         val top = scores.values.maxOrNull() ?: return null
         val leaders = scores.filterValues { it == top }.keys

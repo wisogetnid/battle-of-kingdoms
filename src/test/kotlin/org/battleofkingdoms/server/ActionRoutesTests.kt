@@ -189,11 +189,12 @@ class ActionRoutesTests {
         assertEquals("anna", entry["winner"].asText())
         assertEquals(1, entry["pot"].asInt())
         assertEquals(3, entry["armies"]["anna"]["army"]["HORDE"].asInt())
-        assertEquals(5, entry["armies"]["anna"]["score"].asInt()) // +2 against ben, +3 against cleo
+        assertEquals(2, entry["armies"]["anna"]["score"].asInt()) // +2 against ben; cleo sat out
         val annaVsBen = entry["duels"].single { it["players"].map { p -> p.asText() } == listOf("anna", "ben") }
         assertEquals(3, annaVsBen["strengths"]["anna"].asInt())
         assertEquals(1, annaVsBen["strengths"]["ben"].asInt())
-        assertEquals(3, entry["duels"].size())
+        assertEquals(1, entry["duels"].size()) // cleo committed nothing, so only anna and ben duel
+        assertEquals(0, entry["armies"]["cleo"]["score"].asInt())
         assertEquals(1, entry["armies"]["anna"]["casualties"]["HORDE"].asInt())
         assertTrue(entry["armies"]["cleo"]["army"].isEmpty)
         assertEquals("BUILD_UP", view["phase"].asText())

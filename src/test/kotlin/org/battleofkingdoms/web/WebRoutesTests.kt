@@ -375,7 +375,7 @@ class WebRoutesTests {
 
         val html = client.gamePage(gameId, "anna")
         assertTrue(html.contains("No winner, the pot of 1 VP rolls over."), html)
-        assertTrue(html.contains("anna: committed nothing"), html)
+        assertTrue(html.contains("anna sat out"), html)
     }
 
     @Test
@@ -405,12 +405,11 @@ class WebRoutesTests {
             val html = client.gamePage(gameId, name)
             assertTrue(html.contains("Battle 1"), html)
             assertTrue(html.contains("anna won the pot of 1 VP."), html)
-            assertTrue(html.contains("anna: committed 3 Horde; score +5; lost 1 Horde; gained 1 VP"), html)
-            assertTrue(html.contains("ben: committed 1 Horde; score -1; lost 1 Horde; gained 0 VP"), html)
-            assertTrue(html.contains("cleo: committed nothing; score -4; lost nothing; gained 0 VP"), html)
+            assertTrue(html.contains("anna: committed 3 Horde; score +2; lost 1 Horde; gained 1 VP"), html)
+            assertTrue(html.contains("ben: committed 1 Horde; score -2; lost 1 Horde; gained 0 VP"), html)
+            assertTrue(html.contains("cleo sat out"), html)
             assertTrue(html.contains("anna 3 – 1 ben"), html)
-            assertTrue(html.contains("anna 3 – 0 cleo"), html)
-            assertTrue(html.contains("ben 1 – 0 cleo"), html)
+            assertFalse(html.contains("cleo</li>"), "cleo sat out, so nobody duels her:\n$html")
         }
 
         client.allReady(gameId, "anna", "ben", "cleo")

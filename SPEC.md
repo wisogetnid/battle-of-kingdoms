@@ -121,18 +121,20 @@ Bow and a Horde gets max(+2, +4) = +4, so its strength is 5; against an army wit
 Swords it gets +2, so its strength is 3. Artifacts never change duel strength.
 
 ### Battle resolution
-1. **Duels:** every pair of players fights one duel — 3 duels with 3 players, 10 with 5.
-   Every player takes part, including those who committed nothing: an empty army has
-   strength 0 and gives its opponent no bonus.
+1. **Duels:** only players who committed at least one creature take part. Every pair of
+   them fights one duel — 3 duels with 3 committed armies, 10 with 5. A player who committed
+   nothing **sits out**: no duels, score 0, no casualties, and nobody scores against them.
 2. **Duel strength** of my army against one opponent = the sum of my creatures' strengths
    (attack + best bonus) against that opponent's army. A bonus against one opponent doesn't
    apply in my other duels.
 3. **Score:** in each duel, my margin = my duel strength − my opponent's duel strength.
-   My score = the sum of my margins over all my duels. Scores always add up to 0.
-4. **Winner:** the single player with the highest score. If two or more share the highest
-   score — including everyone at 0, e.g. when nobody commits anything — there is **no
-   winner**. Because scores add up to 0, a single highest score is always positive. If
-   exactly one player commits anything, they win.
+   My score = the sum of my margins over all my duels (0 if I sat out). Scores always add
+   up to 0.
+4. **Winner:** if nobody commits anything, there is **no winner**. If exactly one player
+   commits anything, they **win uncontested** (no duels, score 0). Otherwise the winner is
+   the single committed player with the highest score; if two or more share it, there is no
+   winner. Because the scores of the committed players add up to 0, a single highest score
+   among two or more of them is always positive.
 5. **No winner:** nobody gains anything, no artifact is drawn, and the next battle is again
    worth `victoryPointsPerBattle` (1). Nothing rolls over.
 6. **Casualties** are worked out once, after all duels: each player loses half of their
@@ -267,7 +269,8 @@ the current turn's commits, and an artifact someone else drew are never included
   ]
 }
 ```
-(`armies` lists every player; `duels` lists every pair, in join order. `prize` is `null`
+(`armies` lists every player, with an empty `army` and score 0 for those who sat out;
+`duels` lists every pair of committed players, in join order. `prize` is `null`
 with no winner or while the winner is still choosing, `"VICTORY_POINT"` when they took the
 VP — which doesn't reveal the declined artifact — or the artifact's name.)
 
@@ -291,12 +294,13 @@ Games live in memory; restarting the server loses them.
 | Phases | … → BATTLE → next turn | … → BATTLE → CLAIM (winner, stack not empty) → next turn |
 | Casualties | floor / ceil by win or loss | the same, adjusted by the Resilient Banner and the Amulet of Luck |
 | Income | 1 Horde + 2 resources | + `crownHorde` Horde for the Crown's owner |
+| Who fights (playtest) | Every player, including empty armies at strength 0 | Only players who committed something; the others sit out (score 0, nobody scores against them); a lone committer wins uncontested |
 | Bonuses (playtest) | tier 1: +2 vs Horde, +1 vs countered tier 1; tier 2: +5 vs Horde, +3 vs countered tier 1, +1 vs countered tier 2 | tier 1: +1 vs Horde, +1 vs countered tier 1; tier 2: +4 vs Horde, +4 vs countered tier 1, **+2 vs any other tier 1 (new)**, +2 vs countered tier 2 |
 | API | — | `POST …/claim`; `CLAIM` phase and action; `artifactsInStack`, `me.artifacts`, `me.drawnArtifact`, `others[].artifacts`, battle log `prize` |
 | Config | `tier1VsHorde`, `tier2VsHorde`, `sameTierCounter`, `higherTierCounter` | `victoryPointsPerBattle`, `artifacts`, `crownHorde`; bonuses: `tier1VsHorde`, `tier1VsCountered`, `tier2VsHorde`, `tier2VsCounteredTier1`, `tier2VsOtherTier1`, `tier2VsCounteredTier2` |
 
-Unchanged: creatures, upgrades, trading, the single best bonus, duels and scores, the 3-VP
-target, and every existing route and view field (`pot` keeps its name).
+Unchanged: creatures, upgrades, trading, the single best bonus, duel strength and margins,
+the 3-VP target, and every existing route and view field (`pot` keeps its name).
 
 Seeded expectations change: rollover tests are rewritten for "a tie gives nothing", and the
 artifact draw consumes the seeded `Random` after every won battle, so the end-to-end games

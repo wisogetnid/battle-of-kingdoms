@@ -20,7 +20,8 @@ Every turn has two phases:
    - A unit climbs one tier per turn: a Bow you build this turn can become a Warbow next turn.
 2. **Battle.** One victory point (VP) is added to the pot. Everyone secretly commits any part of
    their creatures (or nothing). Once all have committed, the armies are revealed and every
-   pair of players fights a **duel**:
+   pair of players who committed something fights a **duel**. Whoever commits nothing sits
+   out: no duels, score 0, and nobody scores against them. A lone army wins uncontested.
    - In each duel, every creature has attack 1 plus its **single best bonus** against
      *that* opponent's army (see the table below). Bonuses never add up.
    - Your **score** is the sum of your margins over all your duels (win a duel 5:2 → +3).

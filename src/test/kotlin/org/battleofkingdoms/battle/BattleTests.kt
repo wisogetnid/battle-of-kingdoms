@@ -27,12 +27,42 @@ class BattleTests {
 
     @Test
     fun `every pair fights one duel in join order`() {
-        val result = resolve(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army(), "cleo" to Army.of(HORDE to 2)))
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army.of(HORDE to 3), "cleo" to Army.of(HORDE to 2)))
 
         Assertions.assertEquals(
-            listOf(Duel("anna", "ben", 1, 0), Duel("anna", "cleo", 1, 2), Duel("ben", "cleo", 0, 2)),
+            listOf(Duel("anna", "ben", 1, 3), Duel("anna", "cleo", 1, 2), Duel("ben", "cleo", 3, 2)),
             result.duels,
         )
+    }
+
+    @Test
+    fun `a player who commits nothing sits out and nobody scores against them`() {
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army(), "cleo" to Army.of(HORDE to 2)))
+
+        Assertions.assertEquals(listOf(Duel("anna", "cleo", 1, 2)), result.duels)
+        Assertions.assertEquals(mapOf("anna" to -1, "ben" to 0, "cleo" to 1), result.armies.mapValues { it.value.score })
+        Assertions.assertEquals(Army(), result.armies.getValue("ben").casualties)
+        Assertions.assertEquals("cleo", result.winner)
+    }
+
+    @Test
+    fun `beating an empty army no longer decides a battle`() {
+        // anna and bob tie their duel 3:3; before, anna won by scoring 3 against cleo's empty army vs bob's 2
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 3), "bob" to Army.of(HORDE to 1, MAGE to 1), "cleo" to Army()))
+
+        Assertions.assertEquals(listOf(Duel("anna", "bob", 3, 3)), result.duels)
+        Assertions.assertEquals(mapOf("anna" to 0, "bob" to 0, "cleo" to 0), result.armies.mapValues { it.value.score })
+        Assertions.assertNull(result.winner)
+    }
+
+    @Test
+    fun `a lone army wins uncontested without duels`() {
+        val result = resolve(mapOf("anna" to Army(), "ben" to Army.of(HORDE to 3), "cleo" to Army()))
+
+        Assertions.assertEquals(emptyList<Duel>(), result.duels)
+        Assertions.assertEquals("ben", result.winner)
+        Assertions.assertEquals(0, result.armies.getValue("ben").score)
+        Assertions.assertEquals(1, result.armies.getValue("ben").casualties.size) // the winner loses floor(3 / 2)
     }
 
     @ParameterizedTest(name = "{0} players")

@@ -66,7 +66,7 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
 ### ── Turn 1: battle (upgraded units stay home) ──────────────────────
-# Nobody commits anything: every duel is 0:0 and every score 0, so nobody wins and the
+# Nobody commits anything, so everyone sits out: no duels, nobody wins, and the
 # victory point rolls over.
 
 ### anna keeps her Bow back and commits nothing

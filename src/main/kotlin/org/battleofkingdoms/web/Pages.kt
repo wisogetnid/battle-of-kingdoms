@@ -203,8 +203,11 @@ private fun FlowContent.battleLog(view: PlayerView) {
         }
         ul {
             battle.armies.forEach { (name, army) ->
-                val line = "$name: committed ${creatures(army.army)}; score ${signed(army.score)}; " +
-                    "lost ${creatures(army.casualties)}; gained ${army.vpGained} VP"
+                val line = when {
+                    army.army.isEmpty() -> "$name sat out"
+                    else -> "$name: committed ${creatures(army.army)}; score ${signed(army.score)}; " +
+                        "lost ${creatures(army.casualties)}; gained ${army.vpGained} VP"
+                }
                 li { +line }
             }
         }
