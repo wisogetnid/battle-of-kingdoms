@@ -138,7 +138,7 @@ class ApplicationKtTests {
         val others = view["others"]
         assertEquals(listOf("ben", "cleo"), others.map { it["name"].asText() })
         others.forEach { other ->
-            assertEquals(setOf("name", "vp", "handSize", "acted"), other.fieldNames().asSequence().toSet())
+            assertEquals(setOf("name", "vp", "handSize", "acted", "artifacts"), other.fieldNames().asSequence().toSet())
             assertEquals(3, other["handSize"].asInt()) // 1 Horde + 2 resources
         }
         assertFalse(view.toString().contains("commits"))

@@ -5,6 +5,7 @@ import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameConfig
+import org.battleofkingdoms.game.Take
 import org.battleofkingdoms.game.UnknownGame
 import java.util.UUID
 import kotlin.random.Random
@@ -32,6 +33,8 @@ class GameServer(private val config: GameConfig = GameConfig()) {
     fun ready(gameId: UUID, name: String): Game = update(gameId) { it.ready(name) }
 
     fun commitArmy(gameId: UUID, name: String, army: Army): Game = update(gameId) { it.commitArmy(name, army) }
+
+    fun claim(gameId: UUID, name: String, take: Take): Game = update(gameId) { it.claim(name, take) }
 
     @Synchronized
     private fun update(gameId: UUID, action: (Game) -> Game): Game =

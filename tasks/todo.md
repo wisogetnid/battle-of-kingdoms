@@ -45,7 +45,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; new `ClaimTests` with a config holding all three artifacts
   - Files: `game/Game.kt`, `game/GameConfig.kt`, `game/GameException.kt`, `battle/BattleResult.kt`, `server/GameRoutes.kt` (status mapping), `web/Pages.kt` (compile only), `game/ClaimTests.kt` (new)
 
-- [ ] **T5. Claim over HTTP**
+- [x] **T5. Claim over HTTP**
   - Acceptance: `POST /games/{id}/players/{name}/claim` with `{ "take": "ARTIFACT" | "VICTORY_POINT" }` returns my view; 409 for a non-winner or outside CLAIM, 400 for another `take`; the view adds `artifactsInStack`, `me.artifacts`, `me.drawnArtifact` (winner during CLAIM only), `others[].artifacts`, and the log's `prize` (new fields last, with defaults); API tests show the drawn and the declined artifact never reach another view or the log, and owned artifacts reach everyone
   - Verify: `mise run build`
   - Files: `server/GameRoutes.kt`, `server/GameServer.kt`, `server/Dtos.kt`, `server/Application.kt` (optional `GameServer`), `TestApi.kt` (optional config), `server/ClaimRoutesTests.kt` (new), `ApplicationKtTests.kt`

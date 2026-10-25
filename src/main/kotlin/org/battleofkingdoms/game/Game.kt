@@ -135,6 +135,12 @@ data class Game(
         }
     }
 
+    /** The drawn artifact as [playerName] may see it: only the winner, only while they choose. */
+    fun drawnArtifactFor(playerName: String): Artifact? = when {
+        phase == CLAIM && playerName == battleLog.last().winner -> drawnArtifact
+        else -> null
+    }
+
     fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
 
     /** What [playerName] may do right now; [Action.TRADE] and [Action.UPGRADE] are listed by phase, not by what they can afford. */

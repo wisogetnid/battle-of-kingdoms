@@ -12,12 +12,14 @@ fun main(args: Array<String>) {
     EngineMain.main(args)
 }
 
-fun Application.module() {
+fun Application.module() = gameModule(GameServer())
+
+/** The whole application around one [GameServer], so tests can pass one with their own config. */
+fun Application.gameModule(server: GameServer) {
     install(ContentNegotiation) {
         jackson()
     }
     routing {
-        val server = GameServer()
         gameRoutes(server)
         webRoutes(server)
     }

@@ -78,6 +78,13 @@ fun Route.gameRoutes(server: GameServer) {
                         respondView(server.commitArmy(gameId(), playerName(), army))
                     }
                 }
+
+                post("/claim") {
+                    respondOrError {
+                        val take = call.receive<ClaimRequest>().take
+                        respondView(server.claim(gameId(), playerName(), take))
+                    }
+                }
             }
         }
     }

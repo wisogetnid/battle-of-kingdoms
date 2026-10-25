@@ -14,6 +14,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import org.battleofkingdoms.game.GameConfig
 import kotlin.test.assertEquals
 
 private val mapper = jacksonObjectMapper()
@@ -56,8 +57,8 @@ class TestApi(private val client: HttpClient) {
     }
 }
 
-fun apiTest(block: suspend ApplicationTestBuilder.(TestApi) -> Unit) = testApplication {
-    application { module() }
+fun apiTest(config: GameConfig = GameConfig(), block: suspend ApplicationTestBuilder.(TestApi) -> Unit) = testApplication {
+    application { gameModule(GameServer(config)) }
     block(TestApi(client))
 }
 
