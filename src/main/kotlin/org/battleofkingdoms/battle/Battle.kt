@@ -9,8 +9,8 @@ import kotlin.random.Random
  * consumed for casualties per player in the iteration order of `commits`, after all duels.
  */
 object Battle {
-    fun resolve(commits: Map<String, Army>, pot: Int, counterBonus: Int, random: Random): BattleResult {
-        val duels = roundRobin(commits, counterBonus)
+    fun resolve(commits: Map<String, Army>, pot: Int, bonuses: Bonuses, random: Random): BattleResult {
+        val duels = roundRobin(commits, bonuses)
         val scores = commits.keys.associateWith { name -> duels.sumOf { it.margin(name) } }
         val winner = singleHighest(scores)
         val armies = commits.mapValues { (name, army) ->
@@ -28,12 +28,12 @@ object Battle {
     }
 
     /** Every pair once, in the iteration order of [commits]; empty armies fight at strength 0. */
-    private fun roundRobin(commits: Map<String, Army>, counterBonus: Int): List<Duel> {
+    private fun roundRobin(commits: Map<String, Army>, bonuses: Bonuses): List<Duel> {
         val names = commits.keys.toList()
         return names.flatMapIndexed { i, first ->
             names.drop(i + 1).map { second ->
                 val (a, b) = commits.getValue(first) to commits.getValue(second)
-                Duel(first, second, a.duelStrength(b, counterBonus), b.duelStrength(a, counterBonus))
+                Duel(first, second, a.duelStrength(b, bonuses), b.duelStrength(a, bonuses))
             }
         }
     }

@@ -18,7 +18,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`; parameterized cases for each tier-2 upgrade, missing unit, missing resource, same-turn block, next-turn allowed
   - Files: `cards/CreatureType.kt` (+ `Line`), `player/Player.kt`, `game/Game.kt`, `battle/Army.kt`, `server/Dtos.kt`, `CardTests.kt`, `BuildUpTests.kt`, `ApplicationKtTests.kt`
 
-- [ ] **T4. Tier bonus table**
+- [x] **T4. Tier bonus table**
   - Acceptance: duel strength per creature = 1 + the single best bonus against the opponent's army, from `Bonuses(tier1VsHorde = 2, tier2VsHorde = 3, sameTierCounter = 1, higherTierCounter = 2)` built from `GameConfig`; lower tier gets nothing against higher; no bonus outside the table; bonuses never add up; `counterBonus` removed; every bonus-table cell for all three lines, the max-not-sum cases and the spec's worked example are unit tests
   - Verify: `mise run build`; `grep -rn counterBonus src` finds nothing
   - Files: `battle/Bonuses.kt` (new), `battle/Army.kt`, `battle/Battle.kt`, `game/GameConfig.kt`, `game/Game.kt`, `ArmyTests.kt`, `BattleTests.kt`, plus tests whose expected strengths change

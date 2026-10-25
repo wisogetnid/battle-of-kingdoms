@@ -122,7 +122,7 @@ data class Game(
 
     /** Commits are resolved in join order, so the casualty draws don't depend on who committed first. */
     private fun resolveBattle(): Game {
-        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, config.counterBonus, random)
+        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, config.bonuses, random)
         val resolved = copy(
             pot = if (result.rolledOver) pot else 0,
             players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
