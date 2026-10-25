@@ -13,7 +13,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`
   - Files: `game/Game.kt`, `server/GameRoutes.kt`, `server/Dtos.kt`, `server/GameServer.kt`, `game/BuildUpTests.kt`, `ActionRoutesTests.kt`, `ApplicationKtTests.kt`
 
-- [ ] **T3. Tier-2 creatures, one tier per turn**
+- [x] **T3. Tier-2 creatures, one tier per turn**
   - Acceptance: `CreatureType` adds WARBOW, KNIGHT, HIGH_MAGE with `tier` and `line`; tier 2 costs the tier-1 unit of its line + 1 resource of that line (no Horde); a unit upgraded into this turn can't be upgraded again until next turn (`RuleViolation`); `Player.upgradedThisTurn` resets at turn start and appears only in my own view; tier-2 units use the existing flat counter bonus by line until T4
   - Verify: `mise run test`; parameterized cases for each tier-2 upgrade, missing unit, missing resource, same-turn block, next-turn allowed
   - Files: `cards/CreatureType.kt` (+ `Line`), `player/Player.kt`, `game/Game.kt`, `battle/Army.kt`, `server/Dtos.kt`, `CardTests.kt`, `BuildUpTests.kt`, `ApplicationKtTests.kt`

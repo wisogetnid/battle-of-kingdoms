@@ -25,6 +25,17 @@ class ActionRoutesTests {
         assertEquals(3, hand["HORDE"].asInt())
         assertEquals(1, hand[into].asInt())
         assertEquals(before[resource].asInt() - 1, hand.path(resource).asInt(0))
+        assertEquals(1, TestApi.json(response)["me"]["upgradedThisTurn"][into].asInt())
+    }
+
+    @Test
+    fun `a tier-2 upgrade of a unit created this turn is a bad request`() = apiTest { api ->
+        val gameId = api.startGame(*PLAYERS)
+        val (into, _) = affordableUpgrade(api.view(gameId, "anna")["me"]["hand"])
+        api.upgrade(gameId, "anna", into)
+
+        val tier2 = mapOf("BOW" to "WARBOW", "SWORD" to "KNIGHT", "MAGE" to "HIGH_MAGE").getValue(into)
+        assertError(HttpStatusCode.BadRequest, api.upgrade(gameId, "anna", tier2))
     }
 
     @Test

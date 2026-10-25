@@ -65,8 +65,8 @@ class FullGameTests {
 
     /** The largest matchup where ben builds `k` of a unit and anna `k` of the unit countering it, if any. */
     private fun counterDuel(annasHand: Hand, bensHand: Hand): Triple<CreatureType, CreatureType, Int>? =
-        CreatureType.entries.mapNotNull { bensUnit ->
-            val annasUnit = CreatureType.entries.find { it.counters == bensUnit } ?: return@mapNotNull null
+        CreatureType.entries.filter { it.tier == 1 }.map { bensUnit ->
+            val annasUnit = CreatureType.entries.single { it.tier == 1 && it.line?.counters == bensUnit.line }
             val k = minOf(
                 bensHand.count(bensUnit.upgradeResource!!),
                 annasHand.count(annasUnit.upgradeResource!!),

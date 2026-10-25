@@ -57,15 +57,24 @@ data class Game(
         }
     }
 
+    /** Upgrades one unit by one tier: a Horde into a tier-1 unit, or a settled tier-1 unit into its tier-2 unit. */
     fun upgrade(playerName: String, into: CreatureType): Game {
         val player = player(playerName)
-        val resource = into.upgradeResource ?: throw RuleViolation("Nothing can be upgraded into $into")
+        val from = into.upgradesFrom ?: throw RuleViolation("Nothing can be upgraded into $into")
+        val resource = into.upgradeResource!!
         return when {
             phase != BUILD_UP -> throw WrongPhase(phase)
             player.acted -> throw AlreadyActed(playerName)
-            !player.hand.has(HORDE) || !player.hand.has(resource) ->
-                throw RuleViolation("$playerName needs 1 Horde and 1 $resource to upgrade into $into")
-            else -> updatePlayer(player.copy(hand = player.hand - HORDE - resource + into))
+            !player.hand.has(from) || !player.hand.has(resource) ->
+                throw RuleViolation("$playerName needs 1 $from and 1 $resource to upgrade into $into")
+            player.settled(from) < 1 ->
+                throw RuleViolation("$playerName's $from was upgraded this turn and can't become $into until next turn")
+            else -> updatePlayer(
+                player.copy(
+                    hand = player.hand - from - resource + into,
+                    upgradedThisTurn = player.upgradedThisTurn + (into to (player.upgradedThisTurn[into] ?: 0) + 1),
+                )
+            )
         }
     }
 
@@ -166,7 +175,7 @@ data class Game(
         val horde = config.baseCreaturesPerTurn + startingHorde(turn)
         val hand = (1..config.resourcesPerTurn)
             .fold(player.hand.add(HORDE, horde)) { hand, _ -> hand + drawResource() }
-        return player.copy(hand = hand, acted = false)
+        return player.copy(hand = hand, acted = false, upgradedThisTurn = emptyMap())
     }
 
     private fun startingHorde(turn: Int): Int = when (turn) {

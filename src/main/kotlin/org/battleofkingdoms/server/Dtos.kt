@@ -64,9 +64,16 @@ data class PlayerView(
     }
 }
 
-data class MyView(val name: String, val hand: Map<String, Int>, val vp: Int, val acted: Boolean) {
+data class MyView(
+    val name: String,
+    val hand: Map<String, Int>,
+    val upgradedThisTurn: Map<CreatureType, Int>,
+    val vp: Int,
+    val acted: Boolean,
+) {
     companion object {
-        fun of(player: Player) = MyView(player.name, counts(player.hand), player.vp, player.acted)
+        fun of(player: Player) =
+            MyView(player.name, counts(player.hand), player.upgradedThisTurn.toSortedMap(), player.vp, player.acted)
     }
 }
 

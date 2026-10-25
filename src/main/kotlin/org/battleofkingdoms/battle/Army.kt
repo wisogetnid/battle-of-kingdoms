@@ -11,15 +11,15 @@ data class Army(val creatures: Map<CreatureType, Int> = emptyMap()) {
 
     /**
      * Strength in a duel: each creature's attack, plus [counterBonus] for each of my creatures
-     * whose countered creature is in this one [opponent]'s army.
+     * whose line counters a line in this one [opponent]'s army.
      */
     fun duelStrength(opponent: Army, counterBonus: Int): Int =
         creatures.entries.sumOf { (type, count) -> (type.attack + bonus(type, opponent, counterBonus)) * count }
 
     private fun bonus(type: CreatureType, opponent: Army, counterBonus: Int): Int {
-        val countered = type.counters ?: return 0
-        return when (countered) {
-            in opponent.creatures -> counterBonus
+        val countered = type.line?.counters ?: return 0
+        return when {
+            opponent.creatures.keys.any { it.line == countered } -> counterBonus
             else -> 0
         }
     }

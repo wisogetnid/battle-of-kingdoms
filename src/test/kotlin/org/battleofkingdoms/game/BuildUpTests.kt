@@ -1,10 +1,14 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.cards.CreatureType
+import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.CreatureType.BOW
+import org.battleofkingdoms.cards.CreatureType.HIGH_MAGE
 import org.battleofkingdoms.cards.CreatureType.HORDE
+import org.battleofkingdoms.cards.CreatureType.KNIGHT
 import org.battleofkingdoms.cards.CreatureType.MAGE
 import org.battleofkingdoms.cards.CreatureType.SWORD
+import org.battleofkingdoms.cards.CreatureType.WARBOW
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.cards.ResourceType.ESSENCE
@@ -126,6 +130,66 @@ class BuildUpTests {
     }
 
     @ParameterizedTest
+    @MethodSource("tier2Upgrades")
+    fun `a tier-2 upgrade consumes the settled tier-1 unit and one more resource, no Horde`(
+        into: CreatureType,
+        from: CreatureType,
+        resource: ResourceType,
+    ) {
+        val game = startedGame(hand = Hand.of(HORDE to 1, from to 1, resource to 1))
+
+        val upgraded = game.upgrade("anna", into)
+
+        assertEquals(Hand.of(HORDE to 1, into to 1), upgraded.player("anna").hand)
+        assertEquals(mapOf(into to 1), upgraded.player("anna").upgradedThisTurn)
+    }
+
+    @ParameterizedTest
+    @MethodSource("tier2Upgrades")
+    fun `a tier-2 upgrade without the tier-1 unit or its resource is a rule violation`(
+        into: CreatureType,
+        from: CreatureType,
+        resource: ResourceType,
+    ) {
+        assertFailsWith<RuleViolation> { startedGame(hand = Hand.of(HORDE to 2, resource to 2)).upgrade("anna", into) }
+        assertFailsWith<RuleViolation> { startedGame(hand = Hand.of(HORDE to 2, from to 1)).upgrade("anna", into) }
+    }
+
+    @ParameterizedTest
+    @MethodSource("tier2Upgrades")
+    fun `a unit upgraded this turn can't climb again until next turn`(
+        into: CreatureType,
+        from: CreatureType,
+        resource: ResourceType,
+    ) {
+        val sameTurn = startedGame(hand = Hand.of(HORDE to 1, resource to 2)).upgrade("anna", from)
+
+        assertFailsWith<RuleViolation> { sameTurn.upgrade("anna", into) }
+
+        val nextTurn = nextTurn(sameTurn)
+        assertEquals(emptyMap(), nextTurn.player("anna").upgradedThisTurn)
+        assertEquals(1, nextTurn.upgrade("anna", into).player("anna").hand.count(into))
+    }
+
+    @Test
+    fun `only units held since before this turn can climb`() {
+        val game = startedGame(hand = Hand.of(HORDE to 1, BOW to 1, WOOD to 3)).upgrade("anna", BOW)
+
+        val once = game.upgrade("anna", WARBOW) // the settled Bow
+        assertEquals(mapOf(BOW to 1, WARBOW to 1), once.player("anna").upgradedThisTurn)
+        assertFailsWith<RuleViolation> { once.upgrade("anna", WARBOW) } // only the fresh Bow is left
+    }
+
+    @Test
+    fun `upgrading into a tier-1 unit is tracked for this turn only`() {
+        val game = startedGame(hand = Hand.of(HORDE to 2, WOOD to 1, IRON to 1))
+            .upgrade("anna", BOW).upgrade("anna", SWORD)
+
+        assertEquals(mapOf(BOW to 1, SWORD to 1), game.player("anna").upgradedThisTurn)
+        assertEquals(emptyMap(), game.player("ben").upgradedThisTurn)
+    }
+
+    @ParameterizedTest
     @MethodSource("resources")
     fun `a trade swaps one resource for one Horde`(resource: ResourceType) {
         val game = startedGame(hand = Hand.of(HORDE to 1, resource to 2))
@@ -180,9 +244,20 @@ class BuildUpTests {
 
     private fun allReady(game: Game): Game = game.players.keys.fold(game) { g, name -> g.ready(name) }
 
+    /** Everyone readies and commits nothing: a tie, then the next turn's build-up. */
+    private fun nextTurn(game: Game): Game =
+        allReady(game).let { battle -> battle.players.keys.fold(battle) { g, name -> g.commitArmy(name, Army()) } }
+
     companion object {
         @JvmStatic
         fun resources() = ResourceType.entries.toList()
+
+        @JvmStatic
+        fun tier2Upgrades() = listOf(
+            Arguments.of(WARBOW, BOW, WOOD),
+            Arguments.of(KNIGHT, SWORD, IRON),
+            Arguments.of(HIGH_MAGE, MAGE, ESSENCE),
+        )
 
         @JvmStatic
         fun upgrades() = listOf(
