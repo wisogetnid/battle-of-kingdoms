@@ -28,6 +28,8 @@ class GameServer(private val config: GameConfig = GameConfig()) {
 
     fun trade(gameId: UUID, name: String, resource: ResourceType): Game = update(gameId) { it.trade(name, resource) }
 
+    fun transmute(gameId: UUID, name: String, resource: ResourceType): Game = update(gameId) { it.transmute(name, resource) }
+
     fun upgrade(gameId: UUID, name: String, into: CreatureType): Game = update(gameId) { it.upgrade(name, into) }
 
     fun ready(gameId: UUID, name: String): Game = update(gameId) { it.ready(name) }

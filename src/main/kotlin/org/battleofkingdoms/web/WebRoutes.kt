@@ -68,6 +68,10 @@ fun Route.webRoutes(server: GameServer) {
                     playerAction(server) { server.trade(gameId(), playerName(), it.enum<ResourceType>("resource")) }
                 }
 
+                post("/transmute") {
+                    playerAction(server) { server.transmute(gameId(), playerName(), it.enum<ResourceType>("resource")) }
+                }
+
                 post("/ready") {
                     playerAction(server) { server.ready(gameId(), playerName()) }
                 }

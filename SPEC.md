@@ -26,7 +26,7 @@ something about the stack that nobody else knows.
 the game, before any tier-2 unit could exist. Without a rollover every battle is worth the
 same, and artifacts make winning more interesting than collecting a point.
 
-**Scope rule:** start small to prove the mechanic. Exactly three artifacts, one of each, and
+**Scope rule:** start small to prove the mechanic. Exactly four artifacts, one of each, and
 nothing that makes the game longer to play through than it needs to be.
 
 **Done means:** a complete game with artifacts can be played over HTTP from start to
@@ -162,7 +162,8 @@ but loses to cleo.
 
 ### Prize and artifacts
 The **artifact stack** starts with the artifacts in `GameConfig.artifacts`: by default one
-each of the Resilient Banner, the Horn of Frenzy and the Famous Crown, face down.
+each of the Resilient Banner, the Horn of Frenzy, the Famous Crown and the Transmuter Stone,
+face down.
 
 1. **Draw:** when a battle has a winner and the stack isn't empty, one artifact is drawn
    uniformly at random from the stack with the seeded `Random` (the same as taking the top
@@ -183,6 +184,7 @@ each of the Resilient Banner, the Horn of Frenzy and the Famous Crown, face down
 | **Resilient Banner** | Casualties always round down: `floor(n / 2)`, win or lose. |
 | **Horn of Frenzy** | Each Horde in the owner's army gets +`frenzyBonus` (1) strength in every duel, on top of its attack (a Horde has no bonuses). |
 | **Famous Crown** | `crownHorde` (1) extra Horde in every turn's income. |
+| **Transmuter Stone** | Once per turn, during build-up before ready: swap one resource from the hand for one of the two other kinds, drawn uniformly at random with the seeded `Random`. |
 
 | Committed (n) | Won? | No artifact | Banner |
 |---|---|---|---|
@@ -221,7 +223,7 @@ player actions always produce the same game.
 JSON in and out (Ktor + Jackson, already in the build). Player names are trusted — no auth.
 Creature and resource names in JSON: `HORDE`, `BOW`, `SWORD`, `MAGE`, `WARBOW`, `KNIGHT`,
 `HIGH_MAGE`, `WOOD`, `IRON`, `ESSENCE`. Artifact names: `RESILIENT_BANNER`,
-`HORN_OF_FRENZY`, `FAMOUS_CROWN`.
+`HORN_OF_FRENZY`, `FAMOUS_CROWN`, `TRANSMUTER_STONE`.
 
 | Method & path | Body | Success | Purpose |
 |---|---|---|---|
@@ -230,6 +232,7 @@ Creature and resource names in JSON: `HORDE`, `BOW`, `SWORD`, `MAGE`, `WARBOW`, 
 | `GET /games/{id}?player={name}` | — | `200` player view (below) | Read the game as that player |
 | `POST /games/{id}/players/{name}/trades` | `{ "resource": "IRON" }` | `200` player view | Trade one resource for one Horde |
 | `POST /games/{id}/players/{name}/upgrades` | `{ "into": "WARBOW" }` | `200` player view | Upgrade one unit by one tier |
+| `POST /games/{id}/players/{name}/transmute` | `{ "resource": "WOOD" }` | `200` player view | The Transmuter Stone's owner swaps one resource |
 | `POST /games/{id}/players/{name}/ready` | — | `200` player view | Finish build-up |
 | `POST /games/{id}/players/{name}/army` | `{ "HORDE": 2, "KNIGHT": 1 }` (`{}` = commit nothing) | `200` player view | Commit to the battle |
 | `POST /games/{id}/players/{name}/claim` | `{ "take": "ARTIFACT" }` or `{ "take": "VICTORY_POINT" }` | `200` player view | The winner takes their prize |
@@ -246,7 +249,8 @@ this phase, my `artifacts`, and `drawnArtifact` (only while I'm the winner choos
 CLAIM, otherwise `null`); for every other player: name, VP, hand size, whether they've
 acted, and their `artifacts`; the battle log; the winner once the game is over; and
 `availableActions`, the actions I can take right now: `TRADE`, `UPGRADE` and `READY` during
-build-up until I'm ready, `COMMIT_ARMY` during the battle until I've committed, `CLAIM`
+build-up until I'm ready (plus `TRANSMUTE` if I own the Transmuter Stone and haven't used
+it this turn), `COMMIT_ARMY` during the battle until I've committed, `CLAIM`
 during CLAIM if I won the battle, otherwise none. `TRADE` and `UPGRADE` are listed by phase
 only, even if I can't currently afford one; `affordableUpgrades` lists the creatures I can
 upgrade into right now (I hold the unit and the resource, a tier-2 upgrade starts from a
@@ -425,7 +429,7 @@ The routing layer maps `RuleViolation` → 400, `WrongPhase` / `AlreadyActed` /
   changing files under `web/` beyond what keeps the build compiling.
 - **Never:** build anything from the one-pager's "Not Doing" list (marketplace, supporters,
   diplomacy, auth, persistence, deployment) or the out-of-scope items of this iteration:
-  more than three artifacts or more than one copy of any, artifacts committed to armies, trading, stealing or losing artifacts, any
+  more than four artifacts or more than one copy of any, artifacts committed to armies, trading, stealing or losing artifacts, any
   rollover, changes to tiers, bonuses, trading or the VP target, a third tier, simulation
   tooling, web UI features; let more than one player score in a battle; raise base attacks
   above 1 (the Horn of Frenzy's bonus is an artifact effect, not a base attack); add bonuses together; disable or skip tests to get to green; commit secrets.

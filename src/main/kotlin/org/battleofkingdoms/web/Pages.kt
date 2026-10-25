@@ -25,6 +25,7 @@ import kotlinx.html.ul
 import org.battleofkingdoms.cards.Artifact
 import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
 import org.battleofkingdoms.cards.Artifact.HORN_OF_FRENZY
+import org.battleofkingdoms.cards.Artifact.TRANSMUTER_STONE
 import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
@@ -33,6 +34,7 @@ import org.battleofkingdoms.game.Action.CLAIM as CLAIM_PRIZE
 import org.battleofkingdoms.game.Action.COMMIT_ARMY
 import org.battleofkingdoms.game.Action.READY
 import org.battleofkingdoms.game.Action.TRADE
+import org.battleofkingdoms.game.Action.TRANSMUTE
 import org.battleofkingdoms.game.Action.UPGRADE
 import org.battleofkingdoms.game.Phase
 import org.battleofkingdoms.game.Phase.BATTLE
@@ -169,6 +171,11 @@ private fun FlowContent.actions(view: PlayerView) {
             actionButton("$path/trades", "Trade 1 ${resource.displayName} for 1 Horde", "resource" to resource.name)
         }
     }
+    if (TRANSMUTE in view.availableActions) {
+        ResourceType.entries.filter { (view.me.hand[it.name] ?: 0) > 0 }.forEach { resource ->
+            actionButton("$path/transmute", "Transmute 1 ${resource.displayName} into a random other resource", "resource" to resource.name)
+        }
+    }
     if (READY in view.availableActions) actionButton("$path/ready", "Ready")
     if (COMMIT_ARMY in view.availableActions) armyForm(view, "$path/army")
     if (CLAIM_PRIZE in view.availableActions) claimForm(view, "$path/claim")
@@ -186,6 +193,7 @@ private fun effect(artifact: Artifact): String = when (artifact) {
     RESILIENT_BANNER -> "your casualties always round down"
     HORN_OF_FRENZY -> "every Horde in your army is stronger in every duel"
     FAMOUS_CROWN -> "extra Horde every turn"
+    TRANSMUTER_STONE -> "once per turn, swap one of your resources for a random other one"
 }
 
 /** A game without artifacts never mentions them. */

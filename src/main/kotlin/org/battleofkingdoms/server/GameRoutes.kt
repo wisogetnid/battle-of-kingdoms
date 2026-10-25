@@ -59,6 +59,13 @@ fun Route.gameRoutes(server: GameServer) {
                     }
                 }
 
+                post("/transmute") {
+                    respondOrError {
+                        val resource = call.receive<TransmuteRequest>().resource
+                        respondView(server.transmute(gameId(), playerName(), resource))
+                    }
+                }
+
                 post("/upgrades") {
                     respondOrError {
                         val into = call.receive<UpgradeRequest>().into

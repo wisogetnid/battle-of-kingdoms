@@ -6,6 +6,7 @@ import org.battleofkingdoms.battle.BattleResult
 import org.battleofkingdoms.battle.Prize
 import org.battleofkingdoms.cards.Artifact
 import org.battleofkingdoms.cards.Artifact.FAMOUS_CROWN
+import org.battleofkingdoms.cards.Artifact.TRANSMUTER_STONE
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
@@ -20,7 +21,7 @@ import kotlin.random.Random
 
 enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, CLAIM, GAME_OVER }
 
-enum class Action { TRADE, UPGRADE, READY, COMMIT_ARMY, CLAIM }
+enum class Action { TRADE, UPGRADE, READY, COMMIT_ARMY, CLAIM, TRANSMUTE }
 
 /** What a battle's winner chooses to take: the drawn artifact or the VP. */
 enum class Take { ARTIFACT, VICTORY_POINT }
@@ -63,6 +64,22 @@ data class Game(
             player.acted -> throw AlreadyActed(playerName)
             !player.hand.has(resource) -> throw RuleViolation("$playerName has no $resource to trade")
             else -> updatePlayer(player.copy(hand = player.hand - resource + HORDE))
+        }
+    }
+
+    /** The Transmuter Stone: once per turn, swaps one resource for a random one of the other kinds. */
+    fun transmute(playerName: String, resource: ResourceType): Game {
+        val player = player(playerName)
+        return when {
+            phase != BUILD_UP -> throw WrongPhase(phase)
+            player.acted -> throw AlreadyActed(playerName)
+            TRANSMUTER_STONE !in player.artifacts -> throw RuleViolation("$playerName doesn't own the Transmuter Stone")
+            player.transmutedThisTurn -> throw RuleViolation("$playerName already used the Transmuter Stone this turn")
+            !player.hand.has(resource) -> throw RuleViolation("$playerName has no $resource to transmute")
+            else -> {
+                val others = ResourceType.entries - resource
+                updatePlayer(player.copy(hand = player.hand - resource + others[random.nextInt(others.size)], transmutedThisTurn = true))
+            }
         }
     }
 
@@ -148,12 +165,15 @@ data class Game(
         val player = player(playerName)
         return when {
             player.acted -> emptyList()
-            phase == BUILD_UP -> listOf(Action.TRADE, Action.UPGRADE, Action.READY)
+            phase == BUILD_UP -> listOfNotNull(Action.TRADE, Action.UPGRADE, Action.TRANSMUTE.takeIf { canTransmute(player) }, Action.READY)
             phase == BATTLE -> listOf(Action.COMMIT_ARMY)
             phase == CLAIM && playerName == battleLog.last().winner -> listOf(Action.CLAIM)
             else -> emptyList()
         }
     }
+
+    /** Listed while the Stone is unused this turn, whatever resources the owner holds. */
+    private fun canTransmute(player: Player): Boolean = TRANSMUTER_STONE in player.artifacts && !player.transmutedThisTurn
 
     private fun owns(player: Player, army: Army): Boolean =
         army.creatures.all { (type, count) -> player.hand.has(type, count) }
@@ -241,7 +261,7 @@ data class Game(
         val horde = config.baseCreaturesPerTurn + startingHorde(turn) + crownHorde(player)
         val hand = (1..config.resourcesPerTurn)
             .fold(player.hand.add(HORDE, horde)) { hand, _ -> hand + drawResource() }
-        return player.copy(hand = hand, acted = false, upgradedThisTurn = emptyMap())
+        return player.copy(hand = hand, acted = false, upgradedThisTurn = emptyMap(), transmutedThisTurn = false)
     }
 
     private fun startingHorde(turn: Int): Int = when (turn) {

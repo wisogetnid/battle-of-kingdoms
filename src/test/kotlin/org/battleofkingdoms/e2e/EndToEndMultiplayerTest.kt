@@ -1,5 +1,6 @@
 package org.battleofkingdoms.e2e
 
+import org.battleofkingdoms.cards.Artifact
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
@@ -57,7 +58,7 @@ class EndToEndMultiplayerTest {
             val taken = prizes.filter { it != "VICTORY_POINT" }
             assertEquals(1, taken.size, "anna takes exactly one artifact: $prizes")
             assertEquals(taken, final["me"]["artifacts"].map { it.asText() })
-            assertEquals(2, final["artifactsInStack"].asInt())
+            assertEquals(Artifact.entries.size - 1, final["artifactsInStack"].asInt())
             assertTrue(prizes.count { it == "VICTORY_POINT" } >= 3, "taking the VP with artifacts left declines one: $prizes")
         }
 

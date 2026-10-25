@@ -24,7 +24,7 @@ class ClaimRoutesTests {
         assertEquals("CLAIM", anna["phase"].asText())
         assertTrue(drawn in Artifact.entries.map { it.name })
         assertEquals(listOf("CLAIM"), anna["availableActions"].map { it.asText() })
-        assertEquals(3, anna["artifactsInStack"].asInt())
+        assertEquals(4, anna["artifactsInStack"].asInt())
         assertTrue(anna["battleLog"].single()["prize"].isNull)
         listOf("ben", "cleo").forEach { name ->
             val view = api.view(gameId, name)
@@ -43,7 +43,7 @@ class ClaimRoutesTests {
 
         assertEquals(1, mine["me"]["vp"].asInt())
         assertEquals("BUILD_UP", mine["phase"].asText())
-        assertEquals(3, mine["artifactsInStack"].asInt())
+        assertEquals(4, mine["artifactsInStack"].asInt())
         PLAYERS.forEach { name ->
             val view = api.view(gameId, name)
             assertEquals("VICTORY_POINT", view["battleLog"].single()["prize"].asText())
@@ -63,7 +63,7 @@ class ClaimRoutesTests {
         assertTrue(mine["me"]["drawnArtifact"].isNull)
         listOf("ben", "cleo").forEach { name ->
             val view = api.view(gameId, name)
-            assertEquals(2, view["artifactsInStack"].asInt())
+            assertEquals(3, view["artifactsInStack"].asInt())
             assertEquals(drawn, view["battleLog"].single()["prize"].asText())
             assertEquals(listOf(drawn), others(view, "anna")["artifacts"].map { it.asText() })
         }
@@ -105,6 +105,21 @@ class ClaimRoutesTests {
         assertEquals(HttpStatusCode.Created, created.status)
 
         assertEquals(0, api.view(TestApi.json(created)["gameId"].asText(), "anna")["artifactsInStack"].asInt())
+    }
+
+    @Test
+    fun `the Transmuter Stone's owner transmutes over HTTP, once per turn`() = apiTest(GameConfig(artifacts = listOf(Artifact.TRANSMUTER_STONE))) { api ->
+        val gameId = annaWins(api)
+        val mine = claim(api, gameId, "anna", "ARTIFACT")
+        assertTrue("TRANSMUTE" in mine["availableActions"].map { it.asText() })
+        val resource = listOf("WOOD", "IRON", "ESSENCE").first { mine["me"]["hand"].path(it).asInt(0) > 0 }
+
+        val response = api.post("/games/$gameId/players/anna/transmute", mapOf("resource" to resource))
+
+        assertEquals(HttpStatusCode.OK, response.status, TestApi.json(response).toString())
+        assertEquals(mine["me"]["hand"][resource].asInt() - 1, TestApi.json(response)["me"]["hand"].path(resource).asInt(0))
+        assertError(HttpStatusCode.BadRequest, api.post("/games/$gameId/players/anna/transmute", mapOf("resource" to resource)))
+        assertError(HttpStatusCode.BadRequest, api.post("/games/$gameId/players/ben/transmute", mapOf("resource" to "WOOD")))
     }
 
     /** Starts a game; everyone readies, anna commits 1 Horde and the others nothing, so she wins uncontested. */

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.server.testing.testApplication
 import kotlinx.html.html
 import kotlinx.html.stream.createHTML
+import org.battleofkingdoms.cards.Artifact.TRANSMUTER_STONE
 import org.battleofkingdoms.cards.CreatureType.HIGH_MAGE
 import org.battleofkingdoms.cards.ResourceType.WOOD
 import org.battleofkingdoms.game.GameConfig
@@ -472,7 +473,7 @@ class WebRoutesTests {
             val html = client.gamePage(gameId, name)
             assertTrue(html.contains("anna won and is choosing a prize."), html)
             assertTrue(html.contains("Waiting for the battle's winner to take a prize."), html)
-            assertTrue(html.contains("Artifacts left in the stack: 3"), html)
+            assertTrue(html.contains("Artifacts left in the stack: 4"), html)
             assertFalse(html.contains(drawn), "$name must not see the drawn $drawn:\n$html")
         }
     }
@@ -489,7 +490,7 @@ class WebRoutesTests {
         assertTrue(html.contains("anna won the $drawn."), html)
         assertTrue(html.contains("anna: 0 VP"), html)
         assertTrue(html.contains(", $drawn"), html)
-        assertTrue(html.contains("Artifacts left in the stack: 2"), html)
+        assertTrue(html.contains("Artifacts left in the stack: 3"), html)
     }
 
     @Test
@@ -503,7 +504,7 @@ class WebRoutesTests {
         listOf("anna", "ben", "cleo").forEach { name ->
             val html = client.gamePage(gameId, name)
             assertTrue(html.contains("anna won 1 VP."), html)
-            assertTrue(html.contains("Artifacts left in the stack: 3"), html)
+            assertTrue(html.contains("Artifacts left in the stack: 4"), html)
             assertFalse(html.contains(drawn), "$name's page names the declined $drawn:\n$html")
         }
     }
@@ -514,6 +515,23 @@ class WebRoutesTests {
 
         page(client.post("/ui/games/$gameId/players/ben/claim", "take" to "VICTORY_POINT"), HttpStatusCode.Conflict)
         page(client.post("/ui/games/$gameId/players/anna/claim", "take" to "FAMOUS_CROWN"), HttpStatusCode.BadRequest)
+    }
+
+    @Test
+    fun `the Transmuter Stone's owner gets a transmute button per resource`() = webTest(GameConfig(artifacts = listOf(TRANSMUTER_STONE))) { client ->
+        val gameId = annaWins(client, artifacts = true)
+        seeOther(client.post("/ui/games/$gameId/players/anna/claim", "take" to "ARTIFACT"))
+
+        val held = RESOURCES.filter { client.view(gameId, "anna")["hand"].path(it).asInt(0) > 0 }
+        val html = client.gamePage(gameId, "anna")
+        held.forEach { assertTrue(html.contains("Transmute 1 ${displayName(it)} into a random other resource"), html) }
+        assertFalse(client.gamePage(gameId, "ben").contains("Transmute 1 "))
+
+        val before = client.view(gameId, "anna")["hand"]
+        seeOther(client.post("/ui/games/$gameId/players/anna/transmute", "resource" to held.first()))
+        val after = client.view(gameId, "anna")["hand"]
+        assertEquals(before.path(held.first()).asInt() - 1, after.path(held.first()).asInt(0))
+        assertFalse(client.gamePage(gameId, "anna").contains("Transmute 1 "), "once per turn")
     }
 
     /** Everyone readies; anna commits 1 Horde and the others nothing, so she wins uncontested. */

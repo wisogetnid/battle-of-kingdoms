@@ -25,6 +25,8 @@ data class JoinRequest(val name: String)
 
 data class TradeRequest(val resource: ResourceType)
 
+data class TransmuteRequest(val resource: ResourceType)
+
 data class UpgradeRequest(val into: CreatureType)
 
 data class ClaimRequest(val take: Take)

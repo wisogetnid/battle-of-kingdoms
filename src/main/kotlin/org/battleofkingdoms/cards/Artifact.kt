@@ -10,4 +10,7 @@ enum class Artifact {
 
     /** Extra Horde in its owner's income every turn. */
     FAMOUS_CROWN,
+
+    /** Once per turn, its owner swaps one resource for a random one of the other kinds. */
+    TRANSMUTER_STONE,
 }
