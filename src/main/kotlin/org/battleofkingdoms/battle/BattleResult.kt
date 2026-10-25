@@ -24,12 +24,16 @@ data class Duel(
     }
 }
 
-/** The outcome of one battle, which is also its battle log entry. */
+/** The outcome of one battle, which is also its battle log entry; [pot] is the VP it was worth. */
 data class BattleResult(
-    val pot: Int,
+    val pot: Int = 0,
     val winner: String?,
     val armies: Map<String, ArmyResult>,
     val duels: List<Duel>,
 ) {
-    val rolledOver: Boolean get() = winner == null
+    /** The battle was worth [pot] VP: the winner, if any, gains them; with no winner nobody does. */
+    fun paid(pot: Int): BattleResult = copy(
+        pot = pot,
+        armies = armies.mapValues { (name, army) -> if (name == winner) army.copy(vpGained = pot) else army },
+    )
 }

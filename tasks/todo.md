@@ -22,7 +22,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint 0 — build green; the bonus table in SPEC.md, README and the playtest agree; empty armies sit out
 
 ## Phase 1 — Rules in the engine
-- [ ] **T1. A tie gives nothing; the game awards the VP**
+- [x] **T1. A tie gives nothing; the game awards the VP**
   - Acceptance: `GameConfig.victoryPointsPerBattle = 1`; `pot` is always that value (no rollover, no growth); a tie changes nobody's VP and the next battle is worth 1; `Battle.resolve` no longer takes a pot and `Game` sets the winner's `vpGained`; `BattleResult.rolledOver` is gone; rollover tests are rewritten to "a tie gives nothing"; a lone committer's uncontested win (B3) also scores 1 VP; the playtest's "rolls over" and "double pot" comments stay stale until T7 re-derives it
   - Verify: `mise run build`; `grep -rn rolledOver src` finds nothing
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`

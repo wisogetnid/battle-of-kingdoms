@@ -25,13 +25,13 @@ private val TIER_2 = mapOf("BOW" to ("WARBOW" to "WOOD"), "SWORD" to ("KNIGHT" t
  * - anna upgrades every Horde she can into tier-1 units and keeps those at home, then upgrades
  *   settled tier-1 units into tier 2 when she draws the resource. She commits only her tier-2
  *   units, which get the tier-2 bonus against the others' Horde; without any yet (always on
- *   turn 1) she commits nothing, the others tie and the pot rolls over.
+ *   turn 1) she commits nothing, the others tie and nobody scores.
  */
 class EndToEndMultiplayerTest {
 
     @ParameterizedTest(name = "{0} players")
     @ValueSource(ints = [3, 5])
-    fun `a seeded game with a rollover, trades and tier-2 units is played over HTTP to 3 VP`(playerCount: Int) =
+    fun `a seeded game with a tie, trades and tier-2 units is played over HTTP to 3 VP`(playerCount: Int) =
         apiTest { api ->
             val players = NAMES.take(playerCount)
 
@@ -44,7 +44,7 @@ class EndToEndMultiplayerTest {
             assertTrue(trades > 0, "the others should have traded")
             val log = final["battleLog"].toList()
             assertTrue(log.first()["winner"].isNull, "turn 1 should be a tie")
-            assertEquals(2, log[1]["pot"].asInt(), "the tied victory point should roll over")
+            assertEquals(1, log[1]["pot"].asInt(), "a tie shouldn't roll over")
             val committed = log.first()["armies"].count { !it["army"].isEmpty }
             assertEquals(players.size - 1, committed, "anna sits out turn 1")
             assertEquals(committed * (committed - 1) / 2, log.first()["duels"].size(), "only committed armies duel")

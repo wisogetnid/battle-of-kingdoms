@@ -57,7 +57,7 @@ class BattleTurnTests {
     }
 
     @Test
-    fun `the winner takes the pot`() {
+    fun `the winner gains the battle's VP`() {
         val game = battle(anna = Hand.of(HORDE to 3), ben = Hand.of(HORDE to 1), cleo = Hand.of(HORDE to 1))
             .commitArmy("anna", Army.of(HORDE to 3))
             .commitArmy("ben", Army.of(HORDE to 1))
@@ -84,7 +84,7 @@ class BattleTurnTests {
     }
 
     @Test
-    fun `a tie rolls the pot over into the next turn`() {
+    fun `a tie gives nothing and the next battle is still worth 1`() {
         val game = battle(anna = Hand.of(HORDE to 1), ben = Hand.of(HORDE to 1))
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army.of(HORDE to 1))
@@ -92,17 +92,40 @@ class BattleTurnTests {
 
         assertNull(game.battleLog.single().winner)
         assertEquals(0, game.players.values.sumOf { it.vp })
-        assertEquals(2, game.pot)
+        assertEquals(1, game.battleLog.single().pot)
+        assertEquals(1, game.pot)
     }
 
     @Test
-    fun `after a win the next turn starts with a fresh pot of 1`() {
+    fun `after a win the next battle is worth 1 again`() {
         val game = battle(anna = Hand.of(HORDE to 1))
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army())
             .commitArmy("cleo", Army())
 
         assertEquals(1, game.pot)
+    }
+
+    @Test
+    fun `a lone committer's uncontested win scores the battle's VP`() {
+        val game = battle(anna = Hand.of(HORDE to 1))
+            .commitArmy("anna", Army.of(HORDE to 1))
+            .commitArmy("ben", Army())
+            .commitArmy("cleo", Army())
+
+        assertEquals("anna", game.battleLog.single().winner)
+        assertEquals(1, game.player("anna").vp)
+    }
+
+    @Test
+    fun `the VP per battle comes from the config`() {
+        val game = battle(anna = Hand.of(HORDE to 1), config = GameConfig(victoryPointsPerBattle = 2))
+            .commitArmy("anna", Army.of(HORDE to 1))
+            .commitArmy("ben", Army())
+            .commitArmy("cleo", Army())
+
+        assertEquals(2, game.player("anna").vp)
+        assertEquals(2, game.battleLog.single().pot)
     }
 
     @Test

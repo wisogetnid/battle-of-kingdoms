@@ -18,12 +18,12 @@ private const val MAX_TURNS = 30
  * every turn ben and cleo trade all their resources for Horde and commit 1 Horde. anna upgrades
  * every Horde she can into tier-1 units and keeps them home, upgrades settled tier-1 units into
  * tier 2 when she draws the resource, and commits only her tier-2 units. While she has none she
- * commits nothing, so ben and cleo tie and the pot rolls over (always on turn 1).
+ * commits nothing, so ben and cleo tie and nobody scores (always on turn 1).
  */
 class FullGameTests {
 
     @Test
-    fun `a seeded 3-player game with a rollover, trades and tier-2 units plays to 3 VP`() {
+    fun `a seeded 3-player game with a tie, trades and tier-2 units plays to 3 VP`() {
         val (game, trades) = play()
 
         assertEquals(GAME_OVER, game.phase)
@@ -34,7 +34,8 @@ class FullGameTests {
         val first = game.battleLog.first()
         assertNull(first.winner)
         assertEquals(1, first.pot)
-        assertEquals(2, game.battleLog[1].pot)
+        assertEquals(1, game.battleLog[1].pot)
+        assertTrue(game.battleLog.filter { it.winner == null }.all { log -> log.armies.values.all { it.vpGained == 0 } })
         val annasArmies = game.battleLog.map { it.armies.getValue("anna").army }
         assertTrue(annasArmies.any { army -> army.creatures.keys.any { it.tier == 2 } }, "anna should field a tier-2 unit")
     }

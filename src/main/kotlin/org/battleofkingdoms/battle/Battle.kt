@@ -7,10 +7,11 @@ import kotlin.random.Random
  * Resolves one battle as a round robin among the players who committed something: every pair
  * of them fights one duel, and each player's score is the sum of their duel margins. Players
  * who committed nothing sit out with score 0. Pure: the only randomness is [Random], consumed
- * for casualties per player in the iteration order of `commits`, after all duels.
+ * for casualties per player in the iteration order of `commits`, after all duels. Victory points
+ * aren't the battle's business: the game pays the winner with [BattleResult.paid].
  */
 object Battle {
-    fun resolve(commits: Map<String, Army>, pot: Int, bonuses: Bonuses, random: Random): BattleResult {
+    fun resolve(commits: Map<String, Army>, bonuses: Bonuses, random: Random): BattleResult {
         val fighting = commits.filterValues { it.size > 0 }
         val duels = roundRobin(fighting, bonuses)
         val scores = commits.keys.associateWith { name -> duels.sumOf { it.margin(name) } }
@@ -23,10 +24,10 @@ object Battle {
                 score = scores.getValue(name),
                 casualties = casualties,
                 survivors = survivors(army, casualties),
-                vpGained = if (won) pot else 0,
+                vpGained = 0,
             )
         }
-        return BattleResult(pot, winner, armies, duels)
+        return BattleResult(winner = winner, armies = armies, duels = duels)
     }
 
     /** Every pair of committed armies once, in the iteration order of [commits]. */

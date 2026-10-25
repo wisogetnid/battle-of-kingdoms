@@ -18,7 +18,8 @@ class GameConfigTests {
     }
 
     @Test
-    fun `a game runs to 3 VP by default`() {
+    fun `a game runs to 3 VP, 1 per battle, by default`() {
         assertEquals(3, GameConfig().victoryPointsToWin)
+        assertEquals(1, GameConfig().victoryPointsPerBattle)
     }
 }

@@ -124,8 +124,8 @@ class BattleTests {
         val commits = mapOf("anna" to Army.of(SWORD to 2), "ben" to Army.of(BOW to 1, HORDE to 1))
         val none = Bonuses(0, 0, 0, 0, 0, 0)
 
-        Assertions.assertNull(Battle.resolve(commits, pot = 1, none, Random(SEED)).winner)
-        Assertions.assertEquals("anna", Battle.resolve(commits, pot = 1, BONUSES, Random(SEED)).winner)
+        Assertions.assertNull(Battle.resolve(commits, none, Random(SEED)).winner)
+        Assertions.assertEquals("anna", Battle.resolve(commits, BONUSES, Random(SEED)).winner)
     }
 
     @ParameterizedTest(name = "{2}")
@@ -144,21 +144,28 @@ class BattleTests {
     }
 
     @Test
-    fun `the winner gains the whole pot`() {
-        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1), "cleo" to Army()), pot = 3)
+    fun `resolving a battle gives nobody VP`() {
+        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1), "cleo" to Army()))
+
+        Assertions.assertEquals("anna", result.winner)
+        Assertions.assertTrue(result.armies.values.all { it.vpGained == 0 })
+    }
+
+    @Test
+    fun `a paid battle gives its VP to the winner only`() {
+        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1), "cleo" to Army())).paid(3)
 
         Assertions.assertEquals(mapOf("anna" to 3, "ben" to 0, "cleo" to 0), result.armies.mapValues { it.value.vpGained })
-        Assertions.assertFalse(result.rolledOver)
         Assertions.assertEquals(3, result.pot)
     }
 
     @Test
-    fun `with no winner nobody gains VP and the pot rolls over`() {
-        val result = resolve(mapOf("anna" to Army.of(HORDE to 2), "ben" to Army.of(HORDE to 2), "cleo" to Army()), pot = 2)
+    fun `with no winner a paid battle gives nobody VP`() {
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 2), "ben" to Army.of(HORDE to 2), "cleo" to Army())).paid(1)
 
+        Assertions.assertNull(result.winner)
         Assertions.assertTrue(result.armies.values.all { it.vpGained == 0 })
-        Assertions.assertTrue(result.rolledOver)
-        Assertions.assertEquals(2, result.pot)
+        Assertions.assertEquals(1, result.pot)
     }
 
     @ParameterizedTest(name = "{3}")
@@ -179,7 +186,7 @@ class BattleTests {
     @MethodSource("seeds")
     fun `casualties and survivors split the committed army`(seed: Long) {
         val army = Army.of(HORDE to 3, BOW to 2, SWORD to 2, MAGE to 1)
-        val result = Battle.resolve(mapOf("anna" to army, "ben" to Army.of(HORDE to 1)), pot = 1, BONUSES, Random(seed))
+        val result = Battle.resolve(mapOf("anna" to army, "ben" to Army.of(HORDE to 1)), BONUSES, Random(seed))
             .armies.getValue("anna")
 
         CreatureType.entries.forEach { type ->
@@ -190,9 +197,9 @@ class BattleTests {
     @Test
     fun `casualties are picked by the seeded random`() {
         val commits = mapOf("anna" to Army.of(HORDE to 2, BOW to 2), "ben" to Army.of(HORDE to 1, SWORD to 1, MAGE to 1))
-        val outcomes = (0L..20L).map { seed -> Battle.resolve(commits, pot = 1, BONUSES, Random(seed)).armies.mapValues { it.value.casualties } }
+        val outcomes = (0L..20L).map { seed -> Battle.resolve(commits, BONUSES, Random(seed)).armies.mapValues { it.value.casualties } }
 
-        Assertions.assertEquals(outcomes, (0L..20L).map { seed -> Battle.resolve(commits, pot = 1, BONUSES, Random(seed)).armies.mapValues { it.value.casualties } })
+        Assertions.assertEquals(outcomes, (0L..20L).map { seed -> Battle.resolve(commits, BONUSES, Random(seed)).armies.mapValues { it.value.casualties } })
         Assertions.assertTrue(outcomes.distinct().size > 1, "different seeds should pick different casualties")
     }
 
@@ -200,7 +207,7 @@ class BattleTests {
     fun `a fixed seed always picks the same casualties`() {
         val commits = mapOf("anna" to Army.of(HORDE to 3, BOW to 2), "ben" to Army.of(HORDE to 1, SWORD to 1, BOW to 1))
 
-        val result = Battle.resolve(commits, pot = 1, BONUSES, Random(42))
+        val result = Battle.resolve(commits, BONUSES, Random(42))
 
         Assertions.assertEquals("anna", result.winner)
         Assertions.assertEquals(Army.of(HORDE to 1, BOW to 1), result.armies.getValue("anna").casualties)
@@ -216,7 +223,7 @@ class BattleTests {
         Assertions.assertEquals(commits, result.armies.mapValues { it.value.army })
     }
 
-    private fun resolve(commits: Map<String, Army>, pot: Int = 1) = Battle.resolve(commits, pot, BONUSES, Random(SEED))
+    private fun resolve(commits: Map<String, Army>) = Battle.resolve(commits, BONUSES, Random(SEED))
 
     private fun count(army: Army, type: CreatureType) = army.creatures[type] ?: 0
 

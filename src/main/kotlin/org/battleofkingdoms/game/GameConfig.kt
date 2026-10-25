@@ -14,6 +14,7 @@ data class GameConfig(
     val tier2VsCounteredTier1: Int = 4,
     val tier2VsOtherTier1: Int = 2,
     val tier2VsCounteredTier2: Int = 2,
+    val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
 ) {
     val bonuses: Bonuses

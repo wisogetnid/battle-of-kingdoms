@@ -134,9 +134,8 @@ data class Game(
 
     /** Commits are resolved in join order, so the casualty draws don't depend on who committed first. */
     private fun resolveBattle(): Game {
-        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, pot, config.bonuses, random)
+        val result = Battle.resolve(players.keys.associateWith { commits.getValue(it) }, config.bonuses, random).paid(pot)
         val resolved = copy(
-            pot = if (result.rolledOver) pot else 0,
             players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
             commits = emptyMap(),
             battleLog = battleLog + result,
@@ -178,7 +177,7 @@ data class Game(
         return copy(
             phase = BUILD_UP,
             turn = nextTurn,
-            pot = pot + 1,
+            pot = config.victoryPointsPerBattle,
             players = players.mapValues { (_, player) -> payIncome(player, nextTurn) },
         )
     }
