@@ -1,9 +1,11 @@
 package org.battleofkingdoms.game
 
+import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType.IRON
 import org.battleofkingdoms.cards.ResourceType.WOOD
+import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
 import org.battleofkingdoms.player.Player
@@ -30,6 +32,39 @@ data class Game(
         phase != WAITING_FOR_PLAYERS -> throw WrongPhase(phase)
         name in players -> throw DuplicatePlayer(name)
         else -> copy(players = players + (name to Player(name))).startWhenFull()
+    }
+
+    fun upgrade(playerName: String, into: CreatureType): Game {
+        val player = player(playerName)
+        val resource = into.upgradeResource ?: throw RuleViolation("Nothing can be upgraded into $into")
+        return when {
+            phase != BUILD_UP -> throw WrongPhase(phase)
+            player.acted -> throw AlreadyActed(playerName)
+            !player.hand.has(HORDE) || !player.hand.has(resource) ->
+                throw RuleViolation("$playerName needs 1 Horde and 1 $resource to upgrade into $into")
+            else -> updatePlayer(player.copy(hand = player.hand - HORDE - resource + into))
+        }
+    }
+
+    fun ready(playerName: String): Game {
+        val player = player(playerName)
+        return when {
+            phase != BUILD_UP -> throw WrongPhase(phase)
+            player.acted -> throw AlreadyActed(playerName)
+            else -> updatePlayer(player.copy(acted = true)).startBattleWhenAllReady()
+        }
+    }
+
+    fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
+
+    private fun updatePlayer(player: Player): Game = copy(players = players + (player.name to player))
+
+    private fun startBattleWhenAllReady(): Game = when {
+        players.values.all { it.acted } -> copy(
+            phase = BATTLE,
+            players = players.mapValues { (_, player) -> player.copy(acted = false) },
+        )
+        else -> this
     }
 
     private fun startWhenFull(): Game = when (players.size) {

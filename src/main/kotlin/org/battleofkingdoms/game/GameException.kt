@@ -11,3 +11,7 @@ class WrongPhase(phase: Phase) : GameException("Not allowed during $phase")
 class DuplicatePlayer(name: String) : GameException("$name has already joined")
 
 class UnknownGame(id: UUID) : GameException("No game $id")
+
+class UnknownPlayer(name: String) : GameException("No player $name in this game")
+
+class AlreadyActed(name: String) : GameException("$name has already acted this phase")

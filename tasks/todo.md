@@ -22,7 +22,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.game.*'`
   - Files: `game/Game.kt`, `game/GameConfig.kt`, `game/GameException.kt`, `player/Player.kt`, `server/GameServer.kt` (+ remove `game/Board.kt`, `EndToEnd2PlayerUnitTest.kt`)
 
-- [ ] **T4. Build-up: upgrade and ready**
+- [x] **T4. Build-up: upgrade and ready**
   - Acceptance: upgrade consumes 1 Horde + matching resource; fails with `RuleViolation` when either is missing, `WrongPhase` outside build-up, `AlreadyActed` after ready; all ready → `BATTLE`
   - Verify: `./gradlew test --tests 'org.battleofkingdoms.game.*'`
   - Files: `game/Game.kt`, `game/BuildUpTests.kt`
