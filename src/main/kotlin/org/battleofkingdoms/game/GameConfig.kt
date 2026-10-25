@@ -9,9 +9,9 @@ data class GameConfig(
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
     val tier1VsHorde: Int = 2,
-    val tier2VsHorde: Int = 3,
+    val tier2VsHorde: Int = 5,
     val sameTierCounter: Int = 1,
-    val higherTierCounter: Int = 2,
+    val higherTierCounter: Int = 3,
     val victoryPointsToWin: Int = 5,
 ) {
     val bonuses: Bonuses get() = Bonuses(tier1VsHorde, tier2VsHorde, sameTierCounter, higherTierCounter)

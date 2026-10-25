@@ -74,10 +74,10 @@ class BattleTests {
         )
 
         Assertions.assertEquals(
-            listOf(Duel("anna", "ben", 6, 7), Duel("anna", "cleo", 3, 7), Duel("ben", "cleo", 3, 7)),
+            listOf(Duel("anna", "ben", 8, 7), Duel("anna", "cleo", 3, 9), Duel("ben", "cleo", 3, 9)),
             result.duels,
         )
-        Assertions.assertEquals(mapOf("anna" to -5, "ben" to -3, "cleo" to 8), result.armies.mapValues { it.value.score })
+        Assertions.assertEquals(mapOf("anna" to -5, "ben" to -7, "cleo" to 12), result.armies.mapValues { it.value.score })
         Assertions.assertEquals("cleo", result.winner)
     }
 
@@ -192,7 +192,7 @@ class BattleTests {
 
     companion object {
         private const val SEED = 7L
-        private val BONUSES = Bonuses(tier1VsHorde = 2, tier2VsHorde = 3, sameTierCounter = 1, higherTierCounter = 2)
+        private val BONUSES = Bonuses(tier1VsHorde = 2, tier2VsHorde = 5, sameTierCounter = 1, higherTierCounter = 3)
 
         @JvmStatic
         fun winners() = listOf(

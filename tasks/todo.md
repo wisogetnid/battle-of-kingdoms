@@ -3,10 +3,10 @@
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 1 — Numbers
-- [ ] **T1. Stronger tier 2**
+- [x] **T1. Stronger tier 2**
   - Acceptance: `GameConfig` defaults to `tier2VsHorde = 5` and `higherTierCounter = 3`; every tier-2 cell of the bonus table (vs Horde +5, vs the tier-1 unit it counters +3, vs the tier-2 unit it counters +1) passes for all three lines; the tier-2 strength cases (one bonus against many Horde, best of several, never the sum) and the worked example (duels 8:7, 3:9, 3:9; scores −5, −7, +12; cleo wins) are re-derived; the equal-cost duel test passes (one tier-2 unit 6 > tier 1 + Horde 4 > 3 Horde 3); a test pins `GameConfig()` bonus defaults to the spec
   - Verify: `mise run build`; `git diff --stat` shows `GameConfig.kt` as the only production file
-  - Files: `game/GameConfig.kt`, `battle/ArmyTests.kt`, `battle/BattleTests.kt`, `game/LobbyTests.kt` (config defaults), plus any seeded test whose outcome changes
+  - Files: `game/GameConfig.kt`, `battle/ArmyTests.kt`, `battle/BattleTests.kt`, `game/GameConfigTests.kt` (new, config defaults), plus any seeded test whose outcome changes
 
 - [ ] **T2. Race to 3 VP**
   - Acceptance: `GameConfig` defaults to `victoryPointsToWin = 3`; the player view shows 3; `FullGameTests` and both end-to-end games (3 and 5 players) end in `GAME_OVER` with anna on at least 3 VP, a turn-1 rollover, at least one trade and a tier-2 unit in a committed army; same-seed replays give identical logs; test names say 3 VP
