@@ -118,7 +118,7 @@ class ApplicationKtTests {
         assertEquals(1, view["turn"].asInt())
         assertEquals(1, view["pot"].asInt())
         assertEquals("anna", view["me"]["name"].asText())
-        assertEquals(4, view["me"]["hand"]["HORDE"].asInt())
+        assertEquals(1, view["me"]["hand"]["HORDE"].asInt())
         val resources = listOf("WOOD", "IRON", "ESSENCE").sumOf { view["me"]["hand"].path(it).asInt(0) }
         assertEquals(2, resources)
         assertEquals(listOf("TRADE", "UPGRADE", "READY"), view["availableActions"].map { it.asText() })
@@ -136,7 +136,7 @@ class ApplicationKtTests {
         assertEquals(listOf("ben", "cleo"), others.map { it["name"].asText() })
         others.forEach { other ->
             assertEquals(setOf("name", "vp", "handSize", "acted"), other.fieldNames().asSequence().toSet())
-            assertEquals(6, other["handSize"].asInt())
+            assertEquals(3, other["handSize"].asInt()) // 1 Horde + 2 resources
         }
         assertFalse(view.toString().contains("commits"))
     }

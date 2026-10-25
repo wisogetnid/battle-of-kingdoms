@@ -54,7 +54,8 @@ WAITING_FOR_PLAYERS ──(game full)──▶ BUILD_UP ──(all ready)──�
 
 1. **Income** (start of every turn): each player receives `baseCreaturesPerTurn` Horde and
    `resourcesPerTurn` resources. On turn 1, each player additionally receives
-   `startingHorde` Horde. Income is the same for every player.
+   `startingHorde` Horde (0 by default, so turn 1 deals 1 Horde and 2 resources). Income is
+   the same for every player.
 2. **Build-up:** a player may trade and upgrade any number of times, in any order, then marks
    ready. Once ready, a player can't trade or upgrade again this turn.
 3. **Victory point:** one victory point (VP) is added to the pot each turn (pot starts at 0,
@@ -143,7 +144,7 @@ All numbers live in one object; nothing in the rules above is hard-coded elsewhe
 data class GameConfig(
     val minPlayers: Int = 3,
     val maxPlayers: Int = 5,
-    val startingHorde: Int = 3,
+    val startingHorde: Int = 0,
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
     val tier1VsHorde: Int = 2,
@@ -214,7 +215,7 @@ Games live in memory; restarting the server loses them.
 ## Changes from Iteration 2
 | Area | Iteration 2 | Iteration 3 |
 |---|---|---|
-| Income | 1 Horde + 1 per renown, 2 resources | 1 Horde, 2 resources, the same for everyone |
+| Income | 1 Horde + 1 per renown, 2 resources; 3 extra Horde on turn 1 | 1 Horde, 2 resources, the same for everyone; no extra Horde on turn 1 (`startingHorde = 0`) |
 | Renown | +1 per battle fought, permanent extra income | **Removed** (`Player.renown`, `renownPerBattle`, `gainedRenown`, view fields) |
 | Trading | — | 1 resource → 1 Horde during build-up; new route and `TRADE` action |
 | Creatures | Horde, Bow, Sword, Mage | + Warbow, Knight, High Mage (tier 2, upgraded from tier 1) |

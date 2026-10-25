@@ -5,7 +5,7 @@ import org.battleofkingdoms.battle.Bonuses
 data class GameConfig(
     val minPlayers: Int = 3,
     val maxPlayers: Int = 5,
-    val startingHorde: Int = 3,
+    val startingHorde: Int = 0,
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
     val tier1VsHorde: Int = 2,

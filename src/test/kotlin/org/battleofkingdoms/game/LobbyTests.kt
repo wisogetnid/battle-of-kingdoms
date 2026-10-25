@@ -81,7 +81,7 @@ class IncomeTests {
         val game = startedGame(GameConfig())
 
         game.players.values.forEach { player ->
-            assertEquals(3 + 1, player.hand.count(HORDE))
+            assertEquals(0 + 1, player.hand.count(HORDE))
             assertEquals(2, resources(player.hand))
             assertEquals(false, player.acted)
         }

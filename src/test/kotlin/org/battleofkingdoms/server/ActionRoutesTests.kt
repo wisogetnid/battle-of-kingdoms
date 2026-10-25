@@ -22,7 +22,7 @@ class ActionRoutesTests {
 
         assertEquals(HttpStatusCode.OK, response.status)
         val hand = TestApi.json(response)["me"]["hand"]
-        assertEquals(3, hand["HORDE"].asInt())
+        assertEquals(0, hand.path("HORDE").asInt(0))
         assertEquals(1, hand[into].asInt())
         assertEquals(before[resource].asInt() - 1, hand.path(resource).asInt(0))
         assertEquals(1, TestApi.json(response)["me"]["upgradedThisTurn"][into].asInt())
@@ -164,7 +164,7 @@ class ActionRoutesTests {
         allReady(api, gameId)
         val handSizeBefore = annaHandSize(api.view(gameId, "ben"))
 
-        val mine = TestApi.json(api.commit(gameId, "anna", mapOf("HORDE" to 3)))
+        val mine = TestApi.json(api.commit(gameId, "anna", mapOf("HORDE" to 1)))
         val bens = api.view(gameId, "ben")
 
         assertTrue(mine["me"]["acted"].asBoolean())
@@ -177,6 +177,7 @@ class ActionRoutesTests {
     @Test
     fun `after the battle everyone sees all armies in the battle log`() = apiTest { api ->
         val gameId = api.startGame(*PLAYERS)
+        tradeAllResources(api, gameId, "anna") // 1 Horde + 2 traded
         allReady(api, gameId)
 
         api.commit(gameId, "anna", mapOf("HORDE" to 3))
@@ -201,6 +202,13 @@ class ActionRoutesTests {
 
     private suspend fun allReady(api: TestApi, gameId: String) =
         PLAYERS.forEach { api.post("/games/$gameId/players/$it/ready") }
+
+    private suspend fun tradeAllResources(api: TestApi, gameId: String, name: String) {
+        val hand = api.view(gameId, name)["me"]["hand"]
+        listOf("WOOD", "IRON", "ESSENCE").forEach { resource ->
+            repeat(hand.path(resource).asInt(0)) { api.trade(gameId, name, resource) }
+        }
+    }
 
     private fun annaHandSize(view: JsonNode): Int =
         view["others"].single { it["name"].asText() == "anna" }["handSize"].asInt()

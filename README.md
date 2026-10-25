@@ -12,7 +12,7 @@ The full rules and API contract live in [SPEC.md](SPEC.md).
 Every turn has two phases:
 
 1. **Build-up.** Everyone receives 1 Horde and draws 2 resources (Wood, Iron, or Essence);
-   income is the same for every player. On turn 1 you also get 3 extra Horde. Trade and
+   income is the same for every player, and everyone starts with nothing else. Trade and
    upgrade as often as you like, then mark yourself ready:
    - **Trade** any resource for 1 Horde.
    - **Tier 1:** Horde + Wood → **Bow**, Horde + Iron → **Sword**, Horde + Essence → **Mage**.

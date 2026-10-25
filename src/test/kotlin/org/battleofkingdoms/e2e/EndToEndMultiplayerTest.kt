@@ -21,12 +21,11 @@ private val TIER_2 = mapOf("BOW" to ("WARBOW" to "WOOD"), "SWORD" to ("KNIGHT" t
 
 /**
  * Full seeded games played over HTTP only, written as a script that reacts to the seeded deals:
- * - turn 1: everyone commits 1 Horde, which forces a tie and a rollover;
  * - every turn, everyone but anna trades all their resources for Horde and commits 1 Horde;
- * - anna upgrades Horde into tier-1 units and keeps those at home, then upgrades settled
- *   tier-1 units into tier 2 when she draws the resource. She commits only her tier-2 units,
- *   which get the tier-2 bonus against the others' Horde; without any yet, she commits
- *   1 Horde and the battle is a tie.
+ * - anna upgrades every Horde she can into tier-1 units and keeps those at home, then upgrades
+ *   settled tier-1 units into tier 2 when she draws the resource. She commits only her tier-2
+ *   units, which get the tier-2 bonus against the others' Horde; without any yet (always on
+ *   turn 1) she commits nothing, the others tie and the pot rolls over.
  */
 class EndToEndMultiplayerTest {
 
@@ -78,21 +77,21 @@ class EndToEndMultiplayerTest {
             upgradeAll(api, gameId, anna)
             others.forEach { trades += tradeAll(api, gameId, it) }
             players.forEach { expectOk(api.post("/games/$gameId/players/$it/ready")) }
-            val armies = others.associateWith { mapOf("HORDE" to 1) } + (anna to annasArmy(api, gameId, anna, turn))
+            val armies = others.associateWith { mapOf("HORDE" to 1) } + (anna to annasArmy(api, gameId, anna))
             players.forEach { expectOk(api.post("/games/$gameId/players/$it/army", armies.getValue(it))) }
             turn++
         }
         return api.view(gameId, anna) to trades
     }
 
-    /** Tier 2 first for every settled tier-1 unit with its resource, then Horde into tier 1, keeping 1 Horde. */
+    /** Tier 2 first for every settled tier-1 unit with its resource, then every Horde into tier 1. */
     private suspend fun upgradeAll(api: TestApi, gameId: String, name: String) {
         while (true) {
             val me = api.view(gameId, name)["me"]
             val hand = me["hand"]
             val settled = { unit: String -> hand.path(unit).asInt(0) - me["upgradedThisTurn"].path(unit).asInt(0) }
             val into = TIER_2.entries.firstOrNull { (tier1, cost) -> settled(tier1) > 0 && hand.has(cost.second) }?.value?.first
-                ?: RESOURCES.firstOrNull { hand.has(it) && hand.path("HORDE").asInt(0) > 1 }?.let(TIER_1::getValue)
+                ?: RESOURCES.firstOrNull { hand.has(it) && hand.has("HORDE") }?.let(TIER_1::getValue)
                 ?: return
             expectOk(api.post("/games/$gameId/players/$name/upgrades", mapOf("into" to into)))
         }
@@ -105,14 +104,10 @@ class EndToEndMultiplayerTest {
         return trades.size
     }
 
-    /** anna's tier-2 units, or 1 Horde in turn 1 or while she has none. */
-    private suspend fun annasArmy(api: TestApi, gameId: String, name: String, turn: Int): Map<String, Int> {
+    /** anna's tier-2 units; nothing while she has none. */
+    private suspend fun annasArmy(api: TestApi, gameId: String, name: String): Map<String, Int> {
         val hand = api.view(gameId, name)["me"]["hand"]
-        val tier2 = TIER_2.values.map { it.first }.filter { hand.has(it) }.associateWith { hand[it].asInt() }
-        return when {
-            turn == 1 || tier2.isEmpty() -> mapOf("HORDE" to 1)
-            else -> tier2
-        }
+        return TIER_2.values.map { it.first }.filter { hand.has(it) }.associateWith { hand[it].asInt() }
     }
 
     private suspend fun expectOk(response: HttpResponse) =

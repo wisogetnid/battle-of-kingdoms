@@ -1,6 +1,6 @@
 ### Playtest: a seeded 3-player game through two battles.
 # Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
-# Seed 42 deals: anna 4 Horde + Wood + Essence, ben 4 Horde + 2 Essence, cleo 4 Horde + Iron + Wood.
+# Seed 42 deals: anna 1 Horde + Wood + Essence, ben 1 Horde + 2 Essence, cleo 1 Horde + Iron + Wood.
 # Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword. Bonuses: tier 1 +2 / tier 2 +3
 # against Horde, +1 against the countered unit of the same tier, +2 one tier below; only the
 # best bonus counts. First to 5 VP wins.
@@ -65,22 +65,22 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
 ### ── Turn 1: battle (upgraded units stay home) ──────────────────────
-# Duels: anna–ben 2:2, anna–cleo 2:0, ben–cleo 2:0 → scores anna +2, ben +2, cleo −4.
-# anna and ben tie at the top, so nobody wins and the victory point rolls over.
+# Nobody commits anything: every duel is 0:0 and every score 0, so nobody wins and the
+# victory point rolls over.
 
-### anna commits 2 Horde and keeps her Bow back
+### anna keeps her Bow back and commits nothing
 POST {{host}}/games/{{gameId}}/players/anna/army
 Content-Type: application/json
 
-{ "HORDE": 2 }
+{}
 
-### ben commits 2 Horde and keeps his Mage back
+### ben keeps his Mage back and commits nothing
 POST {{host}}/games/{{gameId}}/players/ben/army
 Content-Type: application/json
 
-{ "HORDE": 2 }
+{}
 
-### cleo sits this one out — the battle resolves
+### cleo keeps her 2 Horde back too — the battle resolves
 POST {{host}}/games/{{gameId}}/players/cleo/army
 Content-Type: application/json
 

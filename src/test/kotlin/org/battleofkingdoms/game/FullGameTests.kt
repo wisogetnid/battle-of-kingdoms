@@ -15,10 +15,10 @@ private const val MAX_TURNS = 30
 
 /**
  * A seeded 3-player game played through engine calls only, scripted against the seeded deals:
- * turn 1 everyone commits 1 Horde (tie, the pot rolls over). Every turn ben and cleo trade all
- * their resources for Horde and commit 1 Horde. anna upgrades Horde into tier-1 units and keeps
- * them home, upgrades settled tier-1 units into tier 2 when she draws the resource, and commits
- * only her tier-2 units (1 Horde while she has none).
+ * every turn ben and cleo trade all their resources for Horde and commit 1 Horde. anna upgrades
+ * every Horde she can into tier-1 units and keeps them home, upgrades settled tier-1 units into
+ * tier 2 when she draws the resource, and commits only her tier-2 units. While she has none she
+ * commits nothing, so ben and cleo tie and the pot rolls over (always on turn 1).
  */
 class FullGameTests {
 
@@ -62,24 +62,20 @@ class FullGameTests {
         return game to trades
     }
 
-    /** Tier 2 first for every settled tier-1 unit with its resource, then Horde into tier 1, keeping 1 Horde. */
+    /** Tier 2 first for every settled tier-1 unit with its resource, then every Horde into tier 1. */
     private tailrec fun upgradeAll(game: Game, name: String): Game {
         val player = game.player(name)
         val tier2 = CreatureType.entries.firstOrNull { it.tier == 2 && player.settled(it.upgradesFrom!!) > 0 && player.hand.has(it.upgradeResource!!) }
-        val tier1 = CreatureType.entries.firstOrNull { it.tier == 1 && player.hand.has(it.upgradeResource!!) && player.hand.count(HORDE) > 1 }
+        val tier1 = CreatureType.entries.firstOrNull { it.tier == 1 && player.hand.has(it.upgradeResource!!) && player.hand.has(HORDE) }
         return when (val into = tier2 ?: tier1) {
             null -> game
             else -> upgradeAll(game.upgrade(name, into), name)
         }
     }
 
-    /** anna's tier-2 units, or 1 Horde in turn 1 or while she has none. */
+    /** anna's tier-2 units; nothing while she has none. */
     private fun annasArmy(game: Game): Army {
         val hand = game.player("anna").hand
-        val tier2 = CreatureType.entries.filter { it.tier == 2 && hand.has(it) }.associateWith { hand.count(it) }
-        return when {
-            game.turn == 1 || tier2.isEmpty() -> Army.of(HORDE to 1)
-            else -> Army(tier2)
-        }
+        return Army(CreatureType.entries.filter { it.tier == 2 && hand.has(it) }.associateWith { hand.count(it) })
     }
 }
