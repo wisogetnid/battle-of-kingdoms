@@ -26,7 +26,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run test`
   - Files: `e2e/EndToEndMultiplayerTest.kt`, `game/FullGameTests.kt`
 
-- [ ] **T5. Playtest and docs**
+- [x] **T5. Playtest and docs**
   - Acceptance: `http/playtest.http` plays a seeded 3-player game through two battles under the new rules, one decided by a counter, with comments matching the actual outcome; README rules, creature table and curl examples describe the triangle; the vision doc marks Shield as replaced and Essence as adopted; the core-loop one-pager notes that Iteration 2 changed its rules
   - Verify: run `mise run server`, replay `http/playtest.http` top to bottom, check both battles in the log match the comments; `grep -rn "SHIELD\|Shield\|artifactsToWin" README.md http` finds nothing
   - Files: `http/playtest.http`, `README.md`, `docs/ideas/full-game-vision.md`, `docs/ideas/battle-of-kingdoms-core-loop.md`

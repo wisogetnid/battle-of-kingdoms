@@ -1,6 +1,7 @@
 ### Playtest: a seeded 3-player game through two battles.
 # Start the server with `mise run server`, then run the requests top to bottom in IntelliJ.
-# Seed 42 deals: anna 4 Horde + 2 Iron, ben 4 Horde + 2 Wood, cleo 4 Horde + 2 Iron.
+# Seed 42 deals: anna 4 Horde + Wood + Essence, ben 4 Horde + 2 Essence, cleo 4 Horde + Iron + Wood.
+# Counters: Bow beats Mage, Sword beats Bow, Mage beats Sword (+1 attack in that duel).
 @host = http://localhost:8080
 
 ### Create a game for 3 players; anna hosts
@@ -28,17 +29,29 @@ GET {{host}}/games/{{gameId}}?player=anna
 
 ### ── Turn 1: build-up ──────────────────────────────────────────────
 
-### anna upgrades a Horde into a Bow (Horde + Iron)
+### anna upgrades a Horde into a Bow (Horde + Wood)
 POST {{host}}/games/{{gameId}}/players/anna/upgrades
 Content-Type: application/json
 
 { "into": "BOW" }
 
-### ben upgrades a Horde into a Shield (Horde + Wood)
+### ben upgrades a Horde into a Mage (Horde + Essence)
 POST {{host}}/games/{{gameId}}/players/ben/upgrades
 Content-Type: application/json
 
-{ "into": "SHIELD" }
+{ "into": "MAGE" }
+
+### ben upgrades a second Horde into a Mage
+POST {{host}}/games/{{gameId}}/players/ben/upgrades
+Content-Type: application/json
+
+{ "into": "MAGE" }
+
+### cleo upgrades a Horde into a Sword (Horde + Iron)
+POST {{host}}/games/{{gameId}}/players/cleo/upgrades
+Content-Type: application/json
+
+{ "into": "SWORD" }
 
 ### anna is ready
 POST {{host}}/games/{{gameId}}/players/anna/ready
@@ -49,7 +62,9 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 ### cleo is ready — the battle starts
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
-### ── Turn 1: battle (anna and ben tie at strength 2, the pot rolls over) ──
+### ── Turn 1: battle (everyone keeps their upgrades hidden) ──────────
+# Duels: anna–ben 2:2, anna–cleo 2:0, ben–cleo 2:0 → scores anna +2, ben +2, cleo −4.
+# anna and ben tie at the top, so nobody wins and the victory point rolls over.
 
 ### anna commits 2 Horde and keeps her Bow back
 POST {{host}}/games/{{gameId}}/players/anna/army
@@ -57,7 +72,7 @@ Content-Type: application/json
 
 { "HORDE": 2 }
 
-### ben commits 2 Horde and keeps his Shield back
+### ben commits 2 Horde and keeps his Mages back
 POST {{host}}/games/{{gameId}}/players/ben/army
 Content-Type: application/json
 
@@ -83,25 +98,27 @@ POST {{host}}/games/{{gameId}}/players/ben/ready
 ### cleo is ready — the battle starts
 POST {{host}}/games/{{gameId}}/players/cleo/ready
 
-### ── Turn 2: battle (anna 2+2=4, ben's Shield faces a Bow: 2+1=3, cleo 1) ──
+### ── Turn 2: battle (three armies of 2, decided by a counter) ──────
+# Duels: anna–ben 3:2 (anna's Bow counters ben's Mages), anna–cleo 2:2, ben–cleo 2:2
+# → scores anna +1, ben −1, cleo 0. Equal sizes, so anna wins the double pot through her Bow.
 
-### anna commits 2 Horde and her Bow
+### anna commits her Bow and 1 Horde
 POST {{host}}/games/{{gameId}}/players/anna/army
 Content-Type: application/json
 
-{ "HORDE": 2, "BOW": 1 }
+{ "BOW": 1, "HORDE": 1 }
 
-### ben commits his Shield and 1 Horde
+### ben commits his 2 Mages (they would counter a Sword, but nobody brings one)
 POST {{host}}/games/{{gameId}}/players/ben/army
 Content-Type: application/json
 
-{ "SHIELD": 1, "HORDE": 1 }
+{ "MAGE": 2 }
 
-### cleo commits 1 Horde — the battle resolves
+### cleo commits 2 Horde and keeps her Sword back — the battle resolves
 POST {{host}}/games/{{gameId}}/players/cleo/army
 Content-Type: application/json
 
-{ "HORDE": 1 }
+{ "HORDE": 2 }
 
 ### anna's view: battle 2 won by anna with the double pot (2 VP); turn 3 with a pot of 1
 GET {{host}}/games/{{gameId}}?player=anna

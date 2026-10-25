@@ -1,5 +1,10 @@
 # Battle of Kingdoms — Core Loop MVP
 
+> **Note:** this one-pager is the original Stage 1 idea and is kept as written. Iteration 2
+> changed its upgrade and battle rules: Wood / Iron / Essence upgrade into a Bow / Sword / Mage
+> counter triangle, and battles resolve as duels between every pair of players. The current
+> rules are in [SPEC.md](../../SPEC.md).
+
 ## Problem Statement
 How might we get 3–5 friends playing Battle of Kingdoms digitally, with minimal tech,
 so we learn within ~3 months whether the build-up → battle-for-the-artifact loop is
