@@ -83,7 +83,6 @@ class IncomeTests {
         game.players.values.forEach { player ->
             assertEquals(3 + 1, player.hand.count(HORDE))
             assertEquals(2, resources(player.hand))
-            assertEquals(0, player.renown)
             assertEquals(false, player.acted)
         }
     }

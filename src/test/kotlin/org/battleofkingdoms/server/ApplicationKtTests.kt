@@ -104,7 +104,7 @@ class ApplicationKtTests {
         assertEquals(gameId, view["gameId"].asText())
         assertEquals("WAITING_FOR_PLAYERS", view["phase"].asText())
         assertEquals(0, view["turn"].asInt())
-        assertEquals(3, view["victoryPointsToWin"].asInt())
+        assertEquals(5, view["victoryPointsToWin"].asInt())
         assertTrue(view["availableActions"].isEmpty)
     }
 
@@ -135,7 +135,7 @@ class ApplicationKtTests {
         val others = view["others"]
         assertEquals(listOf("ben", "cleo"), others.map { it["name"].asText() })
         others.forEach { other ->
-            assertEquals(setOf("name", "vp", "renown", "handSize", "acted"), other.fieldNames().asSequence().toSet())
+            assertEquals(setOf("name", "vp", "handSize", "acted"), other.fieldNames().asSequence().toSet())
             assertEquals(6, other["handSize"].asInt())
         }
         assertFalse(view.toString().contains("commits"))

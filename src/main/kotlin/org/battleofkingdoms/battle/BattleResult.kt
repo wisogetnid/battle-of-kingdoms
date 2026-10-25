@@ -7,7 +7,6 @@ data class ArmyResult(
     val casualties: Army,
     val survivors: Army,
     val vpGained: Int,
-    val gainedRenown: Boolean,
 )
 
 /** One 1-vs-1 duel within a battle, with each side's strength against the other. */

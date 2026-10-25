@@ -11,7 +11,7 @@ The full rules and API contract live in [SPEC.md](SPEC.md).
 # How to play
 Every turn has two phases:
 
-1. **Build-up.** Everyone receives 1 Horde plus 1 per point of renown, and draws 2 resources
+1. **Build-up.** Everyone receives 1 Horde and draws 2 resources
    (Wood, Iron, or Essence). On turn 1 you also get 3 extra Horde. Upgrade as often as you
    like, then mark yourself ready:
    - Horde + Wood → **Bow**
@@ -27,7 +27,6 @@ Every turn has two phases:
    - A tie at the top, or nobody committing, means no winner: the pot rolls over.
    - Everyone loses half of what they committed, picked at random. The winner rounds down,
      everyone else rounds up. Survivors go back to your hand.
-   - Committing at least 1 creature earns 1 **renown**: a permanent extra Horde every turn.
 
 | Creature | Cost | Attack | Counters |
 |---|---|---|---|
@@ -38,7 +37,7 @@ Every turn has two phases:
 
 Without counters the biggest army wins, so going wide with Horde works; the counters decide
 the close fights. Everyone sees all armies after each battle, so use what you learned about
-each opponent. The first player to **3 VP** wins. All numbers are in `GameConfig` so they're
+each opponent. The first player to **5 VP** wins. All numbers are in `GameConfig` so they're
 easy to tune.
 
 # Running a session
@@ -70,7 +69,7 @@ curl -X POST localhost:8080/games -H 'Content-Type: application/json' \
 # The others join; the game starts when it is full
 curl -X POST localhost:8080/games/$GAME/players -H 'Content-Type: application/json' -d '{"name": "ben"}'
 
-# Look at the game as yourself: your hand, the pot, others' VP and renown, what you can do next
+# Look at the game as yourself: your hand, the pot, others' VP, what you can do next
 curl "localhost:8080/games/$GAME?player=anna"
 
 # Build-up: upgrade (BOW, SWORD or MAGE) as often as you can afford, then mark yourself ready

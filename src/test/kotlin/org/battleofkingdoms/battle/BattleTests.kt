@@ -183,13 +183,6 @@ class BattleTests {
     }
 
     @Test
-    fun `everyone who committed at least one creature gains renown`() {
-        val result = resolve(mapOf("anna" to Army.of(HORDE to 1), "ben" to Army(), "cleo" to Army.of(BOW to 3)))
-
-        Assertions.assertEquals(mapOf("anna" to true, "ben" to false, "cleo" to true), result.armies.mapValues { it.value.gainedRenown })
-    }
-
-    @Test
     fun `the result records every player's army`() {
         val commits = mapOf("anna" to Army.of(HORDE to 2), "ben" to Army(), "cleo" to Army.of(BOW to 1, SWORD to 1, MAGE to 1))
 

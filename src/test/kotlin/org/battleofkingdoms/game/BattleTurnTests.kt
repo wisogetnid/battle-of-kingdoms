@@ -57,7 +57,7 @@ class BattleTurnTests {
     }
 
     @Test
-    fun `the winner takes the pot and everyone who fought gains renown`() {
+    fun `the winner takes the pot`() {
         val game = battle(anna = Hand.of(HORDE to 3), ben = Hand.of(HORDE to 1), cleo = Hand.of(HORDE to 1))
             .commitArmy("anna", Army.of(HORDE to 3))
             .commitArmy("ben", Army.of(HORDE to 1))
@@ -67,7 +67,6 @@ class BattleTurnTests {
         assertEquals("anna", entry.winner)
         assertEquals(1, game.player("anna").vp)
         assertEquals(0, game.player("ben").vp)
-        assertEquals(listOf(1, 1, 0), game.players.values.map { it.renown })
     }
 
     @Test
@@ -77,11 +76,11 @@ class BattleTurnTests {
             .commitArmy("ben", Army.of(HORDE to 1))
             .commitArmy("cleo", Army())
 
-        // turn 2 income: base 1 + renown 1 Horde, 2 resources
+        // turn 2 income: 1 Horde, 2 resources
         val anna = game.player("anna")
-        assertEquals(1 + 2 + 2, anna.hand.count(HORDE)) // 1 kept back, 3 - floor(3/2) = 2 survivors, 2 income
+        assertEquals(1 + 2 + 1, anna.hand.count(HORDE)) // 1 kept back, 3 - floor(3/2) = 2 survivors, 1 income
         assertEquals(1 + 2, ResourceType.entries.sumOf { anna.hand.count(it) })
-        assertEquals(0 + 2, game.player("ben").hand.count(HORDE)) // 1 - ceil(1/2) = 0 survivors, 2 income
+        assertEquals(0 + 1, game.player("ben").hand.count(HORDE)) // 1 - ceil(1/2) = 0 survivors, 1 income
     }
 
     @Test
@@ -107,7 +106,7 @@ class BattleTurnTests {
     }
 
     @Test
-    fun `the next turn starts build-up with income including renown`() {
+    fun `the next turn starts build-up with the same income for everyone`() {
         val game = battle(anna = Hand.of(HORDE to 1), ben = Hand())
             .commitArmy("anna", Army.of(HORDE to 1))
             .commitArmy("ben", Army())
@@ -116,8 +115,9 @@ class BattleTurnTests {
         assertEquals(BUILD_UP, game.phase)
         assertEquals(2, game.turn)
         assertTrue(game.players.values.none { it.acted })
-        assertEquals(1 + 1 + 1, game.player("anna").hand.count(HORDE)) // survivor + base + 1 renown
-        assertEquals(1, game.player("ben").hand.count(HORDE)) // base only: no battle, no renown
+        assertEquals(1 + 1, game.player("anna").hand.count(HORDE)) // survivor + income: fighting earns nothing extra
+        assertEquals(1, game.player("ben").hand.count(HORDE)) // income only
+        assertTrue(game.players.values.all { player -> ResourceType.entries.sumOf { player.hand.count(it) } >= 2 })
     }
 
     @Test

@@ -122,7 +122,6 @@ data class Game(
         return player.copy(
             hand = withSurvivors,
             vp = player.vp + armyResult.vpGained,
-            renown = player.renown + if (armyResult.gainedRenown) config.renownPerBattle else 0,
             acted = false,
         )
     }
@@ -153,7 +152,7 @@ data class Game(
     }
 
     private fun payIncome(player: Player, turn: Int): Player {
-        val horde = config.baseCreaturesPerTurn + player.renown + startingHorde(turn)
+        val horde = config.baseCreaturesPerTurn + startingHorde(turn)
         val hand = (1..config.resourcesPerTurn)
             .fold(player.hand.add(HORDE, horde)) { hand, _ -> hand + drawResource() }
         return player.copy(hand = hand, acted = false)

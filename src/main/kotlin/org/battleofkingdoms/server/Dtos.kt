@@ -61,16 +61,16 @@ data class PlayerView(
     }
 }
 
-data class MyView(val name: String, val hand: Map<String, Int>, val vp: Int, val renown: Int, val acted: Boolean) {
+data class MyView(val name: String, val hand: Map<String, Int>, val vp: Int, val acted: Boolean) {
     companion object {
-        fun of(player: Player) = MyView(player.name, counts(player.hand), player.vp, player.renown, player.acted)
+        fun of(player: Player) = MyView(player.name, counts(player.hand), player.vp, player.acted)
     }
 }
 
-data class OtherPlayerView(val name: String, val vp: Int, val renown: Int, val handSize: Int, val acted: Boolean) {
+data class OtherPlayerView(val name: String, val vp: Int, val handSize: Int, val acted: Boolean) {
     companion object {
         fun of(player: Player) =
-            OtherPlayerView(player.name, player.vp, player.renown, player.hand.counts.values.sum(), player.acted)
+            OtherPlayerView(player.name, player.vp, player.hand.counts.values.sum(), player.acted)
     }
 }
 
@@ -105,7 +105,6 @@ data class ArmyResultView(
     val casualties: Map<CreatureType, Int>,
     val survivors: Map<CreatureType, Int>,
     val vpGained: Int,
-    val renownGained: Boolean,
 ) {
     companion object {
         fun of(result: ArmyResult) = ArmyResultView(
@@ -114,7 +113,6 @@ data class ArmyResultView(
             casualties = counts(result.casualties),
             survivors = counts(result.survivors),
             vpGained = result.vpGained,
-            renownGained = result.gainedRenown,
         )
     }
 }

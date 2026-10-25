@@ -3,7 +3,7 @@
 Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 
 ## Phase 1 — Engine
-- [ ] **T1. Remove renown, 5 VP to win**
+- [x] **T1. Remove renown, 5 VP to win**
   - Acceptance: income is `baseCreaturesPerTurn` Horde (+ `startingHorde` on turn 1) and `resourcesPerTurn` resources for everyone; `Player.renown`, `GameConfig.renownPerBattle`, `ArmyResult.gainedRenown` and the view's `renown` / `renownGained` fields are gone; `victoryPointsToWin` defaults to 5; tests that asserted renown are rewritten to assert equal income
   - Verify: `mise run build`; `grep -rni renown src README.md` finds nothing
   - Files: `player/Player.kt`, `game/Game.kt`, `game/GameConfig.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `server/Dtos.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `README.md`

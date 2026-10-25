@@ -22,7 +22,6 @@ object Battle {
                 casualties = casualties,
                 survivors = survivors(army, casualties),
                 vpGained = if (won) pot else 0,
-                gainedRenown = army.size > 0,
             )
         }
         return BattleResult(pot, winner, armies, duels)

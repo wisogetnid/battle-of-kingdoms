@@ -6,6 +6,5 @@ data class Player(
     val name: String,
     val hand: Hand = Hand(),
     val vp: Int = 0,
-    val renown: Int = 0,
     val acted: Boolean = false,
 )

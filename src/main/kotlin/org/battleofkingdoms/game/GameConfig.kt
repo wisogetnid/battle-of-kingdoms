@@ -6,7 +6,6 @@ data class GameConfig(
     val startingHorde: Int = 3,
     val baseCreaturesPerTurn: Int = 1,
     val resourcesPerTurn: Int = 2,
-    val renownPerBattle: Int = 1,
     val counterBonus: Int = 1,
-    val victoryPointsToWin: Int = 3,
+    val victoryPointsToWin: Int = 5,
 )
