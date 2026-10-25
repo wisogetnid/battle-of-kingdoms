@@ -3,7 +3,7 @@
 Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
 
 ## Phase 1 — Skeleton
-- [ ] **W1. Share the status mapping**
+- [x] **W1. Share the status mapping**
   - Acceptance: `status(e: GameException)` in `GameRoutes.kt` is `internal`; no other change to that file; JSON API behaviour unchanged
   - Verify: `mise run test` (all existing tests green, none edited)
   - Files: `server/GameRoutes.kt`

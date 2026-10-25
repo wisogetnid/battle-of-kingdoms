@@ -102,7 +102,7 @@ private suspend fun RoutingContext.respondOrError(handle: suspend RoutingContext
     }
 }
 
-private fun status(e: GameException): HttpStatusCode = when (e) {
+internal fun status(e: GameException): HttpStatusCode = when (e) {
     is RuleViolation -> HttpStatusCode.BadRequest
     is WrongPhase, is AlreadyActed, is DuplicatePlayer -> HttpStatusCode.Conflict
     is UnknownGame, is UnknownPlayer -> HttpStatusCode.NotFound
