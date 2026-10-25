@@ -27,7 +27,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC-web-ui.md](../../SPEC-web-ui.md)
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`
   - Note: trading shipped in Iteration 3, so the trade buttons are tested end to end like the others. Also set the hand-built view in `WebRoutesTests` to `victoryPointsToWin = 3` (left to this task by Iteration 4's plan)
 
-- [ ] **W5. Battle**
+- [x] **W5. Battle**
   - Acceptance: in the battle phase the page shows one form with a number field (0 to count held) per creature in my hand and a "Commit army" button; `POST …/army` builds the army with `armyOf` from the non-blank fields and answers `303`; all zero commits nothing; a negative or non-number count is a 400 with a message; the battle log is shown newest first, numbered by position (the view has no turn field): pot, winner or "no winner, pot rolls over", per player army, score, casualties and VP gained, every duel as "a 6 – 7 b"
   - Verify: `mise run test`; tests for commit success, empty commit, malformed counts, committing more than owned (400), and a resolved battle appearing in every player's log without anyone's uncommitted army
   - Files: `web/WebRoutes.kt`, `web/Pages.kt`, `web/WebRoutesTests.kt`

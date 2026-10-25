@@ -20,6 +20,7 @@ import org.battleofkingdoms.game.UnknownGame
 import org.battleofkingdoms.game.UnknownPlayer
 import org.battleofkingdoms.server.GameServer
 import org.battleofkingdoms.server.PlayerView
+import org.battleofkingdoms.server.armyOf
 import org.battleofkingdoms.server.status
 import java.util.UUID
 import kotlin.random.Random
@@ -68,6 +69,10 @@ fun Route.webRoutes(server: GameServer) {
 
                 post("/ready") {
                     playerAction(server) { server.ready(gameId(), playerName()) }
+                }
+
+                post("/army") {
+                    playerAction(server) { server.commitArmy(gameId(), playerName(), it.army()) }
                 }
             }
         }
@@ -124,6 +129,14 @@ private fun Parameters.int(field: String): Int =
 
 private inline fun <reified T : Enum<T>> Parameters.enum(field: String): T =
     enumValues<T>().find { it.name == this[field] } ?: throw RuleViolation("Unknown $field '${this[field].orEmpty()}'")
+
+/** One count field per creature, e.g. `HORDE=2&KNIGHT=1`; a blank or missing field is 0. */
+private fun Parameters.army() = armyOf(
+    CreatureType.entries.associateWith { creature ->
+        val count = this[creature.name]?.trim().orEmpty()
+        if (count.isEmpty()) 0 else count.toIntOrNull() ?: throw RuleViolation("'${creature.name}' must be a whole number")
+    },
+)
 
 private fun Parameters.seed(): Long = when {
     this["seed"].isNullOrBlank() -> Random.nextLong()

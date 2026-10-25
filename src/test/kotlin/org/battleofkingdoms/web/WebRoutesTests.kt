@@ -71,6 +71,17 @@ suspend fun HttpClient.view(gameId: String, name: String): JsonNode = TestApi.js
 private val RESOURCES = listOf("WOOD", "IRON", "ESSENCE")
 private val TIER_1 = mapOf("WOOD" to "BOW", "IRON" to "SWORD", "ESSENCE" to "MAGE")
 
+/** Trades all of [name]'s resources for Horde through the UI. */
+suspend fun HttpClient.tradeAll(gameId: String, name: String) {
+    val hand = view(gameId, name)["hand"]
+    RESOURCES.forEach { resource ->
+        repeat(hand.path(resource).asInt(0)) { seeOther(post("/ui/games/$gameId/players/$name/trades", "resource" to resource)) }
+    }
+}
+
+suspend fun HttpClient.allReady(gameId: String, vararg names: String) =
+    names.forEach { seeOther(post("/ui/games/$gameId/players/$it/ready")) }
+
 class WebRoutesTests {
 
     @Test
@@ -303,5 +314,94 @@ class WebRoutesTests {
         page(client.post("$path/upgrades"), HttpStatusCode.BadRequest)
         page(client.post("$path/trades", "resource" to "HORDE"), HttpStatusCode.BadRequest)
         page(client.post("/ui/games/$gameId/players/zoe/upgrades", "into" to "DRAGON"), HttpStatusCode.NotFound)
+    }
+
+    @Test
+    fun `in battle the page offers a count field per creature I hold`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.tradeAll(gameId, "anna")
+        client.allReady(gameId, "anna", "ben", "cleo")
+
+        val html = client.gamePage(gameId, "anna")
+
+        assertTrue(html.contains("""action="/ui/games/$gameId/players/anna/army" method="post""""), html)
+        assertTrue(html.contains("Horde (you have 3)"), html)
+        assertTrue(html.contains("""name="HORDE" min="0" max="3" value="0""""), html)
+        assertFalse(html.contains("""name="WOOD""""), html)
+        assertFalse(html.contains("/upgrades"), html)
+    }
+
+    @Test
+    fun `committing an army redirects, and the others see it committed but not what it is`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.allReady(gameId, "anna", "ben", "cleo")
+
+        assertEquals(
+            "/ui/games/$gameId/players/anna",
+            seeOther(client.post("/ui/games/$gameId/players/anna/army", "HORDE" to "1")),
+        )
+
+        val mine = client.gamePage(gameId, "anna")
+        assertTrue(mine.contains("Waiting for the others to commit"), mine)
+        assertFalse(mine.contains("/army"), mine)
+        val bens = client.gamePage(gameId, "ben")
+        assertTrue(bens.contains("anna: 0 VP, 3 cards, committed"), bens)
+        assertTrue(bens.contains("No battles yet."), bens)
+        assertFalse(bens.contains("committed 1 Horde"), bens)
+    }
+
+    @Test
+    fun `blank and zero counts commit nothing`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.allReady(gameId, "anna", "ben", "cleo")
+
+        seeOther(client.post("/ui/games/$gameId/players/anna/army", "HORDE" to "0"))
+        seeOther(client.post("/ui/games/$gameId/players/ben/army", "HORDE" to ""))
+        seeOther(client.post("/ui/games/$gameId/players/cleo/army"))
+
+        val html = client.gamePage(gameId, "anna")
+        assertTrue(html.contains("No winner, the pot of 1 VP rolls over."), html)
+        assertTrue(html.contains("anna: committed nothing"), html)
+    }
+
+    @Test
+    fun `a malformed or unaffordable army is a bad request`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.allReady(gameId, "anna", "ben", "cleo")
+        val path = "/ui/games/$gameId/players/anna/army"
+
+        val word = page(client.post(path, "HORDE" to "two"), HttpStatusCode.BadRequest)
+        assertTrue(word.contains("Error: 'HORDE' must be a whole number"), word)
+        page(client.post(path, "HORDE" to "-1"), HttpStatusCode.BadRequest)
+        page(client.post(path, "HORDE" to "2"), HttpStatusCode.BadRequest)
+        page(client.post(path, "KNIGHT" to "1"), HttpStatusCode.BadRequest)
+        assertTrue(client.gamePage(gameId, "anna").contains("/army"), "anna can still commit")
+    }
+
+    @Test
+    fun `a resolved battle shows in every player's log, newest first`() = webTest { client ->
+        val gameId = client.startGame("anna", "ben", "cleo")
+        client.tradeAll(gameId, "anna") // 1 Horde + 2 traded
+        client.allReady(gameId, "anna", "ben", "cleo")
+        seeOther(client.post("/ui/games/$gameId/players/anna/army", "HORDE" to "3"))
+        seeOther(client.post("/ui/games/$gameId/players/ben/army", "HORDE" to "1"))
+        seeOther(client.post("/ui/games/$gameId/players/cleo/army"))
+
+        listOf("anna", "ben", "cleo").forEach { name ->
+            val html = client.gamePage(gameId, name)
+            assertTrue(html.contains("Battle 1"), html)
+            assertTrue(html.contains("anna won the pot of 1 VP."), html)
+            assertTrue(html.contains("anna: committed 3 Horde; score +5; lost 1 Horde; gained 1 VP"), html)
+            assertTrue(html.contains("ben: committed 1 Horde; score -1; lost 1 Horde; gained 0 VP"), html)
+            assertTrue(html.contains("cleo: committed nothing; score -4; lost nothing; gained 0 VP"), html)
+            assertTrue(html.contains("anna 3 – 1 ben"), html)
+            assertTrue(html.contains("anna 3 – 0 cleo"), html)
+            assertTrue(html.contains("ben 1 – 0 cleo"), html)
+        }
+
+        client.allReady(gameId, "anna", "ben", "cleo")
+        listOf("anna", "ben", "cleo").forEach { seeOther(client.post("/ui/games/$gameId/players/$it/army")) }
+        val html = client.gamePage(gameId, "anna")
+        assertTrue(html.indexOf("Battle 2") < html.indexOf("Battle 1"), html)
     }
 }

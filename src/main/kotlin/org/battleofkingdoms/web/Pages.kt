@@ -10,6 +10,7 @@ import kotlinx.html.body
 import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
+import kotlinx.html.h3
 import kotlinx.html.head
 import kotlinx.html.hiddenInput
 import kotlinx.html.label
@@ -23,6 +24,7 @@ import kotlinx.html.ul
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.ResourceType
+import org.battleofkingdoms.game.Action.COMMIT_ARMY
 import org.battleofkingdoms.game.Action.READY
 import org.battleofkingdoms.game.Action.TRADE
 import org.battleofkingdoms.game.Action.UPGRADE
@@ -83,6 +85,7 @@ fun HTML.gamePage(view: PlayerView, error: String? = null) {
         me(view)
         actions(view)
         others(view)
+        battleLog(view)
     }
 }
 
@@ -142,6 +145,25 @@ private fun FlowContent.actions(view: PlayerView) {
         }
     }
     if (READY in view.availableActions) actionButton("$path/ready", "Ready")
+    if (COMMIT_ARMY in view.availableActions) armyForm(view, "$path/army")
+}
+
+/** A count per creature I hold; all zero commits nothing. */
+private fun FlowContent.armyForm(view: PlayerView, action: String) {
+    val creatures = view.me.hand.filterKeys { name -> CreatureType.entries.any { it.name == name } }
+        .filterValues { it > 0 }.toSortedMap(handOrder)
+    form(action = action, method = FormMethod.post) {
+        if (creatures.isEmpty()) p { +"You have no creatures, so you can only commit an empty army." }
+        creatures.forEach { (name, count) ->
+            p {
+                label {
+                    +"${displayName(name)} (you have $count): "
+                    numberInput(name = name) { min = "0"; max = "$count"; value = "0" }
+                }
+            }
+        }
+        submitInput { value = "Commit army" }
+    }
 }
 
 private fun FlowContent.actionButton(action: String, label: String, field: Pair<String, String>? = null) =
@@ -166,6 +188,39 @@ private fun FlowContent.others(view: PlayerView) {
         }
     }
 }
+
+/** Newest battle first, numbered by its position in the log (one battle per turn). */
+private fun FlowContent.battleLog(view: PlayerView) {
+    h2 { +"Battle log" }
+    if (view.battleLog.isEmpty()) p { +"No battles yet." }
+    view.battleLog.withIndex().reversed().forEach { (index, battle) ->
+        h3 { +"Battle ${index + 1}" }
+        p {
+            +when (battle.winner) {
+                null -> "No winner, the pot of ${battle.pot} VP rolls over."
+                else -> "${battle.winner} won the pot of ${battle.pot} VP."
+            }
+        }
+        ul {
+            battle.armies.forEach { (name, army) ->
+                val line = "$name: committed ${creatures(army.army)}; score ${signed(army.score)}; " +
+                    "lost ${creatures(army.casualties)}; gained ${army.vpGained} VP"
+                li { +line }
+            }
+        }
+        p { +"Duels:" }
+        ul {
+            battle.duels.forEach { duel ->
+                val (first, second) = duel.players
+                li { +"$first ${duel.strengths[first]} – ${duel.strengths[second]} $second" }
+            }
+        }
+    }
+}
+
+private fun creatures(counts: Map<CreatureType, Int>): String = counts(counts.mapKeys { it.key.name })
+
+private fun signed(n: Int): String = if (n > 0) "+$n" else "$n"
 
 private fun actedLabel(phase: Phase, acted: Boolean): String? = when (phase) {
     BUILD_UP -> if (acted) "ready" else "still building up"
