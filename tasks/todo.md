@@ -27,7 +27,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
   - Verify: `mise run build`; `grep -rn rolledOver src` finds nothing
   - Files: `game/GameConfig.kt`, `game/Game.kt`, `battle/Battle.kt`, `battle/BattleResult.kt`, `BattleTests.kt`, `BattleTurnTests.kt`, `LobbyTests.kt`, `FullGameTests.kt`, `e2e/EndToEndMultiplayerTest.kt`
 
-- [ ] **T2. Resilient Banner and Amulet of Luck**
+- [x] **T2. Resilient Banner and Amulet of Luck**
   - Acceptance: `cards/Artifact.kt` (RESILIENT_BANNER, AMULET_OF_LUCK, CROWN); `Player.artifacts`; `Battle.resolve` takes each player's artifacts; the Banner always floors, the Amulet loses one fewer (not below 0), both combine; every row of the spec's casualty table passes for winners and losers; a player who sat out (B3) loses nothing whatever they own
   - Verify: `mise run test`
   - Files: `cards/Artifact.kt` (new), `player/Player.kt`, `battle/Battle.kt`, `game/Game.kt`, `BattleTests.kt`

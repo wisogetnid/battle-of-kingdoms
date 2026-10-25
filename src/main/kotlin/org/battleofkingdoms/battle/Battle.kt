@@ -1,5 +1,8 @@
 package org.battleofkingdoms.battle
 
+import org.battleofkingdoms.cards.Artifact
+import org.battleofkingdoms.cards.Artifact.AMULET_OF_LUCK
+import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import kotlin.random.Random
 
@@ -8,17 +11,23 @@ import kotlin.random.Random
  * of them fights one duel, and each player's score is the sum of their duel margins. Players
  * who committed nothing sit out with score 0. Pure: the only randomness is [Random], consumed
  * for casualties per player in the iteration order of `commits`, after all duels. Victory points
- * aren't the battle's business: the game pays the winner with [BattleResult.paid].
+ * aren't the battle's business: the game pays the winner with [BattleResult.paid]. [artifacts]
+ * holds what each player owns; only casualties depend on it.
  */
 object Battle {
-    fun resolve(commits: Map<String, Army>, bonuses: Bonuses, random: Random): BattleResult {
+    fun resolve(
+        commits: Map<String, Army>,
+        bonuses: Bonuses,
+        random: Random,
+        artifacts: Map<String, Set<Artifact>> = emptyMap(),
+    ): BattleResult {
         val fighting = commits.filterValues { it.size > 0 }
         val duels = roundRobin(fighting, bonuses)
         val scores = commits.keys.associateWith { name -> duels.sumOf { it.margin(name) } }
         val winner = fighting.keys.singleOrNull() ?: singleHighest(scores.filterKeys { it in fighting })
         val armies = commits.mapValues { (name, army) ->
             val won = name == winner
-            val casualties = pickCasualties(army, losses(army.size, won), random)
+            val casualties = pickCasualties(army, losses(army.size, won, artifacts[name].orEmpty()), random)
             ArmyResult(
                 army = army,
                 score = scores.getValue(name),
@@ -51,10 +60,19 @@ object Battle {
         }
     }
 
-    /** The winner loses `floor(n / 2)`, everyone else `ceil(n / 2)`. */
-    private fun losses(committed: Int, won: Boolean): Int = when (won) {
-        true -> committed / 2
-        false -> (committed + 1) / 2
+    /**
+     * The winner loses `floor(n / 2)`, everyone else `ceil(n / 2)`. The Resilient Banner always
+     * rounds down; then the Amulet of Luck saves one, never below 0.
+     */
+    private fun losses(committed: Int, won: Boolean, owned: Set<Artifact>): Int {
+        val half = when {
+            won || RESILIENT_BANNER in owned -> committed / 2
+            else -> (committed + 1) / 2
+        }
+        return when (AMULET_OF_LUCK) {
+            in owned -> maxOf(0, half - 1)
+            else -> half
+        }
     }
 
     private fun pickCasualties(army: Army, count: Int, random: Random): Army {

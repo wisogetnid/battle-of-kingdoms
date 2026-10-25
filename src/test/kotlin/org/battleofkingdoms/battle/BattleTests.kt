@@ -1,5 +1,9 @@
 package org.battleofkingdoms.battle
 
+import org.battleofkingdoms.cards.Artifact
+import org.battleofkingdoms.cards.Artifact.AMULET_OF_LUCK
+import org.battleofkingdoms.cards.Artifact.CROWN
+import org.battleofkingdoms.cards.Artifact.RESILIENT_BANNER
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.BOW
 import org.battleofkingdoms.cards.CreatureType.HORDE
@@ -182,6 +186,53 @@ class BattleTests {
         Assertions.assertEquals(result.army.size - expectedLosses, result.survivors.size)
     }
 
+    @ParameterizedTest(name = "{0} committed, won {1}, {2}: loses {3}")
+    @MethodSource("artifactLosses")
+    fun `the Resilient Banner rounds down and the Amulet of Luck saves one`(
+        committed: Int,
+        won: Boolean,
+        owned: Set<Artifact>,
+        expectedLosses: Int,
+    ) {
+        val opponent = if (won) Army.of(HORDE to 1) else Army.of(HORDE to committed + 1)
+        val commits = mapOf("anna" to Army.of(HORDE to committed), "ben" to opponent)
+
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to owned))
+
+        Assertions.assertEquals(if (won) "anna" else "ben", result.winner)
+        Assertions.assertEquals(expectedLosses, result.armies.getValue("anna").casualties.size)
+        Assertions.assertEquals(committed - expectedLosses, result.armies.getValue("anna").survivors.size)
+    }
+
+    @Test
+    fun `artifacts only protect their owner`() {
+        val commits = mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(HORDE to 4))
+
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("ben" to setOf(RESILIENT_BANNER, AMULET_OF_LUCK)))
+
+        Assertions.assertEquals(2, result.armies.getValue("anna").casualties.size) // ceil(3 / 2)
+        Assertions.assertEquals(1, result.armies.getValue("ben").casualties.size) // floor(4 / 2) - 1
+    }
+
+    @Test
+    fun `a player who sits out loses nothing, whatever they own`() {
+        val commits = mapOf("anna" to Army(), "ben" to Army.of(HORDE to 2), "cleo" to Army.of(HORDE to 1))
+        val everything = setOf(RESILIENT_BANNER, AMULET_OF_LUCK, CROWN)
+
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to everything))
+
+        Assertions.assertEquals(Army(), result.armies.getValue("anna").casualties)
+    }
+
+    @Test
+    fun `the Crown doesn't change casualties`() {
+        val commits = mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(HORDE to 4))
+
+        val result = Battle.resolve(commits, BONUSES, Random(SEED), mapOf("anna" to setOf(CROWN)))
+
+        Assertions.assertEquals(2, result.armies.getValue("anna").casualties.size)
+    }
+
     @ParameterizedTest(name = "seed {0}")
     @MethodSource("seeds")
     fun `casualties and survivors split the committed army`(seed: Long) {
@@ -259,6 +310,24 @@ class BattleTests {
             Arguments.of(mapOf("anna" to Army.of(HORDE to 3), "ben" to Army.of(HORDE to 3)), "anna", 2, "tie: everyone loses ceil"),
             Arguments.of(mapOf("anna" to Army.of(HORDE to 3), "ben" to Army()), "ben", 0, "empty army loses nothing"),
         )
+
+        /** The spec's artifact casualty table: committed, won, owned artifacts, losses. */
+        @JvmStatic
+        fun artifactLosses(): List<Arguments> {
+            val none = emptySet<Artifact>()
+            val banner = setOf(RESILIENT_BANNER)
+            val amulet = setOf(AMULET_OF_LUCK)
+            val both = setOf(RESILIENT_BANNER, AMULET_OF_LUCK)
+            return listOf(
+                Triple(1, false, listOf(1, 0, 0, 0)),
+                Triple(3, false, listOf(2, 1, 1, 0)),
+                Triple(3, true, listOf(1, 1, 0, 0)),
+                Triple(4, false, listOf(2, 2, 1, 1)),
+                Triple(5, false, listOf(3, 2, 2, 1)),
+            ).flatMap { (committed, won, losses) ->
+                listOf(none, banner, amulet, both).zip(losses) { owned, lost -> Arguments.of(committed, won, owned, lost) }
+            }
+        }
 
         @JvmStatic
         fun seeds() = (1L..10L).toList()
