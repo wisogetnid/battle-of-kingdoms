@@ -1,6 +1,7 @@
 package org.battleofkingdoms.game
 
 import org.battleofkingdoms.battle.Bonuses
+import org.battleofkingdoms.cards.Artifact
 
 data class GameConfig(
     val minPlayers: Int = 3,
@@ -17,6 +18,8 @@ data class GameConfig(
     val victoryPointsPerBattle: Int = 1,
     val victoryPointsToWin: Int = 3,
     val crownHorde: Int = 1,
+    /** The starting artifact stack. Empty until the claim route exists, so every win is an immediate VP. */
+    val artifacts: List<Artifact> = emptyList(),
 ) {
     val bonuses: Bonuses
         get() = Bonuses(

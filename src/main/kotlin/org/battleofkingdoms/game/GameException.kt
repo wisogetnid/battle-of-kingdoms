@@ -13,3 +13,5 @@ class UnknownGame(id: String) : GameException("No game $id")
 class UnknownPlayer(name: String) : GameException("No player $name in this game")
 
 class AlreadyActed(name: String) : GameException("$name has already acted this phase")
+
+class NotTheWinner(name: String) : GameException("$name didn't win the battle, so there is no prize to claim")

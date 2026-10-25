@@ -31,6 +31,7 @@ import org.battleofkingdoms.game.Action.UPGRADE
 import org.battleofkingdoms.game.Phase
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
+import org.battleofkingdoms.game.Phase.CLAIM
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
 import org.battleofkingdoms.server.PlayerView
@@ -191,6 +192,7 @@ private fun waitingFor(view: PlayerView): String = when (view.phase) {
     WAITING_FOR_PLAYERS -> "Waiting for more players to join. Refresh to check."
     BUILD_UP -> "You are ready. Waiting for the others to finish building up. Refresh to check."
     BATTLE -> "Army committed. Waiting for the others to commit. Refresh to check."
+    CLAIM -> "Waiting for the battle's winner to take a prize. Refresh to check."
     GAME_OVER -> "The game is over. ${view.winner} won."
 }
 
@@ -243,7 +245,7 @@ private fun signed(n: Int): String = if (n > 0) "+$n" else "$n"
 private fun actedLabel(phase: Phase, acted: Boolean): String? = when (phase) {
     BUILD_UP -> if (acted) "ready" else "still building up"
     BATTLE -> if (acted) "committed" else "still choosing an army"
-    WAITING_FOR_PLAYERS, GAME_OVER -> null
+    WAITING_FOR_PLAYERS, CLAIM, GAME_OVER -> null
 }
 
 /** `{WOOD=1, HORDE=3}` → "3 Horde, 1 Wood", in [handOrder]. */

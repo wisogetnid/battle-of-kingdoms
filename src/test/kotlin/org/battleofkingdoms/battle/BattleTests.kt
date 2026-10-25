@@ -156,16 +156,24 @@ class BattleTests {
     }
 
     @Test
-    fun `a paid battle gives its VP to the winner only`() {
-        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1), "cleo" to Army())).paid(3)
+    fun `a VP prize goes to the winner only`() {
+        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1), "cleo" to Army())).worth(3).awarded(Prize.VictoryPoint)
 
         Assertions.assertEquals(mapOf("anna" to 3, "ben" to 0, "cleo" to 0), result.armies.mapValues { it.value.vpGained })
         Assertions.assertEquals(3, result.pot)
     }
 
     @Test
-    fun `with no winner a paid battle gives nobody VP`() {
-        val result = resolve(mapOf("anna" to Army.of(HORDE to 2), "ben" to Army.of(HORDE to 2), "cleo" to Army())).paid(1)
+    fun `an artifact prize gives no VP`() {
+        val result = resolve(mapOf("anna" to Army.of(BOW to 2), "ben" to Army.of(HORDE to 1))).worth(1).awarded(Prize.Taken(CROWN))
+
+        Assertions.assertEquals(Prize.Taken(CROWN), result.prize)
+        Assertions.assertTrue(result.armies.values.all { it.vpGained == 0 })
+    }
+
+    @Test
+    fun `with no winner nobody gains VP`() {
+        val result = resolve(mapOf("anna" to Army.of(HORDE to 2), "ben" to Army.of(HORDE to 2), "cleo" to Army())).worth(1)
 
         Assertions.assertNull(result.winner)
         Assertions.assertTrue(result.armies.values.all { it.vpGained == 0 })

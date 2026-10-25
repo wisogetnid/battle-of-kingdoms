@@ -11,7 +11,7 @@ import kotlin.random.Random
  * of them fights one duel, and each player's score is the sum of their duel margins. Players
  * who committed nothing sit out with score 0. Pure: the only randomness is [Random], consumed
  * for casualties per player in the iteration order of `commits`, after all duels. Victory points
- * aren't the battle's business: the game pays the winner with [BattleResult.paid]. [artifacts]
+ * aren't the battle's business: the game awards the winner's prize with [BattleResult.awarded]. [artifacts]
  * holds what each player owns; only casualties depend on it.
  */
 object Battle {

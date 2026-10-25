@@ -1,5 +1,7 @@
 package org.battleofkingdoms.battle
 
+import org.battleofkingdoms.cards.Artifact
+
 /** One player's part in a battle; [army] is empty if they committed nothing. */
 data class ArmyResult(
     val army: Army,
@@ -24,16 +26,31 @@ data class Duel(
     }
 }
 
-/** The outcome of one battle, which is also its battle log entry; [pot] is the VP it was worth. */
+/** What a battle's winner took: the VP, or an artifact. */
+sealed interface Prize {
+    data object VictoryPoint : Prize
+
+    data class Taken(val artifact: Artifact) : Prize
+}
+
+/**
+ * The outcome of one battle, which is also its battle log entry: [pot] is the VP it was worth,
+ * [prize] what the winner took (`null` with no winner or while they're still choosing).
+ */
 data class BattleResult(
     val pot: Int = 0,
     val winner: String?,
     val armies: Map<String, ArmyResult>,
     val duels: List<Duel>,
+    val prize: Prize? = null,
 ) {
-    /** The battle was worth [pot] VP: the winner, if any, gains them; with no winner nobody does. */
-    fun paid(pot: Int): BattleResult = copy(
-        pot = pot,
-        armies = armies.mapValues { (name, army) -> if (name == winner) army.copy(vpGained = pot) else army },
+    fun worth(pot: Int): BattleResult = copy(pot = pot)
+
+    /** Records the winner's [prize]; only the VP counts towards their [ArmyResult.vpGained]. */
+    fun awarded(prize: Prize): BattleResult = copy(
+        prize = prize,
+        armies = armies.mapValues { (name, army) ->
+            if (name == winner && prize == Prize.VictoryPoint) army.copy(vpGained = pot) else army
+        },
     )
 }

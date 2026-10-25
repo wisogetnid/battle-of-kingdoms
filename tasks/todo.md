@@ -40,7 +40,7 @@ Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md)
 ### Checkpoint A — build green; every artifact effect has a unit test
 
 ## Phase 2 — The claim
-- [ ] **T4. Claim in the engine**
+- [x] **T4. Claim in the engine**
   - Acceptance: `GameConfig.artifacts` (interim default: empty); `Game.artifactStack` and `drawnArtifact`; a battle with a winner and a non-empty stack draws one artifact at random and enters `Phase.CLAIM`; `Game.claim(name, take)` — `ARTIFACT` moves it to the winner (no VP), `VICTORY_POINT` gives the VP and leaves the stack unchanged; `BattleResult.prize` records `VICTORY_POINT` or the artifact; an empty stack gives the VP with no CLAIM; game over only after a VP prize; `Action.CLAIM` only for the winner during CLAIM; `NotTheWinner` (409) for anyone else, `WrongPhase` outside CLAIM; `web/Pages.kt` gets plain `CLAIM` branches so it compiles
   - Verify: `mise run build`; new `ClaimTests` with a config holding all three artifacts
   - Files: `game/Game.kt`, `game/GameConfig.kt`, `game/GameException.kt`, `battle/BattleResult.kt`, `server/GameRoutes.kt` (status mapping), `web/Pages.kt` (compile only), `game/ClaimTests.kt` (new)

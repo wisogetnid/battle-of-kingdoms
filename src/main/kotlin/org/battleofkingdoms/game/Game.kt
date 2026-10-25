@@ -3,6 +3,8 @@ package org.battleofkingdoms.game
 import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.battle.Battle
 import org.battleofkingdoms.battle.BattleResult
+import org.battleofkingdoms.battle.Prize
+import org.battleofkingdoms.cards.Artifact
 import org.battleofkingdoms.cards.Artifact.CROWN
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.HORDE
@@ -10,14 +12,18 @@ import org.battleofkingdoms.cards.Hand
 import org.battleofkingdoms.cards.ResourceType
 import org.battleofkingdoms.game.Phase.BATTLE
 import org.battleofkingdoms.game.Phase.BUILD_UP
+import org.battleofkingdoms.game.Phase.CLAIM
 import org.battleofkingdoms.game.Phase.GAME_OVER
 import org.battleofkingdoms.game.Phase.WAITING_FOR_PLAYERS
 import org.battleofkingdoms.player.Player
 import kotlin.random.Random
 
-enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, GAME_OVER }
+enum class Phase { WAITING_FOR_PLAYERS, BUILD_UP, BATTLE, CLAIM, GAME_OVER }
 
-enum class Action { TRADE, UPGRADE, READY, COMMIT_ARMY }
+enum class Action { TRADE, UPGRADE, READY, COMMIT_ARMY, CLAIM }
+
+/** What a battle's winner chooses to take: the drawn artifact or the VP. */
+enum class Take { ARTIFACT, VICTORY_POINT }
 
 /**
  * Immutable game state; every action returns a new [Game] or throws a [GameException].
@@ -39,6 +45,8 @@ data class Game(
     val commits: Map<String, Army> = emptyMap(),
     val battleLog: List<BattleResult> = emptyList(),
     val winner: String? = null,
+    val artifactStack: Set<Artifact> = emptySet(),
+    val drawnArtifact: Artifact? = null,
 ) {
     fun join(name: String): Game = when {
         name.isBlank() -> throw RuleViolation("Player name must not be blank")
@@ -112,6 +120,21 @@ data class Game(
         }
     }
 
+    /** The battle's winner takes the drawn artifact or the VP; a declined artifact stays in the stack. */
+    fun claim(playerName: String, take: Take): Game {
+        player(playerName)
+        return when {
+            phase != CLAIM -> throw WrongPhase(phase)
+            playerName != battleLog.last().winner -> throw NotTheWinner(playerName)
+            else -> award(
+                when (take) {
+                    Take.ARTIFACT -> Prize.Taken(drawnArtifact!!)
+                    Take.VICTORY_POINT -> Prize.VictoryPoint
+                }
+            )
+        }
+    }
+
     fun player(name: String): Player = players[name] ?: throw UnknownPlayer(name)
 
     /** What [playerName] may do right now; [Action.TRADE] and [Action.UPGRADE] are listed by phase, not by what they can afford. */
@@ -121,6 +144,7 @@ data class Game(
             player.acted -> emptyList()
             phase == BUILD_UP -> listOf(Action.TRADE, Action.UPGRADE, Action.READY)
             phase == BATTLE -> listOf(Action.COMMIT_ARMY)
+            phase == CLAIM && playerName == battleLog.last().winner -> listOf(Action.CLAIM)
             else -> emptyList()
         }
     }
@@ -137,15 +161,41 @@ data class Game(
     private fun resolveBattle(): Game {
         val armies = players.keys.associateWith { commits.getValue(it) }
         val owned = players.mapValues { it.value.artifacts }
-        val result = Battle.resolve(armies, config.bonuses, random, owned).paid(pot)
+        val result = Battle.resolve(armies, config.bonuses, random, owned).worth(pot)
         val resolved = copy(
             players = players.mapValues { (name, player) -> afterBattle(player, commits.getValue(name), result) },
             commits = emptyMap(),
             battleLog = battleLog + result,
         )
-        return when (val champion = resolved.players.values.find { it.vp >= config.victoryPointsToWin }) {
-            null -> resolved.startTurn()
-            else -> resolved.copy(phase = GAME_OVER, winner = champion.name)
+        return when {
+            result.winner == null -> resolved.startTurn()
+            artifactStack.isEmpty() -> resolved.award(Prize.VictoryPoint)
+            else -> resolved.copy(phase = CLAIM, drawnArtifact = resolved.drawArtifact())
+        }
+    }
+
+    /** Uniformly from the stack, in [Artifact] order so the draw only depends on the seed. */
+    private fun drawArtifact(): Artifact {
+        val stack = Artifact.entries.filter { it in artifactStack }
+        return stack[random.nextInt(stack.size)]
+    }
+
+    /** Gives the last battle's winner their [prize]; the game ends once they reach the VP target. */
+    private fun award(prize: Prize): Game {
+        val entry = battleLog.last().awarded(prize)
+        val champion = player(entry.winner!!)
+        val rewarded = when (prize) {
+            Prize.VictoryPoint -> champion.copy(vp = champion.vp + pot)
+            is Prize.Taken -> champion.copy(artifacts = champion.artifacts + prize.artifact)
+        }
+        val awarded = updatePlayer(rewarded).copy(
+            battleLog = battleLog.dropLast(1) + entry,
+            artifactStack = if (prize is Prize.Taken) artifactStack - prize.artifact else artifactStack,
+            drawnArtifact = null,
+        )
+        return when {
+            rewarded.vp >= config.victoryPointsToWin -> awarded.copy(phase = GAME_OVER, winner = rewarded.name)
+            else -> awarded.startTurn()
         }
     }
 
@@ -153,11 +203,7 @@ data class Game(
         val armyResult = result.armies.getValue(player.name)
         val withoutArmy = committed.creatures.entries.fold(player.hand) { hand, (type, n) -> hand.remove(type, n) }
         val withSurvivors = armyResult.survivors.creatures.entries.fold(withoutArmy) { hand, (type, n) -> hand.add(type, n) }
-        return player.copy(
-            hand = withSurvivors,
-            vp = player.vp + armyResult.vpGained,
-            acted = false,
-        )
+        return player.copy(hand = withSurvivors, acted = false)
     }
 
     private fun updatePlayer(player: Player): Game = copy(players = players + (player.name to player))
@@ -207,7 +253,8 @@ data class Game(
 
     companion object {
         fun create(config: GameConfig, seed: Long, playerCount: Int, host: String): Game = when (playerCount) {
-            in config.minPlayers..config.maxPlayers -> Game(config, playerCount, Random(seed)).join(host)
+            in config.minPlayers..config.maxPlayers ->
+                Game(config, playerCount, Random(seed), artifactStack = config.artifacts.toSet()).join(host)
             else -> throw RuleViolation("A game needs ${config.minPlayers}–${config.maxPlayers} players, not $playerCount")
         }
     }

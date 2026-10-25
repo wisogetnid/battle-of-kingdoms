@@ -14,6 +14,7 @@ import org.battleofkingdoms.game.AlreadyActed
 import org.battleofkingdoms.game.DuplicatePlayer
 import org.battleofkingdoms.game.Game
 import org.battleofkingdoms.game.GameException
+import org.battleofkingdoms.game.NotTheWinner
 import org.battleofkingdoms.game.RuleViolation
 import org.battleofkingdoms.game.UnknownGame
 import org.battleofkingdoms.game.UnknownPlayer
@@ -104,6 +105,6 @@ private suspend fun RoutingContext.respondOrError(handle: suspend RoutingContext
 
 internal fun status(e: GameException): HttpStatusCode = when (e) {
     is RuleViolation -> HttpStatusCode.BadRequest
-    is WrongPhase, is AlreadyActed, is DuplicatePlayer -> HttpStatusCode.Conflict
+    is WrongPhase, is AlreadyActed, is DuplicatePlayer, is NotTheWinner -> HttpStatusCode.Conflict
     is UnknownGame, is UnknownPlayer -> HttpStatusCode.NotFound
 }
