@@ -38,3 +38,11 @@ tasks.test {
         events("passed", "skipped", "failed", "standardOut", "standardError")
     }
 }
+
+tasks.register<JavaExec>("simulate") {
+    description = "Plays seeded bot games and prints a balance report, e.g. --args=\"--games 5000 --seed 42\""
+    group = "application"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.battleofkingdoms.simulator.MainKt")
+    jvmArgs("-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8")
+}

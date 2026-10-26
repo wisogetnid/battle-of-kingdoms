@@ -16,3 +16,8 @@ run = "./gradlew test"
 [tasks.server]
 description = "Start the game server on http://localhost:8080"
 run = "./gradlew run"
+
+[tasks.simulate]
+description = "Play seeded bot games and print a balance report, e.g. `mise run simulate -- --games 5000 --seed 42`"
+# sh hands mise's trailing arguments to Gradle as one --args string
+run = '''sh -c './gradlew -q simulate --args="$*"' --'''
