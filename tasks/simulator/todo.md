@@ -11,7 +11,7 @@ Paths below are relative to `src/main/kotlin/org/battleofkingdoms/simulator/` an
   - Verify: `mise run test`; `SimulationTests` with test-only strategies: a never-commit strategy makes the game unfinished at turn 100; an illegal-move strategy throws `BotError` with id, seed and turn in the message; a recording strategy's views equal `PlayerView.of` for its seat, and a seat committing after another sees no trace of that commit; same seeds ⇒ equal records
   - Files: `Strategy.kt`, `Views.kt`, `Simulation.kt`, `SimulationTests.kt`
 
-- [ ] **S2. Build plans, tendencies, random and horde-rush**
+- [x] **S2. Build plans, tendencies, random and horde-rush**
   - Acceptance: `BuildPlan`, `Tendency` (cautious ⅓, balanced ½, aggressive all, rounded up, strongest first: tier 2, tier 1, Horde, ties in `CreatureType` order) and `PlannedStrategy` as in the spec; `oneArtifact(view)` = artifact while `me.artifacts` is empty, else VP; `RandomStrategy` (random affordable action, ready with 1-in-3 per step, random subset of the hand, coin-flip claim); `HordeRush` plan
   - Verify: `mise run test`; `TendencyTests`: shares on pools of 0, 1, 3, 7 units and the strongest-first order; `StrategyTests` parameterized over a list of strategies (here: `random`, `horde-rush` × 3): each plays 5 seeded games against `random` via `playGame` without throwing
   - Files: `BuildPlan.kt`, `strategies/RandomStrategy.kt`, `strategies/HordeRush.kt`, `TendencyTests.kt`, `StrategyTests.kt`
