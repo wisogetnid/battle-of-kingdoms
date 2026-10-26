@@ -6,7 +6,7 @@ Paths below are relative to `src/main/kotlin/org/battleofkingdoms/simulator/` an
 `src/test/kotlin/org/battleofkingdoms/simulator/`.
 
 ## Phase 1 — Engine to report
-- [ ] **S1. Contract and one-game loop**
+- [x] **S1. Contract and one-game loop**
   - Acceptance: `Strategy` and `BuildUpMove` as in the spec; `Views.kt` extension functions on `PlayerView` (`resources(type)`, `count(creature)`, `army()` = whole hand as an `Army`); `playGame(lineup: List<Pair<String, Strategy>>, gameSeed, engineSeed, botSeeds)` creates the game with `GameConfig()`, joins seats in lineup order (`<id>-<seat>` names), runs build-up / battle / claim until `GAME_OVER` or 100 turns, and returns a `GameRecord`; each strategy call gets a fresh `PlayerView.of(UUID(gameSeed, 0), game, seat)` and its own `Random(botSeed)`; a `GameException` from a move, or 50 build-up moves without `Ready`, throws `BotError` naming strategy id, game seed, turn and move
   - Verify: `mise run test`; `SimulationTests` with test-only strategies: a never-commit strategy makes the game unfinished at turn 100; an illegal-move strategy throws `BotError` with id, seed and turn in the message; a recording strategy's views equal `PlayerView.of` for its seat, and a seat committing after another sees no trace of that commit; same seeds ⇒ equal records
   - Files: `Strategy.kt`, `Views.kt`, `Simulation.kt`, `SimulationTests.kt`
