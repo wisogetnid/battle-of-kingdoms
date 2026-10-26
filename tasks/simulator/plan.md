@@ -22,10 +22,9 @@ from `server/Dtos.kt` is used as is.
    becomes a `BotError(strategyId, gameSeed, turn, move)` that aborts the run.
 4. **Seeding as specified, in one place.** `Seeds.kt` holds the stream derivation:
    `Random(runSeed)` yields game seeds, and `Random(gameSeed)` yields the table seed, the
-   engine seed and one bot seed per seat, in that order. Bot seeds are drawn for the
-   maximum player count, so the number of seats doesn't shift the other seeds. The table
-   draw walks the registry in its declared order, so tables are stable as long as the
-   registry is.
+   engine seed and one bot seed per seat, in that order. Tables always have 4 seats and
+   never seat one build plan twice (mirror plans tie forever). The table draw walks the
+   registry in its declared order, so tables are stable as long as the registry is.
 5. **Plan × tendency is a composition, not inheritance.** `BuildPlan` +
    `Tendency` → `PlannedStrategy : Strategy`. `RandomStrategy` implements `Strategy`
    directly. The registry is a `Map<String, Strategy>` built from a plan list, so a new
@@ -69,7 +68,10 @@ the prefix, reproduction and table-stability properties.
 with turns per player count), `Main` (`--games`, `--seed`, git SHA with `(dirty)`,
 `unknown` fallback), the Gradle `JavaExec` task and the mise task.
 
-**Checkpoint A:** `mise run build` green; `mise run simulate` prints a full report for the
+**Checkpoint A (passed after a change):** the first report had 16 % unfinished games,
+from two copies of a `horde-rush` tendency tying each other at 3–5 player tables. The
+developer chose 4-player tables only and at most one seat per build plan; after that,
+0 of 2,000 games ended unfinished. Original criteria: `mise run build` green; `mise run simulate` prints a full report for the
 7 strategies registered so far, twice with identical output; `mise run simulate -- --games
 200 --seed 7` passes its arguments through. The developer reads one report for sense.
 

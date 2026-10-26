@@ -23,10 +23,15 @@ small class plus one registry line, and it comes in all three commit tendencies.
 - As the developer, I add a strategy by writing one class and registering it, then rerun.
 
 ## Game setup
-- **Tables:** each game draws a player count uniformly from `minPlayers..maxPlayers` of
-  `GameConfig()` (3–5 today), then fills each seat with a strategy drawn uniformly from the
-  registry. **A table where every seat has the same strategy is redrawn.** With fewer than
-  two registered strategies, the simulator refuses to run.
+- **Tables:** every game has **4 players**. Each seat gets a strategy drawn uniformly from
+  the registry, and a table is redrawn when
+  - every seat has the same strategy, or
+  - **two seats share a build plan**, whatever their tendencies. Two copies of a plan build
+    alike, can tie each other in every battle and stall the game, which wouldn't happen
+    between real players. `random` isn't a plan and may sit more than once.
+
+  The simulator refuses to run with fewer than two strategies, or when the registry can't
+  fill a table under these rules.
 - **Config:** the default `GameConfig()`, artifacts on, exactly as in normal play.
 - **Seats** are named after their strategy and seat number (`horde-rush-aggressive-1`, `hoarder-cautious-2`) and
   join in seat order, so join order, and with it the engine's resolution order, is random per table.
@@ -36,8 +41,7 @@ small class plus one registry line, and it comes in all three commit tendencies.
   run seed ──Random(runSeed)──▶ game seed 0, 1, 2, …                (nextLong() per game)
   game seed ──Random(gameSeed)──▶ table seed · engine seed · bot seed per seat
   ```
-  - The **table** stream draws the player count and the strategies, re-drawing a table
-    where every seat is the same.
+  - The **table** stream draws the strategies, re-drawing tables the rules above forbid.
   - The **engine** seed goes to `Game.create`. It decides income and resource draws,
     casualties, artifact draws and transmutes.
   - Each **bot** gets its own `Random`, so one bot's choices never shift another bot's dice.
@@ -45,7 +49,7 @@ small class plus one registry line, and it comes in all three commit tendencies.
   - Same code + same seed + same game count ⇒ byte-identical report.
   - `--games 4000` replays the 2,000 games of the default run and adds 2,000 more.
   - Different run seeds give unrelated games (seeds 1 and 2 don't share games).
-  - Tables depend only on the seed and the registry, not on the rules. After a rule
+  - Tables depend only on the seed and the registry (ids and plans), not on the rules. After a rule
     change, the same seed seats the **same line-ups**, so the comparison isn't skewed by
     who happened to sit together. The dice inside a game still diverge once a decision
     changes, because the engine draws randomness as actions happen. That can't be fixed
@@ -187,8 +191,8 @@ Printed to stdout as plain text, for example:
 
 ```
 Battle of Kingdoms simulation
-commit 32660fd (dirty) · seed 1 · 2000 games · 3–5 players · artifacts on
-finished 1994 · unfinished 6 · avg 9.4 turns (3p 8.1 · 4p 9.6 · 5p 10.5)
+commit 32660fd (dirty) · seed 1 · 2000 games · 4 players · artifacts on
+finished 1994 · unfinished 6 · avg 9.4 turns
 
 strategy                 seats   wins   win %   fair %   ratio
 horde-rush-aggressive     512     190   37.1     24.9    1.49  ◀
@@ -209,13 +213,14 @@ HORN_OF_FRENZY      61 %          48 %
 ```
 
 - **win %** = wins ÷ seats. **fair %** = average over the strategy's seats of
-  1 ÷ that table's player count (what it would win if all strategies were equal).
+  1 ÷ that table's player count (what it would win if all strategies were equal; 25 % at
+  4 players).
   **ratio** = win % ÷ fair %. The plan and tendency tables add up the seats of their
   strategies (`random` appears only in the strategy table). Rows are sorted by ratio. A `◀` marks ratio ≥ 1.3 or ≤ 0.7.
   This is a reading aid, not a pass/fail.
 - **taken in** = share of finished games where someone took the artifact.
   **winner held it** = among those games, how often the game's winner owned it at the end.
-  With one owner per game, a neutral artifact sits near 1 ÷ average player count.
+  With one owner per game, a neutral artifact sits near 1 ÷ 4.
 - **Commit:** `git rev-parse --short HEAD`, plus `(dirty)` when `git status --porcelain`
   is non-empty. It prints `unknown` when git isn't available, and the run still goes on.
 
@@ -276,7 +281,8 @@ object HordeRush : BuildPlan {
 JUnit 5 in `src/test/kotlin/org/battleofkingdoms/simulator/`, run by `mise run test`.
 - **Seeding:** a 20-game run is the prefix of a 40-game run with the same seed;
   `Simulation.play(gameSeed)` reproduces a game from the run; changing a strategy's
-  behaviour leaves the drawn tables unchanged.
+  behaviour (same id and plan) leaves the drawn tables unchanged.
+- **Tables:** always 4 seats, never all the same strategy, never one build plan twice.
 - **Simulation:** a small run (e.g. 50 games) finishes, is deterministic (same seed ⇒
   identical results), never seats one strategy at every seat, and stops at the turn cap
   (tested with a strategy that never commits).
@@ -305,7 +311,8 @@ JUnit 5 in `src/test/kotlin/org/battleofkingdoms/simulator/`, run by `mise run t
 1. `mise run simulate` prints a report in the format above; with defaults it finishes in
    under 30 s on the developer's machine.
 2. Running it twice with the same seed on the same commit produces byte-identical output.
-3. No simulated table seats the same strategy at every seat.
+3. Every simulated table has 4 seats, never the same strategy at every seat and never one
+   build plan twice.
 4. The header shows the short SHA and `(dirty)` for uncommitted changes.
 5. All 16 strategies (5 plans × 3 tendencies + `random`) are registered and each one plays
    full games without errors.

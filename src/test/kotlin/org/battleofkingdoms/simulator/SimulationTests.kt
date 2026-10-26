@@ -131,25 +131,38 @@ class SimulationTests {
     }
 
     @Test
-    fun `no table seats the same strategy at every seat, and every player count comes up`() {
+    fun `every table has four seats, never all the same strategy`() {
         val tables = (1L..1000L).map { Simulation(mapOf("a" to Passive, "b" to AllIn)).table(it) }
 
+        assertTrue(tables.all { it.size == PLAYERS })
         assertTrue(tables.none { it.toSet().size == 1 })
-        assertEquals(setOf(3, 4, 5), tables.map { it.size }.toSet())
     }
 
     @Test
-    fun `the tables of a run depend on the strategy ids, not on how the strategies play`() {
+    fun `no table seats a build plan twice, whatever the tendency`() {
+        val tables = (1L..1000L).map { Simulation().table(it) }
+        val hordeRushSeats = tables.map { table -> table.count { it.startsWith("horde-rush") } }
+
+        assertTrue(hordeRushSeats.all { it <= 1 })
+        assertTrue(hordeRushSeats.any { it == 1 })
+    }
+
+    @Test
+    fun `the tables of a run depend on the strategy ids and plans, not on how the strategies play`() {
         val tables = { strategies: Map<String, Strategy> ->
             Simulation(strategies).run(runSeed = 9, games = 30).map { record -> record.seats.map { it.strategyId } }
         }
+        val playingDifferently = registry.mapValues { (_, strategy) ->
+            if (strategy is PlannedStrategy) PlannedStrategy(strategy.plan, Tendency.CAUTIOUS) else AllIn
+        }
 
-        assertEquals(tables(registry), tables(registry.mapValues { AllIn }))
+        assertEquals(tables(registry), tables(playingDifferently))
     }
 
     @Test
-    fun `a simulation needs at least two strategies`() {
+    fun `a simulation needs at least two strategies, and enough plans to fill a table`() {
         assertFailsWith<IllegalArgumentException> { Simulation(mapOf("passive" to Passive)) }
+        assertFailsWith<IllegalArgumentException> { Simulation(registry - "random") }
     }
 
     private fun play(vararg lineup: Pair<String, Strategy>): GameRecord =

@@ -35,12 +35,19 @@ data class GameRecord(
     val playerCount: Int get() = seats.size
 }
 
+/** Every simulated table has this many players. */
+const val PLAYERS = 4
+
 /** Plays seeded games between random tables of [strategies]; see [Seeds] for where every seed comes from. */
 class Simulation(private val strategies: Map<String, Strategy> = registry) {
     private val ids = strategies.keys.toList()
+    private val planOf: Map<String, String?> = strategies.mapValues { (it.value as? PlannedStrategy)?.plan?.id }
 
     init {
         require(ids.size >= 2) { "A simulation needs at least two strategies, not ${ids.size}" }
+        require(planOf.values.any { it == null } || planOf.values.toSet().size >= PLAYERS) {
+            "Without a strategy outside the build plans, a table needs $PLAYERS different plans"
+        }
     }
 
     fun run(runSeed: Long, games: Int): List<GameRecord> = Seeds.games(runSeed, games).map(::play)
@@ -53,14 +60,18 @@ class Simulation(private val strategies: Map<String, Strategy> = registry) {
     }
 
     /**
-     * A player count from the config's range and a strategy id per seat, uniformly; a table
-     * where every seat has the same strategy is drawn again. Depends only on the seed and the ids.
+     * A strategy id per seat, uniformly. A table is drawn again when every seat has the same
+     * strategy, or when two seats share a build plan: two copies of a plan build alike and
+     * can tie each other forever. Depends only on the seed, the ids and their plans.
      */
     fun table(tableSeed: Long): List<String> {
         val random = Random(tableSeed)
-        val config = GameConfig()
-        val players = random.nextInt(config.minPlayers, config.maxPlayers + 1)
-        return generateSequence { List(players) { ids[random.nextInt(ids.size)] } }.first { it.toSet().size > 1 }
+        return generateSequence { List(PLAYERS) { ids[random.nextInt(ids.size)] } }.first(::valid)
+    }
+
+    private fun valid(table: List<String>): Boolean {
+        val plans = table.mapNotNull { planOf[it] }
+        return table.toSet().size > 1 && plans.size == plans.toSet().size
     }
 }
 

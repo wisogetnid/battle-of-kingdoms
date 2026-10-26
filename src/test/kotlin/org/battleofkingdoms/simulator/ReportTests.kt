@@ -88,13 +88,13 @@ class ReportTests {
     }
 
     @Test
-    fun `the report shows the run, the game counts and turns per player count`() {
+    fun `the report shows the run, the game counts and the average turns of finished games`() {
         val report = Report.render(RECORDS, RunInfo("abc1234 (dirty)", seed = 7, games = 3), STRATEGIES)
         val lines = report.lines()
 
         assertEquals("Battle of Kingdoms simulation", lines[0])
-        assertEquals("commit abc1234 (dirty) · seed 7 · 3 games · 3–5 players · artifacts on", lines[1])
-        assertEquals("finished 2 · unfinished 1 · avg 6.0 turns (3p 5.0 · 4p 7.0)", lines[2])
+        assertEquals("commit abc1234 (dirty) · seed 7 · 3 games · 4 players · artifacts on", lines[1])
+        assertEquals("finished 2 · unfinished 1 · avg 6.0 turns", lines[2])
     }
 
     @Test

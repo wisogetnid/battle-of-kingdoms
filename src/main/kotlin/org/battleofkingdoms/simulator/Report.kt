@@ -53,10 +53,8 @@ object Report {
         val config = GameConfig()
         val artifacts = if (config.artifacts.isEmpty()) "artifacts off" else "artifacts on"
         appendLine("Battle of Kingdoms simulation")
-        appendLine("commit ${info.commit} · seed ${info.seed} · ${info.games} games · ${config.minPlayers}–${config.maxPlayers} players · $artifacts")
-        val byPlayers = finished.groupBy { it.playerCount }.toSortedMap()
-            .map { (players, games) -> "${players}p ${average(games)}" }
-        val turns = if (finished.isEmpty()) "no finished games" else "avg ${average(finished)} turns (${byPlayers.joinToString(" · ")})"
+        appendLine("commit ${info.commit} · seed ${info.seed} · ${info.games} games · $PLAYERS players · $artifacts")
+        val turns = if (finished.isEmpty()) "no finished games" else "avg ${average(finished)} turns"
         appendLine("finished ${finished.size} · unfinished ${records.size - finished.size} · $turns")
     }
 

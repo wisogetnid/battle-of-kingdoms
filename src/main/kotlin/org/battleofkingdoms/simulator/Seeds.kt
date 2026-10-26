@@ -1,6 +1,5 @@
 package org.battleofkingdoms.simulator
 
-import org.battleofkingdoms.game.GameConfig
 import kotlin.random.Random
 
 /**
@@ -14,13 +13,12 @@ object Seeds {
         return List(count) { random.nextLong() }
     }
 
-    /** Bot seeds are drawn for the largest table, so the player count never shifts the others. */
     fun of(gameSeed: Long): GameSeeds {
         val random = Random(gameSeed)
         return GameSeeds(
             table = random.nextLong(),
             engine = random.nextLong(),
-            bots = List(GameConfig().maxPlayers) { random.nextLong() },
+            bots = List(PLAYERS) { random.nextLong() },
         )
     }
 }

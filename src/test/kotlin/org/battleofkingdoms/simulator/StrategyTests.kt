@@ -13,10 +13,10 @@ class StrategyTests {
     fun `plays full seeded games against random without errors`(id: String, strategy: Strategy) {
         (1L..5L).forEach { seed ->
             playGame(
-                listOf(id to strategy, "random" to RandomStrategy, "random" to RandomStrategy),
+                listOf(id to strategy) + List(PLAYERS - 1) { "random" to RandomStrategy },
                 gameSeed = seed,
                 engineSeed = seed * 31,
-                botSeeds = listOf(seed, seed + 1, seed + 2),
+                botSeeds = List(PLAYERS) { seed + it },
             )
         }
     }
