@@ -29,7 +29,7 @@ Paths below are relative to `src/main/kotlin/org/battleofkingdoms/simulator/` an
 **Checkpoint A (passed):** 4-player tables only, at most one seat per build plan (developer's call after 16 % unfinished games); 0 unfinished in the default run. Build green; a full report for 7 strategies, reproducible, arguments passed through; the developer reads one report. Unfinished games under 5 %, or raised with the developer.
 
 ## Phase 2 — The full strategy set
-- [ ] **S5. `mono-line` and `tier-1-focus`**
+- [x] **S5. `mono-line` and `tier-1-focus`**
   - Acceptance: `MonoLine(Line.BOW)`: upgrade Horde → Bow → Warbow whenever affordable (tier 2 first), trade every non-wood resource for Horde, whole army as pool, `oneArtifact`; `TierOneFocus`: upgrade every Horde it can into any tier-1 unit (from `affordableUpgrades`), never tier 2, never trades, whole army as pool, `oneArtifact`; both registered
   - Verify: `mise run test` (registry-wide `StrategyTests` cover them); a unit test per plan on a hand-built `PlayerView`: `MonoLine` never upgrades outside the Bow line, `TierOneFocus` never picks a tier-2 upgrade
   - Files: `strategies/MonoLine.kt`, `strategies/TierOneFocus.kt`, `Strategies.kt`, `StrategyTests.kt`
