@@ -35,6 +35,35 @@ data class GameRecord(
     val playerCount: Int get() = seats.size
 }
 
+/** Plays seeded games between random tables of [strategies]; see [Seeds] for where every seed comes from. */
+class Simulation(private val strategies: Map<String, Strategy> = registry) {
+    private val ids = strategies.keys.toList()
+
+    init {
+        require(ids.size >= 2) { "A simulation needs at least two strategies, not ${ids.size}" }
+    }
+
+    fun run(runSeed: Long, games: Int): List<GameRecord> = Seeds.games(runSeed, games).map(::play)
+
+    /** Replays exactly the game [gameSeed] stands for in any run. */
+    fun play(gameSeed: Long): GameRecord {
+        val seeds = Seeds.of(gameSeed)
+        val lineup = table(seeds.table).map { it to strategies.getValue(it) }
+        return playGame(lineup, gameSeed, seeds.engine, seeds.bots)
+    }
+
+    /**
+     * A player count from the config's range and a strategy id per seat, uniformly; a table
+     * where every seat has the same strategy is drawn again. Depends only on the seed and the ids.
+     */
+    fun table(tableSeed: Long): List<String> {
+        val random = Random(tableSeed)
+        val config = GameConfig()
+        val players = random.nextInt(config.minPlayers, config.maxPlayers + 1)
+        return generateSequence { List(players) { ids[random.nextInt(ids.size)] } }.first { it.toSet().size > 1 }
+    }
+}
+
 /** A strategy broke the rules: a bug in the bot, so the run stops. */
 class BotError(message: String, cause: Throwable) : RuntimeException(message, cause)
 

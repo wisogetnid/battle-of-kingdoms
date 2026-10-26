@@ -16,7 +16,7 @@ Paths below are relative to `src/main/kotlin/org/battleofkingdoms/simulator/` an
   - Verify: `mise run test`; `TendencyTests`: shares on pools of 0, 1, 3, 7 units and the strongest-first order; `StrategyTests` parameterized over a list of strategies (here: `random`, `horde-rush` × 3): each plays 5 seeded games against `random` via `playGame` without throwing
   - Files: `BuildPlan.kt`, `strategies/RandomStrategy.kt`, `strategies/HordeRush.kt`, `TendencyTests.kt`, `StrategyTests.kt`
 
-- [ ] **S3. Seeding, tables, registry and runs**
+- [x] **S3. Seeding, tables, registry and runs**
   - Acceptance: `Seeds.kt` derives game seeds from `Random(runSeed)` and table / engine / bot seeds (always 5 bot seeds) from `Random(gameSeed)`; the table draw takes the player count from `GameConfig().minPlayers..maxPlayers` and seats from the registry in declared order, redrawing all-same tables; fewer than two strategies is an error; `Strategies.kt` registers `random` plus `horde-rush` × 3 tendencies as in the spec's registry snippet; `Simulation.run(runSeed, games): List<GameRecord>` and `Simulation.play(gameSeed): GameRecord`; `StrategyTests` switches to the registry
   - Verify: `mise run test`; tests: a 20-game run equals the first 20 records of a 40-game run; `play(record.gameSeed)` equals each record of a run; 1,000 drawn tables contain no all-same table; the drawn tables of a run don't change when a strategy's behaviour does (registry with the same ids, different strategies)
   - Files: `Seeds.kt`, `Simulation.kt`, `Strategies.kt`, `SimulationTests.kt`, `StrategyTests.kt`

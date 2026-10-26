@@ -109,6 +109,49 @@ class SimulationTests {
         assertEquals(play(*lineup), play(*lineup))
     }
 
+    @Test
+    fun `a longer run with the same seed replays the shorter one first`() {
+        val simulation = Simulation()
+
+        assertEquals(simulation.run(runSeed = 3, games = 20), simulation.run(runSeed = 3, games = 40).take(20))
+    }
+
+    @Test
+    fun `any game of a run can be replayed from its game seed`() {
+        val simulation = Simulation()
+
+        simulation.run(runSeed = 5, games = 10).forEach { assertEquals(it, simulation.play(it.gameSeed)) }
+    }
+
+    @Test
+    fun `different run seeds share no games`() {
+        val seeds = { runSeed: Long -> Seeds.games(runSeed, 2000).toSet() }
+
+        assertTrue((seeds(1) intersect seeds(2)).isEmpty())
+    }
+
+    @Test
+    fun `no table seats the same strategy at every seat, and every player count comes up`() {
+        val tables = (1L..1000L).map { Simulation(mapOf("a" to Passive, "b" to AllIn)).table(it) }
+
+        assertTrue(tables.none { it.toSet().size == 1 })
+        assertEquals(setOf(3, 4, 5), tables.map { it.size }.toSet())
+    }
+
+    @Test
+    fun `the tables of a run depend on the strategy ids, not on how the strategies play`() {
+        val tables = { strategies: Map<String, Strategy> ->
+            Simulation(strategies).run(runSeed = 9, games = 30).map { record -> record.seats.map { it.strategyId } }
+        }
+
+        assertEquals(tables(registry), tables(registry.mapValues { AllIn }))
+    }
+
+    @Test
+    fun `a simulation needs at least two strategies`() {
+        assertFailsWith<IllegalArgumentException> { Simulation(mapOf("passive" to Passive)) }
+    }
+
     private fun play(vararg lineup: Pair<String, Strategy>): GameRecord =
         playGame(lineup.toList(), GAME_SEED, engineSeed = 42L, botSeeds = BOT_SEEDS)
 }
