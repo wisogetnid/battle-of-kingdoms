@@ -1,21 +1,29 @@
 package org.battleofkingdoms.simulator
 
+import org.battleofkingdoms.battle.Army
 import org.battleofkingdoms.cards.Artifact
+import org.battleofkingdoms.cards.Artifact.HORN_OF_FRENZY
+import org.battleofkingdoms.cards.Artifact.TRANSMUTER_STONE
 import org.battleofkingdoms.cards.CreatureType
 import org.battleofkingdoms.cards.CreatureType.BOW
+import org.battleofkingdoms.cards.CreatureType.HORDE
 import org.battleofkingdoms.cards.CreatureType.KNIGHT
 import org.battleofkingdoms.cards.CreatureType.MAGE
 import org.battleofkingdoms.cards.CreatureType.SWORD
 import org.battleofkingdoms.cards.CreatureType.WARBOW
 import org.battleofkingdoms.cards.Line
+import org.battleofkingdoms.cards.ResourceType.ESSENCE
 import org.battleofkingdoms.cards.ResourceType.IRON
 import org.battleofkingdoms.game.Action
 import org.battleofkingdoms.game.Phase
+import org.battleofkingdoms.game.Take
 import org.battleofkingdoms.server.MyView
 import org.battleofkingdoms.server.PlayerView
+import org.battleofkingdoms.simulator.strategies.Hoarder
 import org.battleofkingdoms.simulator.strategies.MonoLine
 import org.battleofkingdoms.simulator.strategies.RandomStrategy
 import org.battleofkingdoms.simulator.strategies.TierOneFocus
+import org.battleofkingdoms.simulator.strategies.TierTwoFocus
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -82,6 +90,32 @@ class StrategyTests {
         assertEquals(setOf(BOW, MAGE), picks.toSet())
         assertTrue(picks.none { it.tier == 2 })
         assertEquals(BuildUpMove.Ready, move(listOf(KNIGHT), 0))
+    }
+
+    @Test
+    fun `tier-2-focus climbs to tier 2 first and only sends its tier-2 units`() {
+        val hand = mapOf("HORDE" to 2, "BOW" to 1, "WARBOW" to 1, "KNIGHT" to 2, "WOOD" to 1, "IRON" to 1)
+        val view = buildUpView(hand, listOf(SWORD, BOW, WARBOW))
+
+        assertEquals(BuildUpMove.Upgrade(WARBOW), TierTwoFocus.buildUp(view, Random(0)))
+        assertEquals(Army.of(WARBOW to 1, KNIGHT to 2), TierTwoFocus.commitPool(view))
+        assertEquals(Army(), TierTwoFocus.commitPool(buildUpView(mapOf("HORDE" to 3, "BOW" to 1))))
+    }
+
+    @Test
+    fun `hoarder takes every artifact, even holding others`() {
+        assertEquals(Take.ARTIFACT, Hoarder.claim(buildUpView(emptyMap(), artifacts = listOf(HORN_OF_FRENZY, TRANSMUTER_STONE)), Random(0)))
+    }
+
+    @Test
+    fun `hoarder upgrades first and transmutes only with the Stone and nothing left to upgrade`() {
+        val hand = mapOf("HORDE" to 1, "ESSENCE" to 1)
+        val withStone = listOf(Action.TRADE, Action.UPGRADE, Action.TRANSMUTE, Action.READY)
+
+        assertEquals(BuildUpMove.Upgrade(MAGE), Hoarder.buildUp(buildUpView(hand, listOf(MAGE), withStone), Random(0)))
+        assertEquals(BuildUpMove.Transmute(ESSENCE), Hoarder.buildUp(buildUpView(hand, emptyList(), withStone), Random(0)))
+        assertEquals(BuildUpMove.Ready, Hoarder.buildUp(buildUpView(hand, emptyList()), Random(0)))
+        assertEquals(BuildUpMove.Ready, Hoarder.buildUp(buildUpView(mapOf(HORDE.name to 1), emptyList(), withStone), Random(0)))
     }
 
     companion object {

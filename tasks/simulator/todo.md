@@ -34,7 +34,7 @@ Paths below are relative to `src/main/kotlin/org/battleofkingdoms/simulator/` an
   - Verify: `mise run test` (registry-wide `StrategyTests` cover them); a unit test per plan on a hand-built `PlayerView`: `MonoLine` never upgrades outside the Bow line, `TierOneFocus` never picks a tier-2 upgrade
   - Files: `strategies/MonoLine.kt`, `strategies/TierOneFocus.kt`, `Strategies.kt`, `StrategyTests.kt`
 
-- [ ] **S6. `tier-2-focus` and `hoarder`**
+- [x] **S6. `tier-2-focus` and `hoarder`**
   - Acceptance: `TierTwoFocus`: tier-2 upgrades first, then tier-1, never trades, pool = its tier-2 units only, `oneArtifact`; `Hoarder`: upgrades anything affordable, tier 2 first, transmutes a resource no affordable upgrade uses when it owns the Stone (once per turn, as the view allows), never trades, whole army as pool, always takes the artifact; both registered (16 strategies)
   - Verify: `mise run test`; unit tests on hand-built views: `TierTwoFocus` pool excludes tier-1 and Horde; `Hoarder` claims the artifact even when it holds others, transmutes only with the Stone and only an unusable resource
   - Files: `strategies/TierTwoFocus.kt`, `strategies/Hoarder.kt`, `Strategies.kt`, `StrategyTests.kt`

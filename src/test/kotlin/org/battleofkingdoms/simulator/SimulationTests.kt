@@ -162,7 +162,8 @@ class SimulationTests {
     @Test
     fun `a simulation needs at least two strategies, and enough plans to fill a table`() {
         assertFailsWith<IllegalArgumentException> { Simulation(mapOf("passive" to Passive)) }
-        assertFailsWith<IllegalArgumentException> { Simulation(registry - "random") }
+        val threePlans = registry.filterKeys { id -> listOf("horde-rush", "mono-line", "hoarder").any { id.startsWith(it) } }
+        assertFailsWith<IllegalArgumentException> { Simulation(threePlans) }
     }
 
     private fun play(vararg lineup: Pair<String, Strategy>): GameRecord =
